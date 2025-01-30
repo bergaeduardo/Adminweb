@@ -96,3 +96,119 @@ def cerrar_pedido(talon_pedido,pedido):
         sql = '''EXEC RO_ANULAR_PEDIDOS ''' + talon_pedido + ",'" + pedido + "'"
         # print(sql)
         cursor.execute(sql) # Guarda los cambios en la base de datos
+
+
+# --- Categorias ---
+def obtener_categorias():
+    with connections['mi_db_2'].cursor() as cursor:
+        cursor.execute("SELECT id_Categoria_VtxAr, nombre, codigo, PalabrasClave FROM EB_Categoria_VtxAr")
+        return cursor.fetchall()
+def crear_categoria(nombre, codigo, palabras_clave):
+    with connections['mi_db_2'].cursor() as cursor:
+        sql = "INSERT INTO EB_Categoria_VtxAr (nombre, codigo, PalabrasClave) VALUES (%s, %s, %s)"
+        cursor.execute(sql, [nombre, codigo, palabras_clave])
+
+def obtener_categoria(id_categoria):
+    with connections['mi_db_2'].cursor() as cursor:
+         sql = "SELECT id_Categoria_VtxAr, nombre, codigo, PalabrasClave FROM EB_Categoria_VtxAr WHERE id_Categoria_VtxAr = %s"
+         cursor.execute(sql, [id_categoria])
+         return cursor.fetchone()
+
+def editar_categoria(id_categoria, nombre, codigo, palabras_clave):
+    with connections['mi_db_2'].cursor() as cursor:
+        sql = "UPDATE EB_Categoria_VtxAr SET nombre = %s, codigo = %s, PalabrasClave = %s WHERE id_Categoria_VtxAr = %s"
+        cursor.execute(sql, [nombre, codigo, palabras_clave, id_categoria])
+def eliminar_categoria(id_categoria):
+    with connections['mi_db_2'].cursor() as cursor:
+        sql = "DELETE FROM EB_Categoria_VtxAr WHERE id_Categoria_VtxAr = %s"
+        cursor.execute(sql, [id_categoria])
+
+
+# --- Subcategorias ---
+def obtener_subcategorias():
+    with connections['mi_db_2'].cursor() as cursor:
+        sql = """
+            SELECT 
+                sub.id_subCat_VtxAr, sub.codigo, sub.nombre, sub.Keywords, 
+                cat.nombre as categoria_nombre,st.DESC_CATEGORIA as categoria_tango_nombre
+            FROM EB_subCat_VtxAr sub
+             LEFT JOIN EB_Categoria_VtxAr cat ON sub.id_categoria_VtxAr = cat.id_Categoria_VtxAr
+             LEFT JOIN SJ_CATEGORIAS st ON sub.id_categoria_Tango = st.ID
+
+        """
+        cursor.execute(sql)
+        return cursor.fetchall()
+
+
+def crear_subcategoria(codigo, nombre, keywords, id_categoria_vtxar, id_categoria_tango):
+        with connections['mi_db_2'].cursor() as cursor:
+            sql = """INSERT INTO EB_subCat_VtxAr (codigo, nombre, Keywords, id_categoria_VtxAr, id_categoria_Tango)
+                    VALUES (%s, %s, %s, %s, %s)"""
+            cursor.execute(sql, [codigo, nombre, keywords, id_categoria_vtxar, id_categoria_tango])
+
+def obtener_subcategoria(id_subcategoria):
+    with connections['mi_db_2'].cursor() as cursor:
+         sql = "SELECT id_subCat_VtxAr, codigo, nombre, Keywords, id_categoria_VtxAr, id_categoria_Tango FROM EB_subCat_VtxAr WHERE id_subCat_VtxAr = %s"
+         cursor.execute(sql, [id_subcategoria])
+         return cursor.fetchone()
+def editar_subcategoria(id_subcategoria, codigo, nombre, keywords, id_categoria_vtxar, id_categoria_tango):
+     with connections['mi_db_2'].cursor() as cursor:
+          sql = """UPDATE EB_subCat_VtxAr SET codigo = %s, nombre = %s, Keywords = %s,
+                    id_categoria_VtxAr = %s, id_categoria_Tango = %s
+                    WHERE id_subCat_VtxAr = %s
+          """
+          cursor.execute(sql, [codigo, nombre, keywords, id_categoria_vtxar, id_categoria_tango, id_subcategoria])
+
+def eliminar_subcategoria(id_subcategoria):
+     with connections['mi_db_2'].cursor() as cursor:
+          sql = "DELETE FROM EB_subCat_VtxAr WHERE id_subCat_VtxAr = %s"
+          cursor.execute(sql, [id_subcategoria])
+
+
+# --- Relaciones ---
+def obtener_relaciones():
+    with connections['mi_db_2'].cursor() as cursor:
+        sql = """
+            SELECT
+                ISNULL(SJ_CATEGORIAS.ID, '') AS ID,
+                ISNULL(SJ_CATEGORIAS.DESC_CATEGORIA, '') AS CATEGORIA_Tango,
+                ISNULL(Rubro.DESC_RUBRO, '') AS RUBRO_Tango,
+                ISNULL(SubCatVtx.nombre, '') AS SUB_CATEGORIA_Vtex,
+                ISNULL(SubCatVtx.codigo, '') AS codigo,
+                ISNULL(SubCatVtx.id_subCat_VtxAr, 0) AS id_subCat_VtxAr,
+                ISNULL(CatVtx.nombre, '') AS CATEGORIA_Vtex,
+                ISNULL(CatVtx.codigo, '') AS codigo
+            FROM
+                SJ_CATEGORIAS
+                LEFT JOIN EB_relacionCat_VtxAr AS Relacion ON SJ_CATEGORIAS.ID = Relacion.id_categoria_Tango
+                LEFT JOIN EB_subCat_VtxAr AS SubCatVtx ON Relacion.id_subCat_VtxAr = SubCatVtx.id_subCat_VtxAr
+                LEFT JOIN EB_Categoria_VtxAr AS CatVtx ON SubCatVtx.id_categoria_VtxAr = CatVtx.id_Categoria_VtxAr
+                LEFT JOIN RO_V_RUBROS_CATEGORIAS_CODIFICACION AS Rubro ON SJ_CATEGORIAS.RUBRO = Rubro.RUBRO AND SJ_CATEGORIAS.CATEGORIA = Rubro.CATEGORIA
+            """
+        cursor.execute(sql)
+        return cursor.fetchall()
+def crear_relacion(id_categoria_tango, id_subcategoria):
+    with connections['mi_db_2'].cursor() as cursor:
+        sql = "INSERT INTO EB_relacionCat_VtxAr (id_categoria_Tango, id_subCat_VtxAr) VALUES (%s, %s)"
+        cursor.execute(sql, [id_categoria_tango, id_subcategoria])
+def obtener_relacion(id_categoria_tango, id_subcategoria):
+    with connections['mi_db_2'].cursor() as cursor:
+        sql = """
+                select R.id_categoria_Tango,R.id_subCat_VtxAr,STR(CAT.ID) + ' - ' + CAT.DESC_CATEGORIA AS CAT_TANGO ,SUBCAT.nombre AS SUBCAT_Vtex 
+                from EB_relacionCat_VtxAr AS R
+                left join SJ_CATEGORIAS AS CAT ON R.id_categoria_Tango = CAT.ID
+                LEFT JOIN EB_subCat_VtxAr SUBCAT ON R.id_subCat_VtxAr = SUBCAT.id_subCat_VtxAr
+                WHERE R.id_categoria_Tango = %s AND R.id_subCat_VtxAr = %s
+            """
+        cursor.execute(sql, [id_categoria_tango,id_subcategoria])
+        return cursor.fetchone()
+def editar_relacion(id_categoria_tango_old,id_subcategoria_old, id_categoria_tango, id_subcategoria):
+     with connections['mi_db_2'].cursor() as cursor:
+          sql = """UPDATE EB_relacionCat_VtxAr SET id_categoria_Tango = %s, id_subCat_VtxAr = %s
+                    WHERE id_categoria_Tango = %s AND id_subCat_VtxAr = %s"""
+          cursor.execute(sql, [id_categoria_tango, id_subcategoria,id_categoria_tango_old,id_subcategoria_old])
+
+def eliminar_relacion(id_categoria_tango, id_subcategoria):
+    with connections['mi_db_2'].cursor() as cursor:
+          sql = "DELETE FROM EB_relacionCat_VtxAr WHERE id_categoria_Tango = %s AND id_subCat_VtxAr = %s"
+          cursor.execute(sql, [id_categoria_tango,id_subcategoria])

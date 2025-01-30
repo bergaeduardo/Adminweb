@@ -13,16 +13,17 @@ from Transportes.forms import TransporteForm
 from django.views import View
 from django.views.generic.list import ListView
 from apps.home.vistas.settingsUrls import *
-from consultasTango.forms import TurnoForm,TurnoEditForm,CodigoErrorForm,ImageUploadForm
+from consultasTango.forms import TurnoForm,TurnoEditForm,CodigoErrorForm,CategoriaForm, SubcategoriaForm, RelacionForm
 from consultasTango.models import Turno,CodigosError
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.core.files.storage import FileSystemStorage
+from django.core.paginator import Paginator
 import openpyxl
 import pandas as pd
 import json
-from apps.home.SQL.Sql_Tango import validar_articulo,obtenerInformacionArticulo
+from apps.home.SQL.Sql_Tango import *
 
 # @login_required(login_url="/login/")
 # def (request):
@@ -352,6 +353,159 @@ def Adm_Pedido(request):
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
 
 # Ecommerce
+
+# --- Categorías ---
+@login_required(login_url="/login/")
+def categoria_list(request):
+    categorias = obtener_categorias()
+    paginator = Paginator(categorias, 10)  # Muestra 10 registros por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'appConsultasTango/ecommerce/categorias/categoria_list.html', {'page_obj': page_obj})
+
+@login_required(login_url="/login/")
+def categoria_create(request):
+    if request.method == 'POST':
+        form = CategoriaForm(request.POST)
+        if form.is_valid():
+            crear_categoria(form.cleaned_data['nombre'], form.cleaned_data['codigo'], form.cleaned_data['PalabrasClave'])
+            messages.success(request, 'Categoría creada exitosamente.')
+            return redirect('Herramientas:categoria_list')
+    else:
+        form = CategoriaForm()
+    return render(request, 'appConsultasTango/ecommerce/categorias/categoria_create.html', {'form': form})
+
+@login_required(login_url="/login/")
+def categoria_update(request, id_categoria):
+    categoria = obtener_categoria(id_categoria)
+    if not categoria:
+        messages.error(request, 'Categoría no encontrada.')
+        return redirect('Herramientas:categoria_list')
+    if request.method == 'POST':
+        form = CategoriaForm(request.POST)
+        if form.is_valid():
+            editar_categoria(id_categoria, form.cleaned_data['nombre'], form.cleaned_data['codigo'], form.cleaned_data['PalabrasClave'])
+            messages.success(request, 'Categoría actualizada exitosamente.')
+            return redirect('Herramientas:categoria_list')
+    else:
+        form = CategoriaForm(initial={'nombre': categoria[1], 'codigo': categoria[2], 'PalabrasClave': categoria[3]})
+    return render(request, 'appConsultasTango/ecommerce/categorias/categoria_update.html', {'form': form, 'id_categoria': id_categoria})
+
+@login_required(login_url="/login/")
+def categoria_delete(request, id_categoria):
+    categoria = obtener_categoria(id_categoria)
+    if not categoria:
+        messages.error(request, 'Categoría no encontrada.')
+        return redirect('Herramientas:categoria_list')
+    if request.method == 'POST':
+         eliminar_categoria(id_categoria)
+         messages.success(request, 'Categoría eliminada exitosamente.')
+         return redirect('Herramientas:categoria_list')
+    return render(request, 'appConsultasTango/ecommerce/categorias/categoria_delete.html', {'categoria': categoria})
+
+# --- Subcategorías ---
+@login_required(login_url="/login/")
+def subcategoria_list(request):
+    subcategorias = obtener_subcategorias()
+    # paginator = Paginator(subcategorias, 10)
+    # page_number = request.GET.get('page')
+    # page_obj = paginator.get_page(page_number)
+    return render(request, 'appConsultasTango/ecommerce/subcategorias/subcategoria_list.html', {'page_obj': subcategorias})
+
+
+@login_required(login_url="/login/")
+def subcategoria_create(request):
+    if request.method == 'POST':
+        form = SubcategoriaForm(request.POST)
+        if form.is_valid():
+            crear_subcategoria(form.cleaned_data['codigo'], form.cleaned_data['nombre'],
+                               form.cleaned_data['Keywords'], form.cleaned_data['id_categoria_VtxAr'],form.cleaned_data['id_categoria_Tango'])
+            messages.success(request, 'Subcategoría creada exitosamente.')
+            return redirect('Herramientas:subcategoria_list')
+    else:
+        form = SubcategoriaForm()
+    return render(request, 'appConsultasTango/ecommerce/subcategorias/subcategoria_create.html', {'form': form})
+
+@login_required(login_url="/login/")
+def subcategoria_update(request, id_subcategoria):
+    subcategoria = obtener_subcategoria(id_subcategoria)
+    if not subcategoria:
+        messages.error(request, 'Subcategoría no encontrada.')
+        return redirect('Herramientas:subcategoria_list')
+    if request.method == 'POST':
+        form = SubcategoriaForm(request.POST)
+        if form.is_valid():
+             editar_subcategoria(id_subcategoria, form.cleaned_data['codigo'], form.cleaned_data['nombre'],
+                               form.cleaned_data['Keywords'], form.cleaned_data['id_categoria_VtxAr'],form.cleaned_data['id_categoria_Tango'])
+
+             messages.success(request, 'Subcategoría actualizada exitosamente.')
+             return redirect('Herramientas:subcategoria_list')
+    else:
+          form = SubcategoriaForm(initial={'codigo': subcategoria[1],'nombre': subcategoria[2],'Keywords': subcategoria[3],'id_categoria_VtxAr': subcategoria[4],'id_categoria_Tango': subcategoria[5]})
+    return render(request, 'appConsultasTango/ecommerce/subcategorias/subcategoria_update.html', {'form': form, 'id_subcategoria': id_subcategoria})
+
+@login_required(login_url="/login/")
+def subcategoria_delete(request, id_subcategoria):
+    subcategoria = obtener_subcategoria(id_subcategoria)
+    if not subcategoria:
+        messages.error(request, 'Subcategoría no encontrada.')
+        return redirect('Herramientas:subcategoria_list')
+    if request.method == 'POST':
+         eliminar_subcategoria(id_subcategoria)
+         messages.success(request, 'Subcategoría eliminada exitosamente.')
+         return redirect('Herramientas:subcategoria_list')
+    return render(request, 'appConsultasTango/ecommerce/subcategorias/subcategoria_delete.html', {'subcategoria': subcategoria})
+
+# --- Relaciones ---
+@login_required(login_url="/login/")
+def relacion_list(request):
+    relaciones = obtener_relaciones()
+    # paginator = Paginator(relaciones, 10)
+    # page_number = request.GET.get('page')
+    # page_obj = paginator.get_page(page_number)
+    return render(request, 'appConsultasTango/ecommerce/relaciones/relacion_list.html', {'page_obj': relaciones})
+
+@login_required(login_url="/login/")
+def relacion_create(request):
+    if request.method == 'POST':
+        form = RelacionForm(request.POST)
+        if form.is_valid():
+            crear_relacion(form.cleaned_data['id_categoria_Tango'], form.cleaned_data['id_subCat_VtxAr'])
+            messages.success(request, 'Relación creada exitosamente.')
+            return redirect('Herramientas:relacion_list')
+    else:
+        form = RelacionForm()
+    return render(request, 'appConsultasTango/ecommerce/relaciones/relacion_create.html', {'form': form})
+
+
+@login_required(login_url="/login/")
+def relacion_update(request, id_categoria_tango,id_subcategoria):
+    relacion = obtener_relacion(id_categoria_tango,id_subcategoria)
+    if not relacion:
+        messages.error(request, 'Relación no encontrada.')
+        return redirect('Herramientas:relacion_create')
+    if request.method == 'POST':
+        form = RelacionForm(request.POST)
+        if form.is_valid():
+             editar_relacion(id_categoria_tango,id_subcategoria,form.cleaned_data['id_categoria_Tango'], form.cleaned_data['id_subCat_VtxAr'])
+             messages.success(request, 'Relación actualizada exitosamente.')
+             return redirect('Herramientas:relacion_list')
+    else:
+        form = RelacionForm(initial={'id_categoria_Tango': relacion[0], 'id_subCat_VtxAr': relacion[1]})
+    return render(request, 'appConsultasTango/ecommerce/relaciones/relacion_update.html', {'form': form, 'id_categoria_tango': id_categoria_tango,'id_subcategoria':id_subcategoria})
+
+
+@login_required(login_url="/login/")
+def relacion_delete(request, id_categoria_tango, id_subcategoria):
+    relacion = obtener_relacion(id_categoria_tango,id_subcategoria)
+    if not relacion:
+        messages.error(request, 'Relación no encontrada.')
+        return redirect('Herramientas:relacion_list')
+    if request.method == 'POST':
+        eliminar_relacion(id_categoria_tango, id_subcategoria)
+        messages.success(request, 'Relación eliminada exitosamente.')
+        return redirect('Herramientas:relacion_list')
+    return render(request, 'appConsultasTango/ecommerce/relaciones/relacion_delete.html', {'relacion': relacion,'id_categoria_tango': id_categoria_tango, 'id_subcategoria': id_subcategoria})
 
 @login_required(login_url="/login/")
 def import_art_vtex(request):

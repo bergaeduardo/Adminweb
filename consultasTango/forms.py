@@ -1,5 +1,6 @@
 from django import forms
 from .models import Turno, CodigosError
+from django.db import connections
 
 class ImageUploadForm(forms.Form):
     images = forms.FileField(
@@ -63,3 +64,44 @@ class TurnoForm(forms.ModelForm):
 
 class DateForm(forms.Form):
     date = forms.DateField(input_formats=['%Y-%m-%d'])
+
+
+class CategoriaForm(forms.Form):
+    nombre = forms.CharField(max_length=255, required=False)
+    codigo = forms.CharField(max_length=50, required=False)
+
+class SubcategoriaForm(forms.Form):
+    codigo = forms.CharField(max_length=50, required=False)
+    nombre = forms.CharField(max_length=255, required=False)
+    Keywords = forms.CharField(max_length=255, required=False, widget=forms.Textarea)
+    id_categoria_VtxAr = forms.ChoiceField(required=False)
+    # id_categoria_Tango = forms.ChoiceField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Obtener las categorías para las listas desplegables
+        with connections['mi_db_2'].cursor() as cursor:
+            cursor.execute("SELECT id_Categoria_VtxAr, nombre FROM EB_Categoria_VtxAr")
+            categorias = cursor.fetchall()
+            self.fields['id_categoria_VtxAr'].choices = [('', '---------')] + [(cat[0], cat[1]) for cat in categorias]
+            cursor.execute("SELECT ID, DESC_CATEGORIA FROM SJ_CATEGORIAS")
+            # categorias_tango = cursor.fetchall()
+            #  # Formatear las opciones para que muestren ID - DESC_CATEGORIA
+            # self.fields['id_categoria_Tango'].choices = [('', '---------')] + [(str(cat[0]), f"({cat[0]}) - {cat[1]}") for cat in categorias_tango]
+
+
+class RelacionForm(forms.Form):
+    id_categoria_Tango = forms.ChoiceField(required=False)
+    id_subCat_VtxAr = forms.ChoiceField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Obtener las subcategorias para las listas desplegables
+        with connections['mi_db_2'].cursor() as cursor:
+            cursor.execute("SELECT ID, DESC_CATEGORIA FROM SJ_CATEGORIAS")
+            categorias_tango = cursor.fetchall()
+            # Formatear las opciones para que muestren ID - DESC_CATEGORIA
+            self.fields['id_categoria_Tango'].choices = [('', '---------')] + [(str(cat[0]), f"({cat[0]}) - {cat[1]}") for cat in categorias_tango]
+            cursor.execute("SELECT id_subCat_VtxAr, nombre FROM EB_subCat_VtxAr")
+            subcategorias = cursor.fetchall()
+            self.fields['id_subCat_VtxAr'].choices = [('', '---------')] + [(subcat[0], subcat[1]) for subcat in subcategorias]
