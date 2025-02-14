@@ -48,6 +48,21 @@ urlpatterns = [
     path('uploadImg', views.ImageUploadView.as_view(), name='uploadImg'),
     path('success', views.upload_success, name='upload_success'),
     path('importartvtex', views.import_art_vtex, name='importartvtex'),
+    # --- Categorías ---
+    path('categorias/list', views.categoria_list, name='categoria_list'),
+    path('categorias/create', views.categoria_create, name='categoria_create'),
+    path('categorias/update/<int:id_categoria>', views.categoria_update, name='categoria_update'),
+    path('categorias/delete/<int:id_categoria>', views.categoria_delete, name='categoria_delete'),
+    # --- Subcategorías ---
+    path('subcategorias/list', views.subcategoria_list, name='subcategoria_list'),
+    path('subcategorias/create', views.subcategoria_create, name='subcategoria_create'),
+    path('subcategorias/update/<int:id_subcategoria>', views.subcategoria_update, name='subcategoria_update'),
+    path('subcategorias/delete/<int:id_subcategoria>', views.subcategoria_delete, name='subcategoria_delete'),
+    # --- Relaciones ---
+    path('relaciones/list', views.relacion_list, name='relacion_list'),
+    path('relaciones/create', views.relacion_create, name='relacion_create'),
+     path('relaciones/update/<str:id_categoria_tango>/<int:id_subcategoria>', views.relacion_update, name='relacion_update'),
+    path('relaciones/delete/<str:id_categoria_tango>/<int:id_subcategoria>', views.relacion_delete, name='relacion_delete'),
     # Gerencia
     path('rendircobranzas/<str:UserName>', views.rendircobranzas, name='Herramientas'),
     path('GestionarCobro/<str:UserName>', views.GestionarCobro, name='Herramientas'),
