@@ -1,3 +1,7 @@
+SERVIDOR = {
+    'testing': 'http://192.168.0.233:8080/',
+    'production': 'http://192.168.0.143:8080',
+}
 DIR_PBI = {
     # Logistica
     'Kpis_Logistica':'https://app.powerbi.com/view?r=eyJrIjoiNTYxZDFlNGEtZTFiNy00ODM1LTk5NzYtZTg3NDljYTM3ZmVhIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
@@ -25,8 +29,8 @@ DIR_PBI = {
 
 DIR_REPORTES = {
     # Logistica
-    'Pedidos_pendiente_despacho':'http://192.168.0.143:8080/sistemas/cronoDespacho/pedidos.php',
-    'ConsultaDestino':'http://192.168.0.143:8080/sistemas/maestroDestinos/indexMob.php',
+    'Pedidos_pendiente_despacho':SERVIDOR['testing'] + 'sistemas/cronoDespacho/pedidos.php',
+    'ConsultaDestino':SERVIDOR['testing'] + 'sistemas/maestroDestinos/indexMob.php',
     # Abastecimiento
     'Auditoria_orden': 'http://192.168.0.143:8080/sistemas/distriCuero/listOrdenesComercial.php',
     'CategoriasDeProductos':'http://192.168.0.143:8080/administracion/comercial/consultaCategoriaProductos.php',
@@ -42,22 +46,22 @@ DIR_REPORTES = {
     # Mayoristas
     'Tracking_pedidos_mayoristas': 'http://192.168.0.143:8080/Despacho/tracking.php',
     # Ecommerce
-    'Pedidos': 'http://192.168.0.143:8080/ECOMMERCE/',
-    'Tracking_Ecommerce':'http://192.168.0.143:8080/ecommerce/consultaPedido.php',
-    'PedidosUY': 'http://app.xl.com.ar:8080/Uruguay/ecommerce/consultaPedidos.php',
-    'Auditoria_Ecommerce': 'http://app.xl.com.ar:8080/ecommerce-auditoria/',
-    'Auditoria_Prisma': 'http://app.xl.com.ar:8080/ecommerce/auditoriaPrisma/',
-    'Segmentacion_clientes':'http://192.168.0.143:8080/ecommerce/segmentacion/segmentacionDeClientes.php',
-    'TableroDeControl':'http://app.xl.com.ar:8080/ecommerce/tableroControl.php',
+    'Pedidos': SERVIDOR['testing'] + 'ECOMMERCE/',
+    'Tracking_Ecommerce':SERVIDOR['testing'] + 'ecommerce/consultaPedido.php',
+    'PedidosUY': SERVIDOR['testing'] + 'Uruguay/ecommerce/consultaPedidos.php',
+    'Auditoria_Ecommerce': SERVIDOR['testing'] + 'ecommerce-auditoria/',
+    'Auditoria_Prisma': SERVIDOR['testing'] + 'ecommerce/auditoriaPrisma/',
+    'Segmentacion_clientes':SERVIDOR['testing'] + 'ecommerce/segmentacion/segmentacionDeClientes.php',
+    'TableroDeControl':SERVIDOR['testing'] + 'ecommerce/tableroControl.php',
     # Administracion
-    'VentasXmedio_pago':'http://192.168.0.143:8080/administracion/controlSucursales/resumenVentas.php',
-    'consultaGastos':'http://192.168.0.143:8080/administracion/contabilidad/consultaGastos.php',
-    'ventaVsCobranza':'http://192.168.0.143:8080/administracion/controlSucursales/ventaVsCobranza.php',
-    'Controlcajasmensual':'http://192.168.0.143:8080/administracion/controlSucursales/controlMensualCajaSucursales.php',
-    'ResumenMensualAlquileres':'http://192.168.0.143:8080/administracion/impuestos/alquileres/consultaAlquileres.php',
-    'CargaGastosTesoreria':'http://192.168.0.143:8080/administracion/controlSucursales/cargaGastosTesoreria.php',
-    'DetalleContratosDeAlquiler':'http://192.168.0.143:8080/administracion/impuestos/alquileres/detalleContratosAlquiler.php',
-    'ContratosFranquicias':'http://192.168.0.143:8080/administracion/impuestos/alquileresFranquicias/detalleContratosAlquiler.php',
+    'VentasXmedio_pago':SERVIDOR['testing'] + 'administracion/controlSucursales/resumenVentas.php',
+    'consultaGastos':SERVIDOR['testing'] + 'administracion/contabilidad/consultaGastos.php',
+    'ventaVsCobranza':SERVIDOR['testing'] + 'administracion/controlSucursales/ventaVsCobranza.php',
+    'Controlcajasmensual':SERVIDOR['testing'] + 'administracion/controlSucursales/controlMensualCajaSucursales.php',
+    'ResumenMensualAlquileres':SERVIDOR['testing'] + 'administracion/impuestos/alquileres/consultaAlquileres.php',
+    'CargaGastosTesoreria':SERVIDOR['testing'] + 'administracion/controlSucursales/cargaGastosTesoreria.php',
+    'DetalleContratosDeAlquiler':SERVIDOR['testing'] + 'administracion/impuestos/alquileres/detalleContratosAlquiler.php',
+    'ContratosFranquicias':SERVIDOR['testing'] + 'administracion/impuestos/alquileresFranquicias/detalleContratosAlquiler.php',
     # Gerencia
     'DetalleRemitos599':'http://192.168.0.143:8080/sistemas/599/consultaderemitos.php?userName=',
     'ChequesRecibidos':'http://192.168.0.143:8080/sistemas/599/reportedecheques.php?userName=',
@@ -69,8 +73,8 @@ DIR_REPORTES = {
 
 DIR_HERAMIENTAS = {
     # Logistica
-    'Gestion_cronograma': 'http://192.168.0.143:8080/sistemas/cronoDespacho/index.php',
-    'Gestion_guias_mayoristas': 'http://192.168.0.143:8080/Despacho/guias.php',
+    'Gestion_cronograma': SERVIDOR['testing'] + 'sistemas/cronoDespacho/index.php',
+    'Gestion_guias_mayoristas': SERVIDOR['testing'] + 'Despacho/guias.php',
     # Abastecimiento
     'Stock_excluido': 'http://192.168.0.143:8080/sistemas/stockExcluido/index.php',
     'Carga_de_orden': 'http://192.168.0.143:8080/sistemas/distriCuero/index.php',
@@ -88,8 +92,8 @@ DIR_HERAMIENTAS = {
     # Mayoristas
     'Adm_Pedido':'http://192.168.0.143:8080/sistemas/despachoMayorista/index.php',
     # Ecommerce
-    'Control_pedidos': 'http://192.168.0.143:8080/logistica/ecommerce/',
-    'StockSegVtex': 'http://192.168.0.143:8080/ecommerce/stockSeguridad/stockSeguridad.php',
+    'Control_pedidos': SERVIDOR['testing'] + 'logistica/ecommerce/',
+    'StockSegVtex': SERVIDOR['testing'] + 'ecommerce/stockSeguridad/stockSeguridad.php',
     'novICBC':'http://192.168.0.226:923/',
     # Gerencia
     'rendircobranzas': 'http://192.168.0.143:8080/sistemas/599/valoresrendir.php?userName=',
@@ -97,21 +101,21 @@ DIR_HERAMIENTAS = {
     'registrarEfectivo':'http://192.168.0.143:8080/administracion/controlSucursales/controlRecepcionEfectivo.php?userName=',
     'gestionPremiosComercial':'http://192.168.0.143:8080/comercial/supervision/gestionarPremios.php',
     # Administracion
-    'ControlGastosSupervision':'http://192.168.0.143:8080/comercial/supervision/controlarGastos.php',
-    'controlGastos':'http://192.168.0.143:8080/administracion/contabilidad/controlGastos.php',
-    'cargaGastos':'http://192.168.0.143:8080/administracion/contabilidad/cargaGastos.php',
-    'cargaInicial':'http://192.168.0.143:8080/administracion/comercioExterior/cargaInicial.php',
-    'mostrarOrden':'http://192.168.0.143:8080/administracion/comercioExterior/mostrarOrden.php',
-    'Controlcajasdiario':'http://192.168.0.143:8080/administracion/controlSucursales/controlDiarioCajaSucursales.php',
-    'CargaGastosAlquileres':'http://192.168.0.143:8080/administracion/impuestos/alquileres/cargaAlquileres.php',
-    'GestionDeAlquileres':'http://192.168.0.143:8080/administracion/impuestos/alquileres/porcGastosAlquileres.php',
-    'ControlEgresosDeCaja':'http://192.168.0.143:8080/administracion/controlSucursales/controlEgresosCajaSucursales.php?userName=',
-    'ControlMasivoCobranza':'http://192.168.0.143:8080/administracion/controlSucursales/controlMasivoCaja.php',
-    'CargarContratosDeAlquiler':'http://192.168.0.143:8080/administracion/impuestos/alquileres/cargaContratoAlquileres.php',
-    'RelacionesCtaCont':'http://192.168.0.143:8080/administracion/contabilidad/gestionRelacionesCuenta.php',
-    'CargaContratosFr':'http://192.168.0.143:8080/administracion/impuestos/alquileresFranquicias/cargaContratosAlquileres.php',
-    'CargaFacturasSuc':'http://192.168.0.143:8080/administracion/controlSucursales/cargaFacturaSucursales.php',
-    'EgresosCajaTesoreria':'http://192.168.0.143:8080/administracion/tesoreria/cargaGastos.php',
+    'ControlGastosSupervision':SERVIDOR['testing'] + 'comercial/supervision/controlarGastos.php',
+    'controlGastos':SERVIDOR['testing'] + 'administracion/contabilidad/controlGastos.php',
+    'cargaGastos':SERVIDOR['testing'] + 'administracion/contabilidad/cargaGastos.php',
+    'cargaInicial':SERVIDOR['testing'] + 'administracion/comercioExterior/cargaInicial.php',
+    'mostrarOrden':SERVIDOR['testing'] + 'administracion/comercioExterior/mostrarOrden.php',
+    'Controlcajasdiario':SERVIDOR['testing'] + 'administracion/controlSucursales/controlDiarioCajaSucursales.php',
+    'CargaGastosAlquileres':SERVIDOR['testing'] + 'administracion/impuestos/alquileres/cargaAlquileres.php',
+    'GestionDeAlquileres':SERVIDOR['testing'] + 'administracion/impuestos/alquileres/porcGastosAlquileres.php',
+    'ControlEgresosDeCaja':SERVIDOR['testing'] + 'administracion/controlSucursales/controlEgresosCajaSucursales.php?userName=',
+    'ControlMasivoCobranza':SERVIDOR['testing'] + 'administracion/controlSucursales/controlMasivoCaja.php',
+    'CargarContratosDeAlquiler':SERVIDOR['testing'] + 'administracion/impuestos/alquileres/cargaContratoAlquileres.php',
+    'RelacionesCtaCont':SERVIDOR['testing'] + 'administracion/contabilidad/gestionRelacionesCuenta.php',
+    'CargaContratosFr':SERVIDOR['testing'] + 'administracion/impuestos/alquileresFranquicias/cargaContratosAlquileres.php',
+    'CargaFacturasSuc':SERVIDOR['testing'] + 'administracion/controlSucursales/cargaFacturaSucursales.php',
+    'EgresosCajaTesoreria':SERVIDOR['testing'] + 'administracion/tesoreria/cargaGastos.php',
     # RRHH
     'adminEmpleados':'http://192.168.0.143:8080/administracion/recursosHumanos/controlHorarios/controlHorario.php',
     'altaVendedores':'http://192.168.0.143:8080/administracion/recursoshumanos/altaVendedores/altaVendedores.php',
