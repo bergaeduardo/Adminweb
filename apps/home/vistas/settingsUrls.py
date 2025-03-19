@@ -1,6 +1,6 @@
 SERVIDOR = {
     'testing': 'http://192.168.0.233:8080/',
-    'production': 'http://192.168.0.143:8080',
+    'production': 'http://192.168.0.143:8080/',
 }
 DIR_PBI = {
     # Logistica
@@ -52,7 +52,7 @@ DIR_REPORTES = {
     'Auditoria_Ecommerce': SERVIDOR['testing'] + 'ecommerce-auditoria/',
     'Auditoria_Prisma': SERVIDOR['testing'] + 'ecommerce/auditoriaPrisma/',
     'Segmentacion_clientes':SERVIDOR['testing'] + 'ecommerce/segmentacion/segmentacionDeClientes.php',
-    'TableroDeControl':SERVIDOR['testing'] + 'ecommerce/tableroControl.php',
+    'TableroDeControl':SERVIDOR['production'] + 'ecommerce/tableroControl/index.php',
     # Administracion
     'VentasXmedio_pago':SERVIDOR['testing'] + 'administracion/controlSucursales/resumenVentas.php',
     'consultaGastos':SERVIDOR['testing'] + 'administracion/contabilidad/consultaGastos.php',
@@ -109,7 +109,7 @@ DIR_HERAMIENTAS = {
     'Controlcajasdiario':SERVIDOR['testing'] + 'administracion/controlSucursales/controlDiarioCajaSucursales.php',
     'CargaGastosAlquileres':SERVIDOR['testing'] + 'administracion/impuestos/alquileres/cargaAlquileres.php',
     'GestionDeAlquileres':SERVIDOR['testing'] + 'administracion/impuestos/alquileres/porcGastosAlquileres.php',
-    'ControlEgresosDeCaja':SERVIDOR['testing'] + 'administracion/controlSucursales/controlEgresosCajaSucursales.php?userName=',
+    'ControlEgresosDeCaja':SERVIDOR['production'] + 'administracion/controlSucursales/controlEgresosCajaSucursales.php?userName=',
     'ControlMasivoCobranza':SERVIDOR['testing'] + 'administracion/controlSucursales/controlMasivoCaja.php',
     'CargarContratosDeAlquiler':SERVIDOR['testing'] + 'administracion/impuestos/alquileres/cargaContratoAlquileres.php',
     'RelacionesCtaCont':SERVIDOR['testing'] + 'administracion/contabilidad/gestionRelacionesCuenta.php',
