@@ -330,12 +330,6 @@ def EditarGrupoPromo(request):
 
 # Comercial
 @login_required(login_url="/login/")
-def Ventas_sucursales(request):
-    Nombre = 'Ventas sucursales'
-    dir_iframe = DIR_HERAMIENTAS['Ventas_sucursales']
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
-
-@login_required(login_url="/login/")
 def Gestion_categoria_productos(request):
     Nombre = ''
     dir_iframe = DIR_HERAMIENTAS['Gestion_categoria_productos'] #+ UserName

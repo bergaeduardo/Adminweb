@@ -390,13 +390,6 @@
     {% endif %}
     {% if request.user|has_any_group:"admin,Comercial_may,Comercial_fr,Comercial_suc,Comercial_sup" %}
     <!-- accesos del area aqui -->
-    <li class="nav-item">
-      <a href="/../Herramientas/Ventas_sucursales"
-        class="nav-link {% if 'Ventas_sucursales' in request.path %} active {% endif %}">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Ventas sucursales</p>
-      </a>
-    </li>
     {% endif %}
     {% if request.user|has_any_group:"admin,Comercial_sup,Comercial_suc" %}
     <li class="nav-item">
