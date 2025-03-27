@@ -42,7 +42,7 @@ DIR_REPORTES = {
     'promocionesActivas': SERVIDOR['testing']  + 'comercial/mayoristas/promocionesBancarias/promocionesActivas.php',
     'VentasXcanal':SERVIDOR['testing']  + 'comercial/abastecimiento/ventasAbastecimiento/',
     'AdmEmpleados':SERVIDOR['testing']  + 'administracion/recursosHumanos/controlHorarios/verControlHorario.php',
-    'AnalisisProductos':SERVIDOR['testing']  + 'comercial/abastecimiento/analisisProducto/listado.php',
+    'AnalisisProductos':SERVIDOR['production']  + 'comercial/abastecimiento/analisisProducto/listado.php',
     # Mayoristas
     'Tracking_pedidos_mayoristas': SERVIDOR['testing']  + 'Despacho/tracking.php',
     # Ecommerce
