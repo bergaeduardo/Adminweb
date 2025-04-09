@@ -103,7 +103,7 @@ DIR_HERAMIENTAS = {
     'ControlGastosSupervision':SERVIDOR['production'] + 'comercial/supervision/controlarGastos.php',
     'controlGastos':SERVIDOR['production'] + 'administracion/contabilidad/controlGastos.php',
     'cargaGastos':SERVIDOR['production'] + 'administracion/contabilidad/cargaGastos.php',
-    'cargaInicial':SERVIDOR['production'] + 'administracion/comercioExterior/cargaInicial.php',
+    'cargaInicial':SERVIDOR['production'] + 'administracion/comercioExterior',
     'mostrarOrden':SERVIDOR['production'] + 'administracion/comercioExterior/mostrarOrden.php',
     'Controlcajasdiario':SERVIDOR['production'] + 'administracion/controlSucursales/controlDiarioCajaSucursales.php',
     'CargaGastosAlquileres':SERVIDOR['production'] + 'administracion/impuestos/alquileres/cargaAlquileres.php',

@@ -784,7 +784,7 @@ def RelacionesCtaCont(request):
 def Cargarcontenedor(request):
     Nombre = 'Cargar Contenedor'
     dir_iframe = DIR_HERAMIENTAS['cargaInicial'] #+ UserName
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+    return redirect(dir_iframe)
 
 @login_required(login_url="/login/")
 def EditarContenedor(request):
