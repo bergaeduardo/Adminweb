@@ -66,8 +66,8 @@ DIR_REPORTES = {
     'DetalleRemitos599':SERVIDOR['production']  + 'sistemas/599/consultaderemitos.php?userName=',
     'ChequesRecibidos':SERVIDOR['production']  + 'sistemas/599/reportedecheques.php?userName=',
     # RRHH
-    'AsistenciasSuc':'http://192.168.0.143:8080/sistemas/fichaje/reporteDeAsistencias.php',
-    'ReporteAnticipos':'http://app.xl.com.ar:8080/administracion/recursosHumanos/anticipoSueldos/reporteAnticipos.php',
+    'AsistenciasSuc':SERVIDOR['testing'] + 'sistemas/fichaje/reporteDeAsistencias.php',
+    'ReporteAnticipos':SERVIDOR['testing'] + 'administracion/recursosHumanos/anticipoSueldos/reporteAnticipos.php',
 
 }
 
@@ -116,20 +116,20 @@ DIR_HERAMIENTAS = {
     'CargaFacturasSuc':SERVIDOR['production'] + 'administracion/controlSucursales/cargaFacturaSucursales.php',
     'EgresosCajaTesoreria':SERVIDOR['production'] + 'administracion/tesoreria/cargaGastos.php',
     # RRHH
-    'adminEmpleados':'http://192.168.0.143:8080/administracion/recursosHumanos/controlHorarios/controlHorario.php',
-    'altaVendedores':'http://192.168.0.143:8080/administracion/recursoshumanos/altaVendedores/altaVendedores.php',
-    'listarGrupos':'http://192.168.0.143:8080/administracion/recursosHumanos/altaVendedores/listarGrupos.php',
-    'gestionarVendedores':'http://192.168.0.143:8080/administracion/recursosHumanos/altaVendedores/gestionarVendedores.php',
-    'CargaAnticipoGrupo':'http://app.xl.com.ar:8080/administracion/recursosHumanos/anticipoSueldos/cargaAnticipoGrupo.php',
-    'CargaAnticipo':'http://app.xl.com.ar:8080/administracion/recursosHumanos/anticipoSueldos/cargaAnticipo.php',
+    'adminEmpleados':SERVIDOR['testing'] + 'administracion/recursosHumanos/controlHorarios/controlHorario.php',
+    'altaVendedores':SERVIDOR['testing'] + 'administracion/recursoshumanos/altaVendedores/altaVendedores.php',
+    'listarGrupos':SERVIDOR['testing'] + 'administracion/recursosHumanos/altaVendedores/listarGrupos.php',
+    'gestionarVendedores':SERVIDOR['testing'] + 'administracion/recursosHumanos/altaVendedores/gestionarVendedores.php',
+    'CargaAnticipoGrupo':SERVIDOR['testing'] + 'administracion/recursosHumanos/anticipoSueldos/cargaAnticipoGrupo.php',
+    'CargaAnticipo':SERVIDOR['testing'] + 'administracion/recursosHumanos/anticipoSueldos/cargaAnticipo.php',
     
     # Tesoreria
-    'ControlDeEfectivo':'http://192.168.0.143:8080/administracion/controlSucursales/controlRecepcionEfectivo.php',
+    'ControlDeEfectivo':SERVIDOR['testing'] + 'administracion/controlSucursales/controlRecepcionEfectivo.php',
 }
 
 DIR_EXTRAS = {
-    'direccionario': 'http://192.168.0.143:8080/proyecto_21/direccionario/index.php',
-    'reporteTrello':'http://192.168.0.143:8080/Proyectos/ReporteTrello_Claude/trello-activity-report.html',
-    'internos':'http://192.168.0.143:8080/comercial/recepcion/index.php',
+    'direccionario': SERVIDOR['testing'] + 'proyecto_21/direccionario/index.php',
+    'reporteTrello':SERVIDOR['testing'] + 'Proyectos/ReporteTrello_Claude/trello-activity-report.html',
+    'internos':SERVIDOR['testing'] + 'comercial/recepcion/index.php',
     
 }
