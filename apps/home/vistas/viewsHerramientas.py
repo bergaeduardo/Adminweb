@@ -33,11 +33,11 @@ def registro_turno(request):
         form = TurnoForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('listado_turnos')  # Asumimos que crearemos esta vista más adelante
+            return redirect('listado_turnos')
     else:
         form = TurnoForm()
     
-    return render(request, 'appConsultasTango/registro_turno.html', {'form': form})
+    return render(request, 'appConsultasTango/registro_turno.html', {'form': form, 'Nombre': 'Registro de Turno'})
 
 @login_required(login_url="/login/")
 def get_nombre_proveedor(request):
@@ -52,14 +52,14 @@ def get_nombre_proveedor(request):
     nombre_proveedor = proveedores.get(codigo_proveedor, '')
     return JsonResponse({'nombre': nombre_proveedor})
 
+@login_required(login_url="/login/")
 def listado_turnos(request):
     turnos = Turno.objects.all().order_by('-FechaAsignacion')
     for turno in turnos:
         turno.progreso = calcular_progreso(turno)
         turno.save()
-
-    # print(turnos)    
-    return render(request, 'appConsultasTango/listado_turnos.html', {'turnos': turnos})
+    nombre_template = 'Listado de Turnos'
+    return render(request, 'appConsultasTango/listado_turnos.html', {'turnos': turnos,'Nombre':nombre_template})
 
 def eliminar_turno(request, turno_id):
     turno = get_object_or_404(Turno, pk=turno_id)
@@ -76,6 +76,17 @@ def calcular_progreso(turno):
 def ver_turno(request, turno_id):
     turno = get_object_or_404(Turno, pk=turno_id)
     
+    codigo_proveedor = turno.CodigoProveedor
+    proveedores = {
+        'AGODIF': 'DI FALCO MARIO DI FALCO JOSE Y DI FALCO COSME SOC DE HECHO',
+        'BFBISE': 'BANCO MACRO S.A.',
+        'OGPACK':'Tasky',
+    }
+    nombre_proveedor = proveedores.get(codigo_proveedor, 'Nombre Proveedor')
+    
+    # Asignar NombreProveedor AL OBJETO turno
+    turno.NombreProveedor = nombre_proveedor
+
     timeline = [
         {
             'estado': 'Recepcionado',
@@ -96,10 +107,12 @@ def ver_turno(request, turno_id):
     
     context = {
         'turno': turno,
-        'timeline': timeline
+        'timeline': timeline,
+        'Nombre': 'Ver Turno'
     }
     
     return render(request, 'appConsultasTango/ver_turno.html', context)
+
 
 def editar_turno(request, turno_id):
     turno = get_object_or_404(Turno, pk=turno_id)
@@ -121,11 +134,12 @@ def editar_turno(request, turno_id):
     else:
         form = TurnoEditForm(instance=turno)
     
-    return render(request, 'appConsultasTango/editar_turno.html', {'form': form, 'turno': turno})
+    return render(request, 'appConsultasTango/editar_turno.html', {'form': form, 'turno': turno, 'Nombre': 'Editar Turno'})
 
 def lista_codigos_error(request):
     codigos = CodigosError.objects.all().order_by('CodigoError')
-    return render(request, 'appConsultasTango/lista_codigos_error.html', {'codigos': codigos})
+    nombre_template = 'Listado de Códigos de Error'
+    return render(request, 'appConsultasTango/lista_codigos_error.html', {'codigos': codigos, 'Nombre': nombre_template})
 
 def crear_codigo_error(request):
     if request.method == 'POST':
@@ -136,7 +150,7 @@ def crear_codigo_error(request):
             return redirect('lista_codigos_error')
     else:
         form = CodigoErrorForm()
-    return render(request, 'appConsultasTango/crear_editar_codigo_error.html', {'form': form, 'accion': 'Crear'})
+    return render(request, 'appConsultasTango/crear_editar_codigo_error.html', {'form': form, 'accion': 'Crear', 'Nombre': 'Crear Código de Error'})
 
 def editar_codigo_error(request, codigo_id):
     codigo = get_object_or_404(CodigosError, pk=codigo_id)
@@ -148,7 +162,7 @@ def editar_codigo_error(request, codigo_id):
             return redirect('lista_codigos_error')
     else:
         form = CodigoErrorForm(instance=codigo)
-    return render(request, 'appConsultasTango/crear_editar_codigo_error.html', {'form': form, 'accion': 'Editar'})
+    return render(request, 'appConsultasTango/crear_editar_codigo_error.html', {'form': form, 'accion': 'Editar', 'Nombre': 'Editar Código de Error'})
 
 def eliminar_codigo_error(request, codigo_id):
     codigo = get_object_or_404(CodigosError, pk=codigo_id)
@@ -156,7 +170,9 @@ def eliminar_codigo_error(request, codigo_id):
         codigo.delete()
         messages.success(request, 'Código de error eliminado exitosamente.')
         return redirect('lista_codigos_error')
-    return render(request, 'appConsultasTango/confirmar_eliminar_codigo_error.html', {'codigo': codigo})
+    nombre_template = 'Eliminar Código de Error'
+    return render(request, 'appConsultasTango/confirmar_eliminar_codigo_error.html', {'codigo': codigo, 'Nombre': nombre_template})
+
 # @login_required(login_url="/login/")
 # @method_decorator(csrf_exempt, name='dispatch')
 class ImageUploadView(View):

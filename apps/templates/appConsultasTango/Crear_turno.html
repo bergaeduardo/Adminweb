@@ -1,7 +1,120 @@
+{% extends "layouts/base.html" %}
+{% load bootstrap %}
 
+{% block title %} Crear Turno {% endblock %}
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Guardar">
-  </form>
+{% block body_class %}sidebar-mini sidebar-collapse{% endblock body_class %}
+
+{% block stylesheets %}
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>Crear Turno</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active">Crear Turno</li>
+          </ol>
+        </div>
+      </div>
+    </div><!-- /.container-fluid -->
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">Ingrese la información del nuevo turno</h3>
+            </div>
+            <!-- /.card-header -->
+            <form method="post">
+              {% csrf_token %}
+              <div class="card-body">
+                {% if form.errors %}
+                  <div class="alert alert-danger">
+                    Por favor, corrige los siguientes errores:
+                    <ul>
+                      {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                          <li>{{ form[field].label }}: {{ error }}</li>
+                        {% endfor %}
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endif %}
+
+                <div class="form-group">
+                  <label for="{{ form.CodigoProveedor.id_for_label }}">Código Proveedor:</label>
+                  {{ form.CodigoProveedor }}
+                </div>
+                <div class="form-group">
+                  <label for="{{ form.NombreProveedor.id_for_label }}">Nombre Proveedor:</label>
+                  {{ form.NombreProveedor }}
+                </div>
+                <div class="form-group">
+                  <label for="{{ form.FechaAsignacion.id_for_label }}">Fecha Asignación:</label>
+                  {{ form.FechaAsignacion }}
+                </div>
+                <div class="form-group">
+                  <label for="{{ form.OrdenCompra.id_for_label }}">Orden de Compra:</label>
+                  {{ form.OrdenCompra }}
+                </div>
+                <div class="form-group">
+                  <label for="{{ form.Remitos.id_for_label }}">Remitos:</label>
+                  {{ form.Remitos }}
+                </div>
+                <div class="form-group">
+                  <label for="{{ form.CantidadUnidades.id_for_label }}">Cantidad Unidades:</label>
+                  {{ form.CantidadUnidades }}
+                </div>
+                <div class="form-group">
+                  <label for="{{ form.CantidadBultos.id_for_label }}">Cantidad Bultos:</label>
+                  {{ form.CantidadBultos }}
+                </div>
+              </div>
+              <!-- /.card-body -->
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i> Guardar
+                </button>
+                <a href="{% url 'listado_turnos' %}" class="btn btn-secondary">
+                  <i class="fas fa-ban"></i> Cancelar
+                </a>
+              </div>
+            </form>
+          </div>
+          <!-- /.card -->
+        </div>
+      </div>
+    </div><!-- /.container-fluid -->
+  </section>
+  <!-- /.content -->
+</div>
+{% endblock %}
+
+{% block javascripts %}
+  <!-- jQuery -->
+  <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap 4 -->
+  <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE App -->
+  <script src="/static/assets/js/adminlte.min.js"></script>
+  <!-- AdminLTE for demo purposes -->
+  <script src="/static/assets/js/demo.js"></script>
+{% endblock javascripts %}
