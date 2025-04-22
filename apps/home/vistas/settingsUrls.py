@@ -67,7 +67,7 @@ DIR_REPORTES = {
     'ChequesRecibidos':SERVIDOR['production']  + 'sistemas/599/reportedecheques.php?userName=',
     # RRHH
     'AsistenciasSuc':SERVIDOR['testing'] + 'sistemas/fichaje/reporteDeAsistencias.php',
-    'ReporteAnticipos':SERVIDOR['testing'] + 'administracion/recursosHumanos/anticipoSueldos/reporteAnticipos.php',
+    'ReporteAnticipos':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/reporteAnticipos.php',
 
 }
 
@@ -120,8 +120,8 @@ DIR_HERAMIENTAS = {
     'altaVendedores':SERVIDOR['testing'] + 'administracion/recursoshumanos/altaVendedores/altaVendedores.php',
     'listarGrupos':SERVIDOR['testing'] + 'administracion/recursosHumanos/altaVendedores/listarGrupos.php',
     'gestionarVendedores':SERVIDOR['testing'] + 'administracion/recursosHumanos/altaVendedores/gestionarVendedores.php',
-    'CargaAnticipoGrupo':SERVIDOR['testing'] + 'administracion/recursosHumanos/anticipoSueldos/cargaAnticipoGrupo.php',
-    'CargaAnticipo':SERVIDOR['testing'] + 'administracion/recursosHumanos/anticipoSueldos/cargaAnticipo.php',
+    'CargaAnticipoGrupo':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/cargaAnticipoGrupo.php',
+    'CargaAnticipo':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/cargaAnticipo.php',
     
     # Tesoreria
     'ControlDeEfectivo':SERVIDOR['testing'] + 'administracion/controlSucursales/controlRecepcionEfectivo.php',
