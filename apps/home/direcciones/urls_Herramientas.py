@@ -20,6 +20,10 @@ urlpatterns = [
     path('eliminar/<int:turno_id>', views.eliminar_turno, name='eliminar_turno'),
     path('ver/<int:turno_id>', views.ver_turno, name='ver_turno'),
     path('editar/<int:turno_id>', views.editar_turno, name='editar_turno'),
+    path('lista_codigos_error', views.lista_codigos_error, name='lista_codigos_error'),
+    path('crear_codigo_error', views.crear_codigo_error, name='crear_codigo_error'),
+    path('editar_codigo_error/<int:codigo_id>', views.editar_codigo_error, name='editar_codigo_error'),
+    path('eliminar_codigo_error/<int:codigo_id>', views.eliminar_codigo_error, name='eliminar_codigo_error'),
     # Abastecimiento
     path('Stock_excluido', views.Stock_excluido, name='Herramientas'),
     path('Carga_de_orden', views.Carga_de_orden, name='Herramientas'),
