@@ -199,6 +199,9 @@
                     <li>
                       <a class="text-secondary"> Deposito: <b>{{ dato.deposito }}</b></a>
                     </li>
+                    <li>
+                      <a class="text-secondary"> Retiro Expres: <b>{{ dato.retiro_expres }}</b></a>
+                    </li>
                   </ul>
                 </div>
                 {% if request.user|has_group:"admin" or request.user|has_group:"soporteExt" %}
