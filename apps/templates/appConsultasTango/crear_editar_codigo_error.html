@@ -1,0 +1,79 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{% if accion == 'Crear' %}Crear{% else %}Editar{% endif %} Código de Error{% endblock %}
+
+{% block body_class %}sidebar-mini sidebar-collapse{% endblock body_class %}
+
+
+{% block stylesheets %}
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+{% block content %}
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>{% if accion == 'Crear' %}Crear{% else %}Editar{% endif %} Código de Error</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'lista_codigos_error' %}">Códigos de Error</a></li>
+            <li class="breadcrumb-item active">{% if accion == 'Crear' %}Crear{% else %}Editar{% endif %} Código de Error</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">{% if accion == 'Crear' %}Crear Nuevo{% else %}Editar{% endif %} Código de Error</h3>
+            </div>
+            <form method="post">
+              {% csrf_token %}
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="{{ form.CodigoError.id_for_label }}">Código de Error</label>
+                  {{ form.CodigoError }}
+                </div>
+                <div class="form-group">
+                  <label for="{{ form.DescripcionError.id_for_label }}">Descripción del Error</label>
+                  {{ form.DescripcionError }}
+                </div>
+              </div>
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary">
+                  {% if accion == 'Crear' %}Crear{% else %}Guardar Cambios{% endif %}
+                </button>
+                <a href="{% url 'lista_codigos_error' %}" class="btn btn-secondary">Cancelar</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+{% block javascripts %}
+  <!-- jQuery -->
+  <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap 4 -->
+  <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE App -->
+  <script src="/static/assets/js/adminlte.min.js"></script>
+  <!-- AdminLTE for demo purposes -->
+  <script src="/static/assets/js/demo.js"></script>
+{% endblock javascripts %}
+

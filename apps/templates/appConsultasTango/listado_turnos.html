@@ -25,12 +25,17 @@
     .progress {
         height: 20px;
         background-color: #f0f0f0;
+        border-radius: .25rem;
+        overflow: hidden; /* Para bordes redondeados en la barra de progreso interior */
     }
     .progress-bar {
         line-height: 20px;
-        color: #000;
-        text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7);
+        color: #fff; /* Texto blanco para mejor contraste en las barras de progreso */
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Sombra para el texto en la barra de progreso */
         transition: width 0.6s ease;
+    }
+    .status-icon {
+        margin-right: 5px; /* Espacio entre el icono y el texto del estado */
     }
 </style>
 {% endblock stylesheets %}
@@ -58,6 +63,11 @@
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Listado de Turnos Asignados</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'registro_turno' %}" class="btn btn-success btn-sm">
+                            <i class="fas fa-plus"></i> Nuevo turno
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
@@ -75,6 +85,7 @@
                                     <th>Fecha Asignación</th>
                                     <th>Orden de Compra</th>
                                     <th>Progreso</th>
+                                    <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -86,11 +97,11 @@
                                     <td>{{ turno.FechaAsignacion|date:"d/m/Y H:i" }}</td>
                                     <td>{{ turno.OrdenCompra }}</td>
                                     <td>
-                                        <div class="progress">
-                                            <div class="progress-bar" role="progressbar" 
-                                                 style="width: {{ turno.progreso }}%;" 
-                                                 aria-valuenow="{{ turno.progreso }}" 
-                                                 aria-valuemin="0" 
+                                        <div class="progress bg-lightgray">
+                                            <div class="progress-bar bg-gradient-info progress-bar-striped progress-bar-animated bg-opacity-{{ turno.progreso }}" role="progressbar"
+                                                 style="width: {{ turno.progreso }}%;"
+                                                 aria-valuenow="{{ turno.progreso }}"
+                                                 aria-valuemin="0"
                                                  aria-valuemax="100"
                                                  data-progress="{{ turno.progreso }}">
                                                 {{ turno.progreso }}%
@@ -98,12 +109,26 @@
                                         </div>
                                     </td>
                                     <td>
+                                        {% if turno.Posicionado %}
+                                            <span class="badge bg-success"><i class="fas fa-check-circle status-icon"></i>Posicionado</span>
+                                        {% elif turno.Auditado %}
+                                            <span class="badge bg-warning"><i class="fas fa-check-circle status-icon"></i>Auditado</span>
+                                        {% elif turno.Recepcionado %}
+                                            <span class="badge bg-danger"><i class="fas fa-check-circle status-icon"></i>Recepcionado</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary"><i class="fas fa-hourglass-half status-icon"></i>Pendiente</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
                                         <a href="{% url 'ver_turno' turno.IdTurno %}" class="btn btn-info btn-sm">Ver</a>
                                         {% if turno.progreso < 100 %}
                                             <a href="{% url 'editar_turno' turno.IdTurno %}" class="btn btn-warning btn-sm">Editar</a>
-                                            <button class="btn btn-danger btn-sm eliminar-turno" data-turno-id="{{ turno.IdTurno }}">Eliminar</button>
+                                            
                                         {% else %}
                                             <button class="btn btn-primary btn-sm ver-imagenes" data-turno-id="{{ turno.IdTurno }}">Ver Adjuntos</button>
+                                        {% endif %}
+                                        {% if turno.progreso == 0 %}
+                                        <button class="btn btn-danger btn-sm eliminar-turno" data-turno-id="{{ turno.IdTurno }}">Eliminar</button>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -155,14 +180,21 @@ $(document).ready(function() {
 
     // Función para calcular el color de la barra de progreso
     function getColor(value) {
-        var hue = ((value / 100) * 120).toString(10);
-        return ["hsl(", hue, ",100%,50%)"].join("");
+        //value from 0 to 100
+        var hue = ((value) * 1.2).toString(10);
+        console.log("Progress value:", value);
+        console.log("Calculated hue:", hue);
+        var color = ["hsl(", hue, ",100%,50%)"].join("");
+        console.log("Calculated color:", color);
+        return color;
     }
 
     // Aplicar colores a las barras de progreso
     $('.progress-bar').each(function() {
         var progress = $(this).data('progress');
-        $(this).css('background-color', getColor(progress));
+        var color = getColor(progress);
+        console.log("Applying color:", color, "to progress bar with value:", progress);
+        $(this).css('background-color', color);
     });
 
     // Inicializar Flatpickr para el selector de fecha
@@ -178,7 +210,7 @@ $(document).ready(function() {
         var turnoId = $(this).data('turno-id');
         if (confirm('¿Está seguro de que desea eliminar este turno?')) {
             $.ajax({
-                url: '/turnos/eliminar/' + turnoId + '/',
+                url: 'eliminar/' + turnoId,
                 method: 'POST',
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
                 success: function(data) {

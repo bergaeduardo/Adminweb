@@ -6,61 +6,121 @@
 <!-- Element injected in the BODY element -->
 {% block body_class %} sidebar-mini sidebar-collapse {% endblock body_class %} 
 {% block stylesheets %}
-
-<!-- Google Font: Source Sans Pro -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-<!-- Font Awesome -->
-<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
-<!-- DataTables -->
-<link rel="stylesheet" href="/static/assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
-<link rel="stylesheet" href="/static/assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
-<link rel="stylesheet" href="/static/assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
-<!-- Theme style -->
-<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
-<link href="/static/assets/plugins/toastr/toastr.css" rel="stylesheet"/>
-<!-- bootstrap4-toggle -->
-<link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+  <!-- Toastr -->
+  <link href="/static/assets/plugins/toastr/toastr.css" rel="stylesheet"/>
 {% endblock stylesheets %}
 
 {% block content %}
 <div class="content-wrapper">
-    <section class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1>{{Nombre}}</h1>
-          </div>
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="/">Home</a></li>
-              <li class="breadcrumb-item active">{{Nombre}}</li>
-            </ol>
-          </div>
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>Registro de Turno</h1>
         </div>
-      </div><!-- /.container-fluid -->
-    </section>
-    <section class="content">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-md-2 align-self-start">
-          </div>
-          <div class="col-md-6 align-self-center">
-            <div class="card">
-              <div class="card-body">
-                <h2>Registro de Turno</h2>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn btn-primary">Registrar Turno</button>
-                </form>
-              </div>
-            </div>
-          </div>
-          <div class="col-1 align-self-end">
-          </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active">Registro de Turno</li>
+          </ol>
         </div>
       </div>
-    </section>
+    </div><!-- /.container-fluid -->
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="card card-success">
+            <div class="card-header">
+              <h3 class="card-title">Cargar nuevo Turno</h3>
+            </div>
+            <!-- /.card-header -->
+            <form method="post">
+              {% csrf_token %}
+              <div class="card-body">
+                {% if form.errors %}
+                  <div class="alert alert-danger">
+                    Por favor, corrige los siguientes errores:
+                    <ul>
+                      {% for field in form %}
+                        {% for error in field.errors %}
+                          <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endif %}
+
+                <div class="form-group row">
+                  <label for="{{ form.CodigoProveedor.id_for_label }}" class="col-sm-2 col-form-label">Código Proveedor:</label>
+                  <div class="col-sm-2">
+                    {{ form.CodigoProveedor }}
+                  </div>
+                  <div class="col-sm-8">
+                    {{ form.NombreProveedor }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="form-group">
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-3">
+                    <label for="{{ form.FechaAsignacion.id_for_label }}">Fecha y Hora:</label>
+                    {{ form.FechaAsignacion }}
+                  </div>
+                  <div class="col-md-4">
+                    <label for="{{ form.OrdenCompra.id_for_label }}">Orden de Compra:</label>
+                    {{ form.OrdenCompra }}
+                  </div>
+                  <div class="col-md-2">
+                    <label for="{{ form.CantidadUnidades.id_for_label }}">Unidades:</label>
+                    {{ form.CantidadUnidades }}                    
+                  </div>
+                  <div class="col-md-2">
+                    <label for="{{ form.CantidadBultos.id_for_label }}">Bultos:</label>
+                    {{ form.CantidadBultos }}
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="form-group">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                  <label for="{{ form.Remitos.id_for_label }}">Remitos:</label>
+                  {{ form.Remitos }}
+                </div>
+                </div>
+              </div>
+              <!-- /.card-body -->
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i> Registrar Turno
+                </button>
+                <a href="{% url 'listado_turnos' %}" class="btn btn-secondary">
+                  <i class="fas fa-ban"></i> Cancelar
+                </a>
+              </div>
+            </form>
+          </div>
+          <!-- /.card -->
+        </div>
+      </div>
+    </div><!-- /.container-fluid -->
+  </section>
+  <!-- /.content -->
 </div>
 {% endblock %}
 

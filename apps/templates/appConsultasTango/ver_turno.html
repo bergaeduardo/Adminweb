@@ -74,6 +74,10 @@
         font-size: 12px;
         color: #6c757d;
     }
+    .detail-label {
+      font-weight: bold;
+      margin-right: 5px;
+    }
 </style>
 {% endblock stylesheets %}
 
@@ -99,67 +103,79 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-6">
-                    <div class="card turno-details">
-                        <div class="card-body">
-                            <h5 class="card-title">Turno #{{ turno.IdTurno }}</h5>
-                            <div class="detail-item">
-                                <span class="detail-label">Código Proveedor:</span>
-                                <span>{{ turno.CodigoProveedor }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Fecha Asignación:</span>
-                                <span>{{ turno.FechaAsignacion|date:"d/m/Y H:i" }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Orden de Compra:</span>
-                                <span>{{ turno.OrdenCompra }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Remitos:</span>
-                                <span>{{ turno.Remitos }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Cantidad Unidades:</span>
-                                <span>{{ turno.CantidadUnidades }}</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Cantidad Bultos:</span>
-                                <span>{{ turno.CantidadBultos }}</span>
-                            </div>
-                            {% if turno.Observaciones %}
-                            <div class="detail-item">
-                                <span class="detail-label">Observaciones:</span>
-                                <span>{{ turno.Observaciones }}</span>
-                            </div>
-                            {% endif %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-info-circle"></i> Turno #{{ turno.IdTurno }}</h3>
                         </div>
+                        <div class="card-body">
+                            <!-- <h5 class="card-title">
+                                <i class="fas fa-info-circle"></i> Turno #{{ turno.IdTurno }}
+                            </h5> -->
+                            <dl class="row">
+                                <dt class="col-sm-4">Código Proveedor:</dt>
+                                <dd class="col-sm-2" id="codigo">{{ turno.CodigoProveedor }}</dd>
+                                <dd class="col-md-6"><span style="margin-left: 10px; color: grey;">({{ turno.NombreProveedor|default:"Nombre Proveedor" }})</span></dd>
+
+                                <dt class="col-sm-4">Fecha Asignación:</dt>
+                                <dd class="col-sm-8">{{ turno.FechaAsignacion|date:"d/m/Y H:i" }}</dd>
+
+                                <dt class="col-sm-4">Orden de Compra:</dt>
+                                <dd class="col-sm-8">{{ turno.OrdenCompra }}</dd>
+
+                                <dt class="col-sm-4">Remitos:</dt>
+                                <dd class="col-sm-8">{{ turno.Remitos }}</dd>
+
+                                <dt class="col-sm-4">Cantidad Unidades:</dt>
+                                <dd class="col-sm-8">{{ turno.CantidadUnidades }}</dd>
+
+                                <dt class="col-sm-4">Cantidad Bultos:</dt>
+                                <dd class="col-sm-8">{{ turno.CantidadBultos }}</dd>
+
+                                {% if turno.Observaciones %}
+                                  <dt class="col-sm-4">Observaciones:</dt>
+                                  <dd class="col-sm-8">{{ turno.Observaciones }}</dd>
+                                {% endif %}
+                            </dl>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{% url 'listado_turnos' %}" class="btn btn-secondary">
+                              <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                          </div>
                     </div>
                 </div>
                 <div class="col-md-6">
                   <div class="card timeline-card">
                       <h5 class="timeline-title">Timeline del Proceso</h5>
-                      {% for item in timeline %}
-                      <div class="timeline-item">
-                        {% if item.fecha %}
-                          <div class="timeline-badge">
-                              <i class="fas fa-check"></i>
+                      <div class="card-body">
+                        <div class="timeline timeline-inverse">
+                          {% for item in timeline %}
+                          <div class="time-label">
+                            <span class="bg-red">
+                              {{ item.fecha|date:"d M. Y" }}
+                            </span>
                           </div>
-                          <div class="timeline-content">
-                              <div class="timeline-estado">{{ item.estado }}</div>
-                              <div class="timeline-fecha">
-                                  <i class="far fa-clock"></i> {{ item.fecha|date:"d/m/Y H:i" }}
-                              </div>
+                          <div>
+                            {% if item.fecha %}
+                              <i class="fas fa-check bg-success"></i>
+                            {% else %}
+                              <i class="fas fa-times bg-gray"></i>
+                            {% endif %}
+                            <div class="timeline-item">
+                              {% if item.fecha %}
+                                <span class="time"><i class="far fa-clock"></i> {{ item.fecha|date:"H:i" }}</span>
+                              {% endif %}
+                              <h3 class="timeline-header">
+                                {{ item.estado }}
+                              </h3>
                             </div>
-                        {% else %}
-                          <div class="timeline-badge-none">
-                            <i class="fas fa-uncheck"></i>
                           </div>
-                          <div class="timeline-content">
-                            <div class="timeline-estado">{{ item.estado }}</div>
+                          {% endfor %}
+                          <div>
+                            <i class="far fa-clock bg-gray"></i>
                           </div>
-                        {% endif %}
+                        </div>
                       </div>
-                      {% endfor %}
                   </div>
               </div>
             </div>
@@ -184,6 +200,7 @@
       var loading = document.getElementById('spiner');
       loading.style.visibility = 'hidden';
       // loading.style.opacity = '0';
+      
     }
     $('#botonBuscar').click(function(){
       var loading = document.getElementById('spiner');
@@ -195,6 +212,23 @@
         "responsive": true, "lengthChange": true, "autoWidth": false,
         "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"],
         }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+    });
+
+    $(document).ready(function() {
+        var codigo = $('#codigo').val(); // Uso correcto de jQuery
+        console.log(codigo); // Mostrando el valor en consola
+        
+        $.ajax({
+            url: '{% url "get_nombre_proveedor" %}',
+            data: {
+                'codigo': codigo
+            },
+            dataType: 'json',
+            success: function(data) {
+                $('#id_NombreProveedor').val(data.nombre);
+                console.log(data.nombre)
+            }
+        });
     });
   </script>
 

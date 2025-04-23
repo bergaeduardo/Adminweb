@@ -317,6 +317,15 @@
                     unchecked> {{ formulario.integra_vtex.label }}
                     
             </label>
+            <label class="form-check-label label_check">
+                <input 
+                    id="{{ formulario.retiro_expres.name }}"
+                    name="{{ formulario.retiro_expres.name }}"
+                    class="form-check-input" 
+                    type="checkbox" 
+                    value="{{ formulario.retiro_expres.value | default:'true' }}"
+                    unchecked> {{ formulario.retiro_expres.label }}
+            </label>
 
         </div>
 

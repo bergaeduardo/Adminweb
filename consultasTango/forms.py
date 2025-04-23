@@ -22,13 +22,26 @@ class CodigoErrorForm(forms.ModelForm):
         if codigo < 1:
             raise forms.ValidationError("El código de error debe ser un número positivo.")
         return codigo
+    
 class TurnoEditForm(forms.ModelForm):
     class Meta:
         model = Turno
         fields = ['Recepcionado', 'Auditado', 'Posicionado', 'Observaciones', 'CodigoError']
         widgets = {
             'Observaciones': forms.Textarea(attrs={'rows': 3}),
+            'Recepcionado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'Auditado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'Posicionado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    def clean_Recepcionado(self):
+        recepcionado = self.cleaned_data.get('Recepcionado')
+        # Verificar si el turno ya existe y si Recepcionado ya estaba marcado
+        if self.instance and self.instance.pk and self.instance.Recepcionado:
+            if not recepcionado:  # Si están intentando desmarcar Recepcionado
+                raise forms.ValidationError("No se puede desmarcar 'Recepcionado' una vez activado.")
+        return recepcionado
+
 
     def clean(self):
         cleaned_data = super().clean()
