@@ -124,7 +124,7 @@ DIR_HERAMIENTAS = {
     'CargaAnticipo':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/cargaAnticipo.php',
     
     # Tesoreria
-    'ControlDeEfectivo':SERVIDOR['testing'] + 'administracion/controlSucursales/controlRecepcionEfectivo.php',
+    'ControlDeEfectivo':SERVIDOR['production'] + 'administracion/controlSucursales/controlRecepcionEfectivo.php',
 }
 
 DIR_EXTRAS = {

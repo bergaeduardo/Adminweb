@@ -71,8 +71,8 @@ def editarSucursal(request,id):
     suc = SucursalesLakers.objects.get(nro_sucursal=id)
     sucForm = sucursalesform(request.POST or None, request.FILES or None, instance=suc)
     Disabled='disabled'
-    print(id)
-    print(sucForm.errors)
+    # print(id)
+    # print(sucForm.errors)
     if sucForm.is_valid() and request.POST:
         suc = sucForm.save(commit=False)
         suc.save()

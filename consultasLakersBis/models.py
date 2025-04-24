@@ -91,7 +91,7 @@ class SucursalesLakers(models.Model):
     fecha_cierre = models.DateField(db_column='FECHA_CIERRE', blank=True, null=True)  # Field name made lowercase.
     horario = models.CharField(db_column='HORARIO', max_length=50, blank=True, null=True)  # Field name made lowercase.
     integra_vtex = models.BooleanField(db_column='INTEGRA_VTEX', blank=True, null=True)  # Field name made lowercase.
-    retiro_expres = models.BooleanField(db_column='RETIRO_EXPRES', blank=True, null=True, default=False) # Field name made lowercase.
+    retiro_expres = models.BooleanField(db_column='RETIRO_EXPRES', blank=True, null=True) # Field name made lowercase.
 
     class Meta:
         managed = True

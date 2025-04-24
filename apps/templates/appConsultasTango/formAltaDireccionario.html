@@ -321,9 +321,9 @@
                 <input 
                     id="{{ formulario.retiro_expres.name }}"
                     name="{{ formulario.retiro_expres.name }}"
-                    class="form-check-input" 
+                    class="form-check-input retiro" 
                     type="checkbox" 
-                    value="{{ formulario.retiro_expres.value | default:'true' }}"
+                    value="{{ formulario.retiro_expres.value}}"
                     unchecked> {{ formulario.retiro_expres.label }}
             </label>
 
@@ -355,8 +355,32 @@ window.onload = function(){
                 $("#nro_suc_madre").attr("disabled","");
                 console.log('addAttr')
             }
-        })
+        });
+        // $(".retiro").click(function() {
+        //     if ($(this).val("True")) {
+        //         $(this).removeAttr("checked","");
+        //         $(this).val("False");
+        //         $(this).attr("unchecked","");
+        //     }
+        //     if ($(this).val("False")) {
+        //         $(this).attr("checked","");
+        //         $(this).val("True");
+        //         $(this).removeAttr("unchecked","");
+        //     }
+        // });
+        $(".retiro").change(function() {
+            if ($(this).is(":checked")) {
+                // El checkbox está seleccionado
+                $(this).val("True");
+            } else {
+                // El checkbox no está seleccionado
+                $(this).val("False");
+            }
+        });
+
     })
+    
+
     $("#guardar").click(function(){
         $('input:disabled').removeAttr('disabled'); 
         console.log('guardar')
@@ -366,6 +390,7 @@ window.onload = function(){
     var dashboard_bi = "{{ formulario.dashboard_bi.value }}"
     var habilitado = "{{ formulario.habilitado.value  }}"
     var integra_vtex = "{{ formulario.integra_vtex.value  }}"
+    var retiro_expres = "{{ formulario.retiro_expres.value  }}"
     
     if(tango==true || tango!="None"){
         var id = "{{ formulario.tango.name }}"
@@ -387,6 +412,14 @@ window.onload = function(){
         $("#"+id).removeAttr("unchecked");
         $("#"+id).attr("checked","");
     }
+    console.log('Retiro: ' + retiro_expres)
+    if(retiro_expres=='True'){
+        var id = "{{ formulario.retiro_expres.name }}"
+        console.log('id: ' + id)
+        $("#"+id).removeAttr("unchecked");
+        $("#"+id).attr("checked","");
+    }
+
     if(ferreteria==true || ferreteria!="None"){
             $(".toggle").removeClass("btn-light off");
             $(".toggle").addClass("btn-primary");
