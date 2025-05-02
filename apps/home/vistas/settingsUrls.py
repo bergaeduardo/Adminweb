@@ -84,6 +84,7 @@ DIR_HERAMIENTAS = {
     'AltaPromoBancaria':SERVIDOR['production']  + 'comercial/mayoristas/promocionesBancarias/altaPromoBancaria.php',
     'CrearGrupoPromo':SERVIDOR['production']  + 'comercial/mayoristas/promocionesBancarias/crearGrupoPromo.php',
     'EditarGrupoPromo':SERVIDOR['production']  + 'comercial/mayoristas/promocionesBancarias/listarGruposPromo.php',
+    'MaestroDestinos':SERVIDOR['production']  + 'comercial/abastecimiento/destinos/maestroDestinos.php',
     # Comercial
     'Gestion_categoria_productos':SERVIDOR['production']  + 'administracion/comercial/gestionCategoriaProductos.php',
     'AdministrarCuotas':SERVIDOR['production']  + 'cuotas/',

@@ -344,6 +344,12 @@ def EditarGrupoPromo(request):
     dir_iframe = DIR_HERAMIENTAS['EditarGrupoPromo']
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
 
+@login_required(login_url="/login/")
+def MaestroDestinos(request):
+    Nombre = 'MaestroDestinos'
+    dir_iframe = DIR_HERAMIENTAS['MaestroDestinos']
+    return redirect(dir_iframe)
+
 # Comercial
 @login_required(login_url="/login/")
 def Gestion_categoria_productos(request):

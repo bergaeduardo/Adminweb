@@ -38,6 +38,7 @@ urlpatterns = [
     path('AltaPromoBancaria', views.AltaPromoBancaria, name='Herramientas'),
     path('CrearGrupoPromo', views.CrearGrupoPromo, name='Herramientas'),
     path('EditarGrupoPromo', views.EditarGrupoPromo, name='Herramientas'),
+    path('MaestroDestinos', views.MaestroDestinos, name='Herramientas'),
     # Comercial
     path('GestionCategoriaProductos', views.Gestion_categoria_productos, name='Herramientas'),
     path('AdministrarCuotas', views.AdministrarCuotas, name='Herramientas'),
