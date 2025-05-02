@@ -66,7 +66,7 @@ DIR_REPORTES = {
     'DetalleRemitos599':SERVIDOR['production']  + 'sistemas/599/consultaderemitos.php?userName=',
     'ChequesRecibidos':SERVIDOR['production']  + 'sistemas/599/reportedecheques.php?userName=',
     # RRHH
-    'AsistenciasSuc':SERVIDOR['testing'] + 'sistemas/fichaje/reporteDeAsistencias.php',
+    'AsistenciasSuc':SERVIDOR['production'] + 'sistemas/fichaje/reporteDeAsistencias.php',
     'ReporteAnticipos':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/reporteAnticipos.php',
 
 }
@@ -117,10 +117,10 @@ DIR_HERAMIENTAS = {
     'CargaFacturasSuc':SERVIDOR['production'] + 'administracion/controlSucursales/cargaFacturaSucursales.php',
     'EgresosCajaTesoreria':SERVIDOR['production'] + 'administracion/tesoreria/cargaGastos.php',
     # RRHH
-    'adminEmpleados':SERVIDOR['testing'] + 'administracion/recursosHumanos/controlHorarios/controlHorario.php',
-    'altaVendedores':SERVIDOR['testing'] + 'administracion/recursoshumanos/altaVendedores/altaVendedores.php',
-    'listarGrupos':SERVIDOR['testing'] + 'administracion/recursosHumanos/altaVendedores/listarGrupos.php',
-    'gestionarVendedores':SERVIDOR['testing'] + 'administracion/recursosHumanos/altaVendedores/gestionarVendedores.php',
+    'adminEmpleados':SERVIDOR['production'] + 'administracion/recursosHumanos/controlHorarios/controlHorario.php',
+    'altaVendedores':SERVIDOR['production'] + 'administracion/recursoshumanos/altaVendedores/altaVendedores.php',
+    'listarGrupos':SERVIDOR['production'] + 'administracion/recursosHumanos/altaVendedores/listarGrupos.php',
+    'gestionarVendedores':SERVIDOR['production'] + 'administracion/recursosHumanos/altaVendedores/gestionarVendedores.php',
     'CargaAnticipoGrupo':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/cargaAnticipoGrupo.php',
     'CargaAnticipo':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/cargaAnticipo.php',
     
@@ -129,8 +129,8 @@ DIR_HERAMIENTAS = {
 }
 
 DIR_EXTRAS = {
-    'direccionario': SERVIDOR['testing'] + 'proyecto_21/direccionario/index.php',
-    'reporteTrello':SERVIDOR['testing'] + 'Proyectos/ReporteTrello_Claude/trello-activity-report.html',
-    'internos':SERVIDOR['testing'] + 'comercial/recepcion/index.php',
+    'direccionario': SERVIDOR['production'] + 'proyecto_21/direccionario/index.php',
+    'reporteTrello':SERVIDOR['production'] + 'Proyectos/ReporteTrello_Claude/trello-activity-report.html',
+    'internos':SERVIDOR['production'] + 'comercial/recepcion/index.php',
     
 }
