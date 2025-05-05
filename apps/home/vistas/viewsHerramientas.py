@@ -291,6 +291,14 @@ def Gestion_guias_mayoristas(request):
     dir_iframe = DIR_HERAMIENTAS['Gestion_guias_mayoristas']
     return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def ImpRotulos(request):
+    Nombre = 'Imprecion de Rotulos'
+    dir_iframe = DIR_HERAMIENTAS['ImpRotulos']
+    # return redirect(dir_iframe)
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
+
+
 # Abastecimiento
 
 @login_required(login_url="/login/")

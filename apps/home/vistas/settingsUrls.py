@@ -75,6 +75,7 @@ DIR_HERAMIENTAS = {
     # Logistica
     'Gestion_cronograma': SERVIDOR['production'] + 'sistemas/cronoDespacho/index.php',
     'Gestion_guias_mayoristas': SERVIDOR['production'] + 'comercial/mayoristas/despacho/index.php',
+    'ImpRotulos': SERVIDOR['production'] + 'remapp/index.html',
     # Abastecimiento
     'Stock_excluido': SERVIDOR['production']  + 'sistemas/stockExcluido/index.php',
     'Carga_de_orden': SERVIDOR['production']  + 'sistemas/distriCuero/index.php',
