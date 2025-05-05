@@ -93,6 +93,8 @@ DIR_HERAMIENTAS = {
     'CondicionDeArticulos':SERVIDOR['production']  + 'condicionArticulo/',
     'CondicionDeArticulosUy':SERVIDOR['production']  + 'condicionarticulo-uy/',
     'PromoBancos':SERVIDOR['production']  + 'promoBancos/',
+    'AltaNuevosLocales':SERVIDOR['production']  + 'app/usuarios',
+    'UsuariosFranquicias':SERVIDOR['production']  + 'usuariosFranquicias/',
     # Mayoristas
     'Adm_Pedido':SERVIDOR['production']  + 'sistemas/despachoMayorista/index.php',
     # Ecommerce

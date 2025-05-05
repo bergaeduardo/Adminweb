@@ -395,6 +395,19 @@ def PromoBancos(request):
     dir_iframe = DIR_HERAMIENTAS['PromoBancos'] #+ UserName
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
 
+@login_required(login_url="/login/")
+def AltaNuevosLocales(request):
+    Nombre = 'Alta de Nuevos Locales'
+    dir_iframe = DIR_HERAMIENTAS['AltaNuevosLocales'] #+ UserName
+    # return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+    return redirect(dir_iframe)
+
+@login_required(login_url="/login/")
+def UsuariosFranquicias(request):
+    Nombre = 'Usuarios de Franquicias'
+    dir_iframe = DIR_HERAMIENTAS['UsuariosFranquicias'] #+ UserName
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+
 # Mayoristas
 @login_required(login_url="/login/")
 def Adm_Pedido(request):

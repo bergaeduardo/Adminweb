@@ -419,6 +419,22 @@
         <span class="badge badge-info right">New</span>
       </a>
     </li>
+    <li class="nav-item">
+      <a href="/../Herramientas/AltaNuevosLocales"
+        class="nav-link {% if 'AltaNuevosLocales' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Alta Locales</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="/../Herramientas/UsuariosFranquicias"
+        class="nav-link {% if 'UsuariosFranquicias' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Usuarios Franquicias</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>
     {% endif %}
     {% if request.user|has_any_group:"admin,Comercial_may,Comercial_fr,Comercial_suc,Comercial_sup" %}
     <!-- accesos del area aqui -->

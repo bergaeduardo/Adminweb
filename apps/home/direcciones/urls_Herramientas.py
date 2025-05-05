@@ -47,6 +47,8 @@ urlpatterns = [
     path('CondicionDeArticulos', views.CondicionDeArticulos, name='Herramientas'),
     path('CondicionDeArticulosUy', views.CondicionDeArticulosUy, name='Herramientas'),
     path('PromoBancos', views.PromoBancos, name='Herramientas'),
+    path('AltaNuevosLocales', views.AltaNuevosLocales, name='Herramientas'),
+    path('UsuariosFranquicias', views.UsuariosFranquicias, name='Herramientas'),
     # Mayoristas
     path('Adm_Pedido', views.Adm_Pedido, name='Herramientas'),
     # Ecommerce
