@@ -369,6 +369,24 @@ def AdministrarInternos(request):
     dir_iframe = DIR_HERAMIENTAS['AdministrarInternos'] #+ UserName
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
 
+@login_required(login_url="/login/")
+def CondicionDeArticulos(request):
+    Nombre = ''
+    dir_iframe = DIR_HERAMIENTAS['CondicionDeArticulos'] #+ UserName
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+
+@login_required(login_url="/login/")
+def CondicionDeArticulosUy(request):
+    Nombre = ''
+    dir_iframe = DIR_HERAMIENTAS['CondicionDeArticulosUy'] #+ UserName
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+
+@login_required(login_url="/login/")
+def PromoBancos(request):
+    Nombre = 'Promo Bancos'
+    dir_iframe = DIR_HERAMIENTAS['PromoBancos'] #+ UserName
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+
 # Mayoristas
 @login_required(login_url="/login/")
 def Adm_Pedido(request):

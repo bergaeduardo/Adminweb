@@ -387,6 +387,30 @@
         <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
+    <li class="nav-item">
+      <a href="/../Herramientas/CondicionDeArticulos"
+        class="nav-link {% if 'CondicionDeArticulos' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Condicion De Articulos</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="/../Herramientas/CondicionDeArticulosUy"
+        class="nav-link {% if 'CondicionDeArticulosUy' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Condicion De Articulos UY</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="/../Herramientas/PromoBancos"
+        class="nav-link {% if 'PromoBancos' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Promo Bancos</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>
     {% endif %}
     {% if request.user|has_any_group:"admin,Comercial_may,Comercial_fr,Comercial_suc,Comercial_sup" %}
     <!-- accesos del area aqui -->

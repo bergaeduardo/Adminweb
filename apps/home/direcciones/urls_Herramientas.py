@@ -43,6 +43,9 @@ urlpatterns = [
     path('GestionCategoriaProductos', views.Gestion_categoria_productos, name='Herramientas'),
     path('AdministrarCuotas', views.AdministrarCuotas, name='Herramientas'),
     path('AdministrarInternos', views.AdministrarInternos, name='Herramientas'),
+    path('CondicionDeArticulos', views.CondicionDeArticulos, name='Herramientas'),
+    path('CondicionDeArticulosUy', views.CondicionDeArticulosUy, name='Herramientas'),
+    path('PromoBancos', views.PromoBancos, name='Herramientas'),
     # Mayoristas
     path('Adm_Pedido', views.Adm_Pedido, name='Herramientas'),
     # Ecommerce

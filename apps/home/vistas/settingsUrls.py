@@ -89,6 +89,9 @@ DIR_HERAMIENTAS = {
     'Gestion_categoria_productos':SERVIDOR['production']  + 'administracion/comercial/gestionCategoriaProductos.php',
     'AdministrarCuotas':SERVIDOR['production']  + 'cuotas/',
     'AdministrarInternos':SERVIDOR['production']  + 'comercial/recepcion/listado.php',
+    'CondicionDeArticulos':SERVIDOR['production']  + 'condicionArticulo/',
+    'CondicionDeArticulosUy':SERVIDOR['production']  + 'condicionarticulo-uy/',
+    'PromoBancos':SERVIDOR['production']  + 'promoBancos/',
     # Mayoristas
     'Adm_Pedido':SERVIDOR['production']  + 'sistemas/despachoMayorista/index.php',
     # Ecommerce
