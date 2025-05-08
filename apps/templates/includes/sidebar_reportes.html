@@ -48,6 +48,14 @@
         {% endif %}
         {% if request.user|has_group:"Logistica" or request.user|has_group:"Logistica_Sup" or request.user|has_group:"admin" %}
         <li class="nav-item">
+          <a href="http:/../Reportes/Eficiencia_pedidos"
+            class="nav-link {% if 'Eficiencia_pedidos' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Eficiencia de pedidos</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="/../Reportes/pendiente_despacho" class="nav-link {% if 'pendiente_despacho' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Despachos Pendientes</p>
@@ -63,9 +71,10 @@
           <a href="/../Reportes/ConsultaDestino" class="nav-link {% if 'ConsultaDestino' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Consulta Destino</p>
-            <span class="badge badge-info right">New</span>
+            <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
+        
         
         {% endif %}
       <!-- Fin Logistica -->
