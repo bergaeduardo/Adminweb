@@ -47,10 +47,10 @@ DIR_REPORTES = {
     'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'Despacho/tracking.php',
     # Ecommerce
     'Pedidos': SERVIDOR['production'] + 'ECOMMERCE/',
-    'Tracking_Ecommerce':SERVIDOR['production'] + 'ecommerce/consultaPedido.php',
+    'Tracking_Ecommerce':SERVIDOR['production'] + 'ecommerce/seguimientoPedidos/',
     'PedidosUY': SERVIDOR['production'] + 'Uruguay/ecommerce/consultaPedidos.php',
     'Auditoria_Ecommerce': SERVIDOR['production'] + 'ecommerce-auditoria/',
-    'Auditoria_Prisma': SERVIDOR['production'] + 'ecommerce/auditoriaPrisma/',
+    'Auditoria_Prisma': SERVIDOR['production'] + 'ecommerce/auditoriaPrisma/auditoriaPrisma.php',
     'Segmentacion_clientes':SERVIDOR['production'] + 'ecommerce/segmentacion/segmentacionDeClientes.php',
     'TableroDeControl':SERVIDOR['production'] + 'ecommerce/tableroControl/index.php',
     # Administracion
