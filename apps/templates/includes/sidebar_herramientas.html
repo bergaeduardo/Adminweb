@@ -166,7 +166,7 @@
     <!-- inicio 	Administracion -->
     {% if request.user|has_any_group:"admin,AdministracionSup" %}
     <li class="nav-item">
-      <a href="http:/../Herramientas/Controlgastos"
+      <a href="/../Herramientas/Controlgastos"
         class="nav-link {% if 'Controlgastos' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Control Gastos</p>
@@ -174,7 +174,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/CargarContratosDeAlquiler"
+      <a href="/../Herramientas/CargarContratosDeAlquiler"
         class="nav-link {% if 'CargarContratosDeAlquiler' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Cargar Contratos De Alquiler</p>
@@ -186,7 +186,7 @@
     {% endif %}
     {% if request.user|has_any_group:"admin,AdministracionSup,Administracion" %}
     <li class="nav-item">
-      <a href="http:/../Herramientas/ControlGastosSupervision"
+      <a href="/../Herramientas/ControlGastosSupervision"
         class="nav-link {% if 'ControlGastosSupervision' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Gastos Supervision</p>
@@ -194,7 +194,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/Cargargastos"
+      <a href="/../Herramientas/Cargargastos"
         class="nav-link {% if 'Cargargastos' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Cargar Gastos</p>
@@ -202,7 +202,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/Controlcajasdiario"
+      <a href="/../Herramientas/Controlcajasdiario"
         class="nav-link {% if 'Controlcajasdiario' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Control cajas Diario</p>
@@ -210,7 +210,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/GestionDeAlquileres"
+      <a href="/../Herramientas/GestionDeAlquileres"
         class="nav-link {% if 'GestionDeAlquileres' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Gestion De Alquileres</p>
@@ -218,7 +218,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/CargaGastosAlquileres"
+      <a href="/../Herramientas/CargaGastosAlquileres"
         class="nav-link {% if 'CargaGastosAlquileres' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Carga Gastos Alquileres</p>
@@ -227,7 +227,7 @@
     </li>
     
     <li class="nav-item">
-      <a href="http:/../Herramientas/ControlEgresosDeCaja/{{ request.user.username }}"
+      <a href="/../Herramientas/ControlEgresosDeCaja/{{ request.user.username }}"
         class="nav-link {% if 'ControlEgresosDeCaja' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Ctrl Egresos De Caja</p>
@@ -235,7 +235,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/ControlMasivoCobranza"
+      <a href="/../Herramientas/ControlMasivoCobranza"
         class="nav-link {% if 'ControlMasivoCobranza' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Control Masivo de Cobranza</p>
@@ -243,7 +243,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/RelacionesCtaCont"
+      <a href="/../Herramientas/RelacionesCtaCont"
         class="nav-link {% if 'RelacionesCtaCont' in request.path %} active {% endif %}">
         <i class="nav-icon far fa-circle text-warning"></i>
         <p>Gestion relaciones Cta/Cont</p>
@@ -251,7 +251,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/ContratosFrCarga"
+      <a href="/../Herramientas/ContratosFrCarga"
         class="nav-link {% if 'ContratosFrCarga' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Cargar Contratos Fr</p>
@@ -259,7 +259,7 @@
       </a>
     </li>    
     <li class="nav-item">
-      <a href="http:/../Herramientas/CargaFacturasSuc"
+      <a href="/../Herramientas/CargaFacturasSuc"
         class="nav-link {% if 'CargaFacturasSuc' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Carga Facturas Suc</p>
@@ -270,7 +270,7 @@
     {% endif %}
     {% if request.user|has_any_group:"admin,AdministracionSup,Administracion,Tesoreria" %}
     <li class="nav-item">
-      <a href="http:/../Herramientas/EgresosCajaTesoreria"
+      <a href="/../Herramientas/EgresosCajaTesoreria"
         class="nav-link {% if 'EgresosCajaTesoreria' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Egresos Caja Tesoreria</p>
@@ -281,7 +281,7 @@
     <!-- Administracion_CE   ***Comercio Exterior*** -->
     {% if request.user|has_any_group:"admin,AdministracionSup,Administracion_CE" %}
     <li class="nav-item">
-      <a href="http:/../Herramientas/Cargarcontenedor"
+      <a href="/../Herramientas/Cargarcontenedor"
         class="nav-link {% if 'Cargarcontenedor' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Cargar Contenedor</p>
@@ -312,7 +312,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/actNovICBC"
+      <a href="/../Herramientas/actNovICBC"
         class="nav-link {% if 'EditarContenedor' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Act Nov ICBC</p>
@@ -320,7 +320,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/uploadImg"
+      <a href="/../Herramientas/uploadImg"
         class="nav-link {% if 'uploadImg' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Cargar Imagenes</p>
@@ -328,7 +328,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/importartvtex"
+      <a href="/../Herramientas/importartvtex"
         class="nav-link {% if 'importartvtex' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Archivo de carga Vtex</p>
@@ -336,7 +336,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/relaciones/list"
+      <a href="/../Herramientas/relaciones/list"
         class="nav-link {% if '/list' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Sub Categorias Vtex</p>
@@ -349,7 +349,7 @@
     <!-- inicio 	Gerencia -->
     {% if request.user|has_any_group:"admin,Gerencia" %}
     <li class="nav-item">
-      <a href="http:/../Herramientas/rendircobranzas/{{ request.user.username }}"
+      <a href="/../Herramientas/rendircobranzas/{{ request.user.username }}"
         class="nav-link {% if 'rendircobranzas' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Rendir Cobranzas</p>
@@ -357,7 +357,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/RegistrarEfectivo/{{ request.user.username }}"
+      <a href="/../Herramientas/RegistrarEfectivo/{{ request.user.username }}"
         class="nav-link {% if 'RegistrarEfectivo' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Registrar Efectivo</p>
@@ -365,7 +365,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="http:/../Herramientas/gestionPremiosComercial"
+      <a href="/../Herramientas/gestionPremiosComercial"
         class="nav-link {% if 'gestionPremiosComercial' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Gest.Premios Comercial</p>
@@ -375,7 +375,7 @@
     {% endif %}
     {% if request.user|has_any_group:"admin,Gerencia,Gerencia_Adm" %}
     <li class="nav-item">
-      <a href="http:/../Herramientas/GestionarCobro/{{ request.user.username }}"
+      <a href="/../Herramientas/GestionarCobro/{{ request.user.username }}"
         class="nav-link {% if 'GestionarCobro' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Gestionar Cobro</p>
