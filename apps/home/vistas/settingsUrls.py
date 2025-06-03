@@ -1,6 +1,6 @@
 SERVIDOR = {
     'testing': 'http://192.168.0.233:8080/',
-    'production': 'http://192.168.0.143:8080/',
+    'production': 'https://app.xl.com.ar/',
 }
 DIR_PBI = {
     # Logistica
@@ -33,7 +33,7 @@ DIR_REPORTES = {
     'ConsultaDestino':SERVIDOR['production'] + 'sistemas/maestroDestinos/indexMob.php',
     # Abastecimiento
     'Auditoria_orden': SERVIDOR['production']  + 'sistemas/distriCuero/listOrdenesComercial.php',
-    'CategoriasDeProductos':SERVIDOR['production']  + 'administracion/comercial/consultaCategoriaProductos.php',
+    'CategoriasDeProductos':SERVIDOR['production']  + 'comercial/producto/consultaCategoriaProductos.php',
     'HRecodificaciones':SERVIDOR['production']  + 'recodificacion/historialDeRecodificaciones.php',
     'Eficiencia_pedidos': SERVIDOR['production']  + 'comercial/abastecimiento/pedidos/eficienciaPedidos.php',
     # Comercial
@@ -87,7 +87,7 @@ DIR_HERAMIENTAS = {
     'EditarGrupoPromo':SERVIDOR['production']  + 'comercial/mayoristas/promocionesBancarias/listarGruposPromo.php',
     'MaestroDestinos':SERVIDOR['production']  + 'comercial/abastecimiento/destinos/maestroDestinos.php',
     # Comercial
-    'Gestion_categoria_productos':SERVIDOR['production']  + 'administracion/comercial/gestionCategoriaProductos.php',
+    'Gestion_categoria_productos':SERVIDOR['production']  + 'comercial/producto/gestionCategoriaProductos.php',
     'AdministrarCuotas':SERVIDOR['production']  + 'cuotas/',
     'AdministrarInternos':SERVIDOR['production']  + 'comercial/recepcion/listado.php',
     'CondicionDeArticulos':SERVIDOR['production']  + 'condicionArticulo/',
