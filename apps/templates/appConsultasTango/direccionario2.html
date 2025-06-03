@@ -160,7 +160,7 @@
                   <!-- /.user-block -->
                   <div class="card-tools">
                     {% if request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_may" %}
-                    <a title="Editar" name="" id="" class="fas fa-pencil-alt btn-tool" href="http:/../Extras/direccionario/editarSucursal/{{ dato.nro_sucursal }}" role="button"></a>
+                    <a title="Editar" name="" id="" class="fas fa-pencil-alt btn-tool" href="/../Extras/direccionario/editarSucursal/{{ dato.nro_sucursal }}" role="button"></a>
                     {% endif %}
                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
                       <i class="fas fa-plus"></i>
@@ -243,13 +243,13 @@
 <div id="container-floating">
   {% if request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_may" %}
   <div class="nd3 nds"><img class="reminder">
-    <a href="http:/../Extras/direccionario/AltaSucursal">
+    <a href="/../Extras/direccionario/AltaSucursal">
       <img class="reminder" src="/static/assets/img/lapiz.png" />
     </a>
   </div>
   {% endif %}
   <div class="nd1 nds">
-    <a href="http:/../Extras/direccionarioTabla">
+    <a href="/../Extras/direccionarioTabla">
       <img class="reminder" src="/static/assets/img/excel.png" />
     </a>
   </div>
