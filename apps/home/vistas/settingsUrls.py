@@ -88,7 +88,7 @@ DIR_HERAMIENTAS = {
     'MaestroDestinos':SERVIDOR['production']  + 'comercial/abastecimiento/destinos/maestroDestinos.php',
     # Comercial
     'Gestion_categoria_productos':SERVIDOR['production']  + 'comercial/producto/gestionCategoriaProductos.php',
-    'AdministrarCuotas':SERVIDOR['production']  + 'cuotas/',
+    'AdministrarCuotas':SERVIDOR['production']  + 'promociones/Cuotas/gestionar.php',
     'AdministrarInternos':SERVIDOR['production']  + 'comercial/recepcion/listado.php',
     'CondicionDeArticulos':SERVIDOR['production']  + 'condicionArticulo/',
     'CondicionDeArticulosUy':SERVIDOR['production']  + 'condicionarticulo-uy/',
