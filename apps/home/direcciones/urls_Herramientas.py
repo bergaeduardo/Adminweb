@@ -29,6 +29,7 @@ urlpatterns = [
     path('eliminar_codigo_error/<int:codigo_id>', views.eliminar_codigo_error, name='eliminar_codigo_error'),
     path("cargaAnticipoGrupo", views.CargaAnticipoGrupo, name="Herramientas"),
     path("ImpRotulos", views.ImpRotulos, name="Herramientas"),
+    path("ImpRemEcom", views.ImpRemEcom, name="Herramientas"),
     
     # Abastecimiento
     path('Stock_excluido', views.Stock_excluido, name='Herramientas'),

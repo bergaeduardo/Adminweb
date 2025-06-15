@@ -37,7 +37,7 @@ DIR_REPORTES = {
     'HRecodificaciones':SERVIDOR['production']  + 'recodificacion/historialDeRecodificaciones.php',
     'Eficiencia_pedidos': SERVIDOR['production']  + 'comercial/abastecimiento/pedidos/eficienciaPedidos.php',
     # Comercial
-    'Stock_Sucursales': SERVIDOR['production']  + 'stockArticulos/index.php',
+    'Stock_Sucursales': SERVIDOR['production']  + 'sistemas/stockYprecios/stockDepositos.php',
     'Stock_central': SERVIDOR['production']  + 'logistica/stock.php',
     'promocionesActivas': SERVIDOR['production']  + 'comercial/mayoristas/promocionesBancarias/promocionesActivas.php',
     'VentasXcanal':SERVIDOR['production']  + 'comercial/abastecimiento/ventasAbastecimiento/',
@@ -76,6 +76,7 @@ DIR_HERAMIENTAS = {
     'Gestion_cronograma': SERVIDOR['production'] + 'sistemas/cronoDespacho/index.php',
     'Gestion_guias_mayoristas': SERVIDOR['production'] + 'comercial/mayoristas/despacho/index.php',
     'ImpRotulos': SERVIDOR['production'] + 'remapp/index.html',
+    'ImportarRemEcommerce': SERVIDOR['production'] + 'ecommerce/abastecimiento/',
     # Abastecimiento
     'Stock_excluido': SERVIDOR['production']  + 'sistemas/stockExcluido/index.php',
     'Carga_de_orden': SERVIDOR['production']  + 'sistemas/distriCuero/index.php',

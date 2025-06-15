@@ -298,6 +298,13 @@ def ImpRotulos(request):
     # return redirect(dir_iframe)
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
 
+@login_required(login_url="/login/")
+def ImpRemEcom(request):
+    Nombre = ''
+    dir_iframe = DIR_HERAMIENTAS['ImportarRemEcommerce']
+    # return redirect(dir_iframe)
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
+
 
 # Abastecimiento
 
