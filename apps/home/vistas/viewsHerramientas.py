@@ -1,4 +1,5 @@
 import pprint
+import logging
 import os
 from django.conf import settings
 from django import template
@@ -187,6 +188,8 @@ def eliminar_codigo_error(request, codigo_id):
     nombre_template = 'Eliminar Código de Error'
     return render(request, 'appConsultasTango/confirmar_eliminar_codigo_error.html', {'codigo': codigo, 'Nombre': nombre_template})
 
+logger = logging.getLogger(__name__)
+
 # @login_required(login_url="/login/")
 # @method_decorator(csrf_exempt, name='dispatch')
 class ImageUploadView(View):
@@ -195,37 +198,53 @@ class ImageUploadView(View):
     def get(self, request):
         return render(request, 'appConsultasTango/uploadImg.html')
 
+    @method_decorator(login_required(login_url="/login/"))
+    @method_decorator(csrf_exempt)
     def post(self, request):
-        # Verificar si se recibieron archivos
         if not request.FILES:
-            return JsonResponse({'error': 'No se recibieron archivos'}, status=400)
+            logger.warning("No files received in POST request.")
+            return JsonResponse({'error': 'No se recibió ningún archivo'}, status=400)
 
-        files = []
-        for key in request.FILES:
-            files.extend(request.FILES.getlist(key))
-        
-        print('Files:', files)
+        file_key = next(iter(request.FILES), None)
+        if not file_key:
+            logger.warning("File key not found in request.FILES.")
+            return JsonResponse({'error': 'Formato de archivo incorrecto o no se encontró el archivo'}, status=400)
+            
+        f = request.FILES.get(file_key)
 
-        if not files:
-            return JsonResponse({'error': 'No se recibieron archivos'}, status=400)
+        if not f:
+            logger.warning(f"No file found for key: {file_key}")
+            return JsonResponse({'error': 'No se encontró el archivo en la solicitud'}, status=400)
 
-        uploaded_files = []
-        for f in files:
+        try:
             file_path = os.path.join(settings.MEDIA_ROOT, 'imgTempEcommerce', f.name)
             counter = 1
-            # Asegurarse de que el nombre del archivo sea único
+            name, extension = os.path.splitext(f.name)
             while os.path.exists(file_path):
-                name, extension = os.path.splitext(f.name)
                 file_path = os.path.join(settings.MEDIA_ROOT, 'imgTempEcommerce', f"{name}_{counter}{extension}")
                 counter += 1
 
-            # Guardar el archivo en el sistema de archivos
             with open(file_path, 'wb+') as destination:
                 for chunk in f.chunks():
                     destination.write(chunk)
-            uploaded_files.append(f.name)
 
-        return JsonResponse({'message': 'Imágenes cargadas con éxito', 'files': uploaded_files})
+            logger.info(f"Successfully saved file: {f.name} to {file_path}")
+            
+            # --- CAMBIO AQUÍ: Asegurar que siempre se incluya la información del archivo ---
+            # return JsonResponse({
+            #     'message': 'Imagen cargada con éxito',
+            #     'filename': f.name, # Envía el nombre del archivo específico
+            #     'filepath': file_path.replace(settings.MEDIA_ROOT, '') # Opcional: ruta relativa si es útil
+            # })
+            # --- CAMBIO AQUÍ: Simplificar la respuesta JSON para Dropzone ---
+            # Dropzone es bastante flexible con respuestas 200, un JSON vacío
+            # o simple a menudo funciona mejor para marcar el éxito.
+            return JsonResponse({'message': 'success'}, status=200) # O simplemente {}
+            # return JsonResponse({}, status=200) # Esto también debería funcionar
+
+        except Exception as e:
+            logger.error(f"Error processing file {f.name}: {e}", exc_info=True)
+            return JsonResponse({'error': f'Error al procesar la imagen {f.name}', 'details': str(e)}, status=500)
 
 @login_required(login_url="/login/")
 def upload_success(request):
