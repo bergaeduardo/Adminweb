@@ -101,7 +101,7 @@ DIR_HERAMIENTAS = {
     # Ecommerce
     'Control_pedidos': SERVIDOR['production'] + 'logistica/ecommerce/',
     'StockSegVtex': SERVIDOR['production'] + 'ecommerce/stockSeguridad/stockSeguridad.php',
-    'novICBC':'http://192.168.0.226:923/',
+    'novICBC':'http://192.168.0.233:8080/',
     # Gerencia
     'rendircobranzas': SERVIDOR['production']  + 'sistemas/599/valoresrendir.php?userName=',
     'gestionarCobro':SERVIDOR['production']  + 'sistemas/599/composicionDeRemitos.php?userName=',
