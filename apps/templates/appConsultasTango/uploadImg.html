@@ -8,22 +8,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/assets/plugins/dropzone/dropzone.min.css" rel="stylesheet" type="text/css" />
     <script src="/static/assets/plugins/dropzone/dropzone.min.js"></script>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
     <script src="/static/assets/plugins/sweetalert2/sweetalert2.all.min.js"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
     <style>
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 24px;
-            cursor: pointer;
-        }
+        /* ... (tu estilo existente) ... */
         .dropzone {
             border: 2px dashed #0087F7;
             border-radius: 5px;
             background: white;
+            min-height: 200px; /* Asegura un tamaño mínimo para el dropzone */
         }
         .dropzone .dz-message {
             font-weight: 400;
@@ -40,6 +34,48 @@
             right: 10px;
             cursor: pointer;
         }
+
+        /* Estilos adicionales para la barra de progreso total */
+        #total-progress {
+            opacity: 0;
+            transition: opacity 0.3s linear;
+            margin-top: 15px; /* Espacio entre el dropzone y la barra */
+        }
+        #total-progress.active {
+            opacity: 1;
+        }
+        .progress-bar {
+            width: 0%;
+            background-color: #0d6efd; /* Color de Bootstrap primary */
+            color: white;
+            text-align: center;
+        }
+
+        /* Opcional: Estilo para la animación de éxito individual */
+        .dz-preview.dz-success-blink .dz-success-mark {
+            opacity: 1; /* Asegura que el check sea visible */
+            animation: successBlink 1.5s ease-out forwards; /* Ajusta la duración y el tipo de animación */
+        }
+
+        @keyframes successBlink {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; } /* Desaparece después de mostrarse */
+        }
+
+        /* Opcional: Ocultar los íconos de éxito y error por defecto hasta que se necesiten */
+        .dz-preview .dz-success-mark,
+        .dz-preview .dz-error-mark {
+            opacity: 0; /* Ocultar por defecto */
+        }
+        /* Mostrar cuando el archivo está en estado de éxito/error */
+        .dz-preview.dz-success .dz-success-mark {
+            opacity: 1;
+        }
+        .dz-preview.dz-error .dz-error-mark {
+            opacity: 1;
+        }
+
     </style>
 </head>
 <body>
@@ -49,28 +85,42 @@
         <form action="{% url 'Herramientas:uploadImg' %}" class="dropzone" id="my-dropzone">
             {% csrf_token %}
         </form>
-        <button id="submit-all" class="btn btn-primary mt-3">Cargar Imágenes</button>
+        
+        <!-- Contenedor para la barra de progreso total y el botón -->
+        <div class="mt-3">
+            <div id="total-progress" class="progress" style="height: 25px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" 
+                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+                    0%
+                </div>
+            </div>
+            <button id="submit-all" class="btn btn-primary mt-3">Cargar Imágenes</button>
+        </div>
     </div>
 
     <script>
         Dropzone.autoDiscover = false;
         
         document.addEventListener('DOMContentLoaded', function() {
+            var submitButton = document.querySelector("#submit-all");
+            var totalProgressBar = document.querySelector("#total-progress .progress-bar");
+            var totalProgressContainer = document.querySelector("#total-progress");
+
             var myDropzone = new Dropzone("#my-dropzone", {
                 url: "{% url 'Herramientas:uploadImg' %}",
                 paramName: "images",
                 maxFilesize: 2,
                 acceptedFiles: "image/*",
                 autoProcessQueue: false,
-                uploadMultiple: true,
-                parallelUploads: 100,
-                maxFiles: 100,
+                uploadMultiple: false, 
+                parallelUploads: 50, // Permite 50 cargas simultáneas
+                maxFiles: 50,        // Permite un máximo de 50 archivos
                 addRemoveLinks: true,
                 dictDefaultMessage: `
                     <i class="fas fa-cloud-upload-alt fa-fw fa-4x"></i>
                     <div class="dz-message" data-dz-message>
-                        <span id="dropzone-text" contenteditable="true">Drag and drop or click here</span>
-                        <span class="note" id="dropzone-note" contenteditable="true">to upload your image (max 2 MiB)</span>
+                        <span id="dropzone-text" contenteditable="true">Arrastra y suelta o haz clic aquí</span>
+                        <span class="note" id="dropzone-note" contenteditable="true">para subir tus imágenes (máx. 2 MiB por archivo)</span>
                     </div>
                 `,
                 headers: {
@@ -79,39 +129,172 @@
                 init: function() {
                     var dz = this;
 
-                    document.querySelector("#submit-all").addEventListener("click", function(e) {
+                    // Deshabilita el botón al inicio si no hay archivos en cola
+                    submitButton.disabled = true;
+
+                    submitButton.addEventListener("click", function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        dz.processQueue();
+                        if (dz.getQueuedFiles().length > 0) {
+                            // Mostrar mensaje de "espera" justo antes de iniciar la carga
+                            Swal.fire({
+                                title: 'Cargando imágenes...',
+                                html: 'Por favor, espere mientras se suben sus archivos. <br> <small>No cierre esta ventana.</small>',
+                                allowOutsideClick: false,
+                                showConfirmButton: false,
+                                willOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+                            dz.processQueue();
+                        } else {
+                            Swal.fire('Advertencia', 'No hay imágenes para cargar.', 'warning');
+                        }
                     });
 
-                    this.on("sendingmultiple", function(files, xhr, formData) {
-                        console.log("Enviando archivos:", files);
+                    // Evento cuando se agrega un archivo al dropzone
+                    this.on("addedfile", function(file) {
+                        submitButton.disabled = false; // Habilita el botón si se agrega al menos un archivo
+                        // Restablecer la barra de progreso visible si se agregan nuevos archivos
+                        totalProgressContainer.classList.remove('active'); 
+                        totalProgressBar.style.width = '0%';
+                        totalProgressBar.textContent = '0%';
+                        totalProgressBar.classList.remove('bg-success', 'bg-danger', 'bg-warning'); // Limpiar colores anteriores
+                        totalProgressBar.classList.add('bg-primary', 'progress-bar-animated', 'progress-bar-striped'); // Restaurar animación
                     });
 
-                    this.on("successmultiple", function(files, response) {
-                        console.log("Carga exitosa:", response);
+                    // Evento cuando se remueve un archivo del dropzone
+                    this.on("removedfile", function(file) {
+                        if (dz.files.length === 0) {
+                            submitButton.disabled = true; // Deshabilita el botón si no quedan archivos
+                        }
+                        // Actualizar el progreso total cuando se elimina un archivo
+                        dz.updateTotalUploadProgress(); // Esto recalcula el progreso y dispara totaluploadprogress
+                    });
+
+                    // Evento que se dispara al iniciar el proceso de carga de la cola
+                    this.on("processing", function(file) {
+                        submitButton.disabled = true; // Deshabilita el botón mientras se procesa
+                        totalProgressContainer.classList.add('active'); // Muestra la barra de progreso
+                    });
+
+                    // Evento que se dispara para el progreso de carga TOTAL de todos los archivos
+                    this.on("totaluploadprogress", function(uploadProgress, totalBytes, bytesSent) {
+                        totalProgressBar.style.width = "".concat(uploadProgress, "%");
+                        totalProgressBar.textContent = "".concat(Math.round(uploadProgress), "%");
+                        totalProgressContainer.classList.add('active'); // Asegura que esté visible
+                    });
+
+                    // Evento cuando UN archivo se carga con éxito
+                    this.on("success", function(file, response) {
+                        console.log("Carga exitosa para:", file.name, response);
+                        // Asegurarse de que el estado del archivo se marque como éxito
+                        file.status = dz.SUCCESS;
+                        
+                        // Aplicar una animación visual de éxito en la miniatura
+                        if (file.previewElement) {
+                            file.previewElement.classList.add("dz-success-blink");
+                            // Quitar la animación después de que termine para que el check quede visible
+                            setTimeout(() => {
+                                file.previewElement.classList.remove("dz-success-blink");
+                            }, 1500); // Coincide con la duración de la animación
+                        }
+                    });
+
+                    // Evento cuando UN archivo falla en la carga
+                    this.on("error", function(file, errorMessage, xhr) {
+                        console.error("Error en la carga para:", file.name, errorMessage);
+                        // Swal.fire aquí puede ser molesto para muchos errores, lo movemos al final en queuecomplete
+                        // Aunque si quieres notificar de errores individuales, esta es la función correcta.
+                        // Forzar el estilo de error en la miniatura
+                        if (file.previewElement) {
+                            file.previewElement.classList.add("dz-error");
+                            let errorSpan = file.previewElement.querySelector("[data-dz-errormessage]");
+                            if (errorSpan) {
+                                errorSpan.textContent = errorMessage || "Error desconocido";
+                            }
+                        }
+                        dz.updateTotalUploadProgress(); // Asegurarse de que el progreso total se actualice incluso en errores
+                    });
+
+                    // Evento que se dispara cuando la cola de carga está completamente vacía (todos los archivos procesados)
+                    this.on("queuecomplete", function() {
+                        submitButton.disabled = false; // Habilita el botón al finalizar la cola
+                        // Ocultar la barra de progreso o dejarla con el estado final
+                        // totalProgressContainer.classList.remove('active'); // Oculta la barra de progreso si quieres
+
+                        Swal.close(); // Cerrar el mensaje de "Cargando imágenes..."
+
+                        // *** AÑADIR ESTOS CONSOLE.LOG PARA DEPURACIÓN ***
+                        console.log("--- DEBUG: queuecomplete ---");
+                        console.log("dz.files:", dz.files);
+                        console.log("dz.getAcceptedFiles():", dz.getAcceptedFiles());
+                        
+                        var uploadedFiles = dz.getAcceptedFiles().filter(f => f.status === dz.SUCCESS);
+                        var failedFiles = dz.getAcceptedFiles().filter(f => f.status === dz.ERROR);
+                        // Asegúrate de que totalFilesProcessed capture todos los archivos que deberían haber sido procesados
+                        // A veces, `dz.files` puede contener archivos que nunca fueron realmente "enqueued" si la validación falló muy temprano.
+                        // `dz.getAcceptedFiles().length` es generalmente la forma correcta de contar los que Dropzone intentó subir.
+                        var totalFilesProcessed = dz.getAcceptedFiles().length; 
+
+                        console.log("Uploaded files (SUCCESS):", uploadedFiles.length, uploadedFiles);
+                        console.log("Failed files (ERROR):", failedFiles.length, failedFiles);
+                        console.log("Total files accepted by Dropzone:", totalFilesProcessed);
+                        console.log("----------------------------");
+
+                        let title, text, icon, showConfirm = true, willRedirect = false;
+
+                        if (uploadedFiles.length === totalFilesProcessed && totalFilesProcessed > 0) {
+                            title = '¡Carga Completa!';
+                            text = 'Todas las ' + uploadedFiles.length + ' imágenes se han cargado correctamente.';
+                            icon = 'success';
+                            totalProgressBar.classList.remove('progress-bar-animated', 'progress-bar-striped', 'bg-primary');
+                            totalProgressBar.classList.add('bg-success');
+                            willRedirect = true;
+                        } else if (uploadedFiles.length > 0 && failedFiles.length > 0) {
+                            title = 'Carga Parcial';
+                            text = `Se cargaron ${uploadedFiles.length} de ${totalFilesProcessed} imágenes. Hubo ${failedFiles.length} errores. Revise los archivos marcados con error.`;
+                            icon = 'warning';
+                            totalProgressBar.classList.remove('progress-bar-animated', 'progress-bar-striped', 'bg-primary');
+                            totalProgressBar.classList.add('bg-warning');
+                            showConfirm = true; 
+                            // No redirigir para que el usuario vea qué archivos fallaron
+                        } else if (totalFilesProcessed > 0 && failedFiles.length === totalFilesProcessed) {
+                            title = 'Error en la Carga';
+                            text = 'Ninguna de las ' + totalFilesProcessed + ' imágenes pudo cargarse. Por favor, inténtelo de nuevo.';
+                            icon = 'error';
+                            totalProgressBar.classList.remove('progress-bar-animated', 'progress-bar-striped', 'bg-primary');
+                            totalProgressBar.classList.add('bg-danger');
+                            showConfirm = true;
+                            // No redirigir
+                        } else {
+                            // Si llega aquí, significa que totalFilesProcessed es 0
+                            title = 'Información';
+                            text = 'No se procesaron imágenes en esta sesión.';
+                            icon = 'info';
+                            showConfirm = true;
+                        }
+
+                        // Mostrar SweetAlert final
                         Swal.fire({
-                            title: '¡Éxito!',
-                            text: 'Las imágenes se han cargado correctamente.',
-                            icon: 'success',
-                            confirmButtonText: 'Ok'
+                            title: title,
+                            text: text,
+                            icon: icon,
+                            confirmButtonText: 'Ok',
+                            allowOutsideClick: false,
+                            showConfirmButton: showConfirm
                         }).then((result) => {
-                            if (result.isConfirmed) {
+                            if (result.isConfirmed && willRedirect) {
+                                dz.removeAllFiles(true); 
                                 window.location.href = "{% url 'Herramientas:upload_success' %}";
+                            } else if (result.isConfirmed && !willRedirect) {
+                                dz.removeAllFiles(true); 
                             }
                         });
                     });
 
-                    this.on("errormultiple", function(files, response) {
-                        console.error("Error en la carga:", response);
-                        Swal.fire({
-                            title: 'Error',
-                            text: 'Hubo un problema al cargar las imágenes.',
-                            icon: 'error',
-                            confirmButtonText: 'Ok'
-                        });
-                    });
+                    // Cuando el usuario presiona el botón de eliminar, también ajusta el progreso total si la carga ya estaba en curso
+                    // Esto ya está cubierto por el evento "removedfile" que llama a dz.updateTotalUploadProgress()
                 }
             });
         });
