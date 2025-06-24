@@ -35,6 +35,11 @@ from apps.home.SQL.Sql_Tango import *
 
 # Logistica
 
+@login_required(login_url="/login/")
+def ImprimirEtiquetasBultos(request):
+    Nombre = 'Imprimir Etiquetas Bultos'
+    dir_iframe = DIR_HERAMIENTAS['ImprimirEtiquetasBultos']
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre})
 
 @login_required(login_url="/login/")
 def CargaAnticipoGrupo(request):

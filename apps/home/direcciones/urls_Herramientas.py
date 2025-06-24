@@ -30,6 +30,7 @@ urlpatterns = [
     path("cargaAnticipoGrupo", views.CargaAnticipoGrupo, name="Herramientas"),
     path("ImpRotulos", views.ImpRotulos, name="Herramientas"),
     path("ImpRemEcom", views.ImpRemEcom, name="Herramientas"),
+    path("ImprimirEtiquetasBultos", views.ImprimirEtiquetasBultos, name="Herramientas"),
     
     # Abastecimiento
     path('Stock_excluido', views.Stock_excluido, name='Herramientas'),

@@ -77,6 +77,7 @@ DIR_HERAMIENTAS = {
     'Gestion_guias_mayoristas': SERVIDOR['production'] + 'comercial/mayoristas/despacho/index.php',
     'ImpRotulos': SERVIDOR['production'] + 'remapp/index.html',
     'ImportarRemEcommerce': SERVIDOR['production'] + 'ecommerce/abastecimiento/',
+    'ImprimirEtiquetasBultos': SERVIDOR['production']  + 'logistica/etiquetas/',
     # Abastecimiento
     'Stock_excluido': SERVIDOR['production']  + 'sistemas/stockExcluido/index.php',
     'Carga_de_orden': SERVIDOR['production']  + 'sistemas/distriCuero/index.php',
