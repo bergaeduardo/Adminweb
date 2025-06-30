@@ -11,10 +11,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),          # Django admin route
     path("", include("apps.authentication.urls")), # Auth routes - login / register
     path("", include("apps.home.urls")),             # UI Kits Html files
-    path("Dashboard/", include("apps.home.direcciones.urls_Dashboard")),
-    path("Reportes/", include("apps.home.direcciones.urls_Reportes")),
-    path("Herramientas/", include("apps.home.direcciones.urls_Herramientas")),
-    path("Extras/", include("apps.home.direcciones.urls_Extras")),
+    path("Dashboard/", include("dashboard.urls")),
+    # Updated includes for the new apps
+    path("Reportes/", include("reportes.urls")),
+    path("Herramientas/", include("herramientas.urls")),
+    path("Extras/", include("extras.urls")),
     path("Mob/", include("apps.home.direcciones.urls_Mob")),
     path("Api/", include("apps.home.direcciones.urls_Api")),
     path('docs/', include_docs_urls(title='Lakers_Lab Api Documentation')),

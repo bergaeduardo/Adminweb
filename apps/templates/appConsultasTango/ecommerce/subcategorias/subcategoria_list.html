@@ -44,17 +44,17 @@
             <div class="col-md-12">
                 <div class="card card-body">
                     <div class="col-md-6">
-                    <a href="{% url 'Herramientas:subcategoria_create' %}">
+                    <a href="{% url 'herramientas:herramientas_subcategoria_create' %}">
                         <span class="d-inline-block" tabindex="0" data-toggle="tooltip" data-bs-custom-class="custom-tooltip" title="" >
                             <button type="button" class="btn btn-primary">Nueva SubCategoria</button>
                         </span>
                     </a>
-                    <a href="{% url 'Herramientas:categoria_list' %}">
+                    <a href="{% url 'herramientas:herramientas_categoria_list' %}">
                         <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Ver/Crear CATEGORIA Vtex">
                             <button class="btn btn-outline-secondary" style="pointer-events: none;" type="button" >Categorias</button>
                         </span>
                     </a>
-                    <a href="{% url 'Herramientas:relacion_list' %}">
+                    <a href="{% url 'herramientas:herramientas_relacion_list' %}">
                         <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Emparentar Categorias de Tango,&#10; con Subcategorías de Vtex">
                             <button class="btn btn-outline-secondary" style="pointer-events: none;" type="button" >Relaciones</button>
                         </span>
@@ -87,8 +87,8 @@
                     <td>{{ subcategoria.3 }}</td>
                      <td>{{ subcategoria.4 }}</td>
                     <td>
-                        <a href="{% url 'Herramientas:subcategoria_update' id_subcategoria=subcategoria.0 %}">Editar</a> |
-                        <a href="{% url 'Herramientas:subcategoria_delete' id_subcategoria=subcategoria.0 %}">Eliminar</a>
+                        <a href="{% url 'herramientas:herramientas_subcategoria_update' id_subcategoria=subcategoria.0 %}">Editar</a> |
+                        <a href="{% url 'herramientas:herramientas_subcategoria_delete' id_subcategoria=subcategoria.0 %}">Eliminar</a>
                     </td>
                 </tr>
             {% endfor %}

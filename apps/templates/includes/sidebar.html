@@ -35,15 +35,15 @@
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="true">
           <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
-          {% include 'includes/sidebar_Dashboard.html' %}          
+          {% include 'dashboard/sidebar_Dashboard.html' %}
           {% if user|has_group:"admin" %}
-            {% include 'includes/sidebar_reportesAdmin.html' %}
+            {% include 'reportes/sidebar_reportesAdmin.html' %}
           {% else %}
-            {% include 'includes/sidebar_reportes.html' %}
+            {% include 'reportes/sidebar_reportes.html' %} {# Updated path #}
           {% endif %}
-          {% include 'includes/sidebar_herramientas.html' %}
+          {% include 'herramientas/sidebar_herramientas.html' %} {# Updated path #}
           <li class="nav-header">EXTRAS</li>
-          {% include 'includes/sidebar_extras.html' %}
+          {% include 'extras/sidebar_extras.html' %} {# Updated path #}
           
           </li>
         </ul>

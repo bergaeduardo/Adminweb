@@ -55,21 +55,7 @@
               <div class="card-header">
                 <h3 class="card-title">Subir archivo</h3>
               </div>
-              <!-- /.card-header -->
-              <!-- form start -->
-                <!-- <form action="{% url 'Extras:uploadFile' %}" method="post" enctype="multipart/form-data">
-                  {% csrf_token %}
-                  <input type="file"
-                        title="Upload excel file"
-                        name="excel_file"
-                        style="border: 1px solid black; padding: 5px;"
-                        required="required">
-                  <p>
-                  <input type="submit"
-                        value="Upload"
-                        style="border: 1px solid green; padding:5px; border-radius: 2px; cursor: pointer;">
-              </form> -->
-              <form action="{% url 'Extras:uploadFileArt' %}" method="post" enctype="multipart/form-data">
+              <form action="{% url 'herramientas:herramientas_import_file_etiquetas' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="card-body">
                     <div class="form-group">

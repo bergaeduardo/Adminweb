@@ -20,11 +20,6 @@ urlpatterns = [
 
     # Extras
 
-    # The transporte page
-    path('transporte', views.transporte, name='transporte'),
-    path('transporte/crearTransporte', views.crearTransporte, name='crearTransporte'),
-    path('eliminarTransporte/<int:id>', views.eliminarTransporte, name='eliminarTransporte'),
-    path('transporte/editarTransporte/<int:id>', views.editarTransporte, name='editarTransporte'),
 # Matches any html file
     # re_path(r'^.*\.*', views.pages, name='pages'),
 

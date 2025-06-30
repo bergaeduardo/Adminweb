@@ -82,7 +82,7 @@
     <div class="container mt-5 position-relative">
         <a href="{% url 'logout' %}" class="btn fa fa-times cerrar-sesion"></a>
         <h1 class="mb-4">Carga Masiva de Imágenes</h1>
-        <form action="{% url 'Herramientas:uploadImg' %}" class="dropzone" id="my-dropzone">
+        <form action="{% url 'herramientas:herramientas_upload_img' %}" class="dropzone" id="my-dropzone">
             {% csrf_token %}
         </form>
         
@@ -107,7 +107,7 @@
             var totalProgressContainer = document.querySelector("#total-progress");
 
             var myDropzone = new Dropzone("#my-dropzone", {
-                url: "{% url 'Herramientas:uploadImg' %}",
+                url: "{% url 'herramientas:herramientas_upload_img' %}",
                 paramName: "images",
                 maxFilesize: 2,
                 acceptedFiles: "image/*",
@@ -286,7 +286,7 @@
                         }).then((result) => {
                             if (result.isConfirmed && willRedirect) {
                                 dz.removeAllFiles(true); 
-                                window.location.href = "{% url 'Herramientas:upload_success' %}";
+                                window.location.href = "{% url 'herramientas:herramientas_upload_success' %}";
                             } else if (result.isConfirmed && !willRedirect) {
                                 dz.removeAllFiles(true); 
                             }

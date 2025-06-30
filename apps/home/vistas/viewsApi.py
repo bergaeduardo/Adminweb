@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.shortcuts import render, redirect, get_object_or_404
-from apps.home.vistas.settingsUrls import *
+from apps.settingsUrls import *
 from apps.home.SQL.Sql_Tango import validar_factManualCargada
 from rest_framework import viewsets, permissions
 from consultasTango.models import EB_facturaManual
