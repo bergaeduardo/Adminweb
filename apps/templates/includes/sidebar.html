@@ -3,7 +3,7 @@
 {% with user=request.user %}
 <!-- Main Sidebar Container -->
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
-    <!-- Brand Logo -->
+  <!-- Brand Logo -->
     <a href="/" class="brand-link">
       <img src="/static/assets/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
       <span class="brand-text font-weight-light">LAKERS Labs</span>
@@ -18,16 +18,17 @@
           <a href="/admin/" class="fas fa-user-cog text-succes"> - Admin</a>
         </div>
       </div>
-      <!-- SidebarSearch Form -->
-      <div class="form-inline">
-        <div class="input-group" data-widget="sidebar-search">
-          <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search">
-          <div class="input-group-append">
-            <button class="btn btn-sidebar">
-              <i class="fas fa-search fa-fw"></i>
-            </button>
+      <!-- Sidebar Search -->
+        <div class="form-inline">
+          <div class="input-group" data-widget="sidebar-search">
+              <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search">
+              <div class="input-group-append">
+                  <button class="btn btn-sidebar">
+                      <i class="fas fa-search fa-fw"></i>
+                  </button>
+              </div>
           </div>
-        </div>
+      
       </div>
 
       <!-- Sidebar Menu -->
@@ -47,10 +48,36 @@
           
           </li>
         </ul>
-      </nav>
+      </nav>      
       <!-- /.sidebar-menu -->
     </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const menuLinks = document.querySelectorAll('.nav-sidebar a');
+        menuLinks.forEach(link => {
+          link.addEventListener('click', function() {
+            const parentMenu = this.closest('.has-treeview');
+            if (parentMenu) {
+              setTimeout(() => { parentMenu.classList.remove('menu-open'); }, 1);
+            }
+          });
+        });
+      });
+    </script>
+  <style>
+    .main-sidebar {
+        width: 280px; /* Ajusta este valor para aumentar o disminuir el ancho */
+    }
+    .sidebar {
+        width: 280px;
+    }
+    .brand-link {
+        width: 280px;
+    }
+    
+</style>
     <!-- /.sidebar -->
+    
   </aside>
   {% endwith %}
 
