@@ -230,6 +230,12 @@ def DetalleContratosDeAlquiler(request):
     dir_iframe = DIR_REPORTES['DetalleContratosDeAlquiler']
     return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def GastosSupervision(request):
+    Nombre='Dashboard Gastos de Supervision'
+    dir_iframe = DIR_REPORTES['GastosSupervision']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 # Gerencia
 
 @login_required(login_url="/login/")
