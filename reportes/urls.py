@@ -56,4 +56,6 @@ urlpatterns = [
             path('FacturaManualLista', viewsApp.facturas_por_fecha, name='reportes_factura_manual_lista'), # View not found in source
             path('ContratosFranquicias', views.ContratosFranquicias, name='reportes_contratos_franquicias'),
             path('GastosSupervision', views.GastosSupervision, name='reportes_gastos_supervision'),
+        # Supervisores
+            path('Proyectos', views.Proyectos, name='reportes_proyectos'),
 ]

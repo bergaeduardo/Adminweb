@@ -69,6 +69,8 @@ DIR_REPORTES = {
     # RRHH
     'AsistenciasSuc':SERVIDOR['production'] + 'sistemas/fichaje/reporteDeAsistencias.php',
     'ReporteAnticipos':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/reporteAnticipos.php',
+    # Supervisores
+    'Proyectos':SERVIDOR['production'] + 'projects/adminProyectos/index.php',
 
 }
 
@@ -133,6 +135,9 @@ DIR_HERAMIENTAS = {
     
     # Tesoreria
     'ControlDeEfectivo':SERVIDOR['production'] + 'administracion/controlSucursales/controlRecepcionEfectivo.php',
+    
+    #Supervisores
+    'CargaProyecto':SERVIDOR['production'] + 'projects/adminProyectos/cargarProyecto.php',
 }
 
 DIR_EXTRAS = {

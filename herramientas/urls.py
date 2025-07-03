@@ -104,6 +104,9 @@ urlpatterns = [
     # Tesoreria
     path('ControlDeEfectivo', views.ControlDeEfectivo, name='herramientas_control_efectivo'),
 
+    # Supervisores
+     path('CargaProyecto', views.CargaProyecto, name='carga_proyecto'),
+
     # --- URLs for views moved from viewsExtras.py ---
     path('import_file_etiquetas', views.import_file_etiquetas, name='herramientas_import_file_etiquetas'),
     path('import_file_cierrePedidos', views.import_file_cierrePedidos, name='herramientas_import_file_cierre_pedidos'),

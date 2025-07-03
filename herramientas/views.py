@@ -922,6 +922,16 @@ def ControlDeEfectivo(request):
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
     # return redirect(dir_iframe)
 
+# Supervisores
+
+@login_required(login_url="/login/")
+def CargaProyecto(request):
+    Nombre = ''
+    dir_iframe = DIR_HERAMIENTAS['CargaProyecto'] #+ UserName
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+    # return redirect(dir_iframe)
+
+
 # --- Moved from viewsExtras.py ---
 @login_required(login_url="/login/")
 def import_file_etiquetas(request):

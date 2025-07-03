@@ -271,7 +271,7 @@
           <a href="/../Reportes/TableroDeControl" class="nav-link {% if '/TableroDeControl' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Tablero De Control</p>
-            <span class="badge badge-info right">New</span>
+            <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         {% endif %}
@@ -362,6 +362,17 @@
         {% endif %}
       <!-- Fin 	Comercial -->
 
+      <!-- inicio 	Supervisores -->
+        {% if request.user|has_any_group:"admin,Comercial_sup,e-commerce_sup,AdministracionSup,Logistica_Sup" or request.user.id == 63 %}
+        <li class="nav-item">
+          <a href="/../Reportes/Proyectos" class="nav-link {% if 'Proyectos' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Proyectos</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>
+        {% endif %}
+      <!-- Fin 	Supervisores -->
 
   </ul>    
 </li>

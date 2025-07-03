@@ -468,3 +468,10 @@ def stockSucursalesTasky(request):
         datos = SofStockLakers.objects.all()
 
     return render(request,'appConsultasTango/stockSucursalesUY.html',{'myFilter':myFilter,'articulos':datos,'Nombre':Nombre})
+
+# Supervisores
+@login_required(login_url="/login/")
+def Proyectos(request):
+    Nombre=''
+    dir_iframe = DIR_REPORTES['Proyectos']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
