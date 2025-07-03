@@ -474,4 +474,6 @@ def stockSucursalesTasky(request):
 def Proyectos(request):
     Nombre=''
     dir_iframe = DIR_REPORTES['Proyectos']
-    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+    return redirect(dir_iframe)
+
+
