@@ -1,4 +1,4 @@
-{% load has_group %}  
+{% load has_group %}
 <li class="nav-item {% if 'Reportes' in request.path %} menu-open {% endif %}">
   <a href="#" class="nav-link {% if 'Reportes' in request.path %} active {% endif %}">
     <i class="nav-icon fas fa-copy"></i>
@@ -11,7 +11,8 @@
         <!-- RRHH -->
         {% if request.user|has_any_group:"RRHH,admin" %}
         <li class="nav-item">
-          <a href="/../Reportes/reporteAnticipos" class="nav-link {% if '/reporteAnticipos' in request.path %} active {% endif %}">
+          {# Updated href for Reporte de Anticipos #}
+          <a href="/Reportes/RRHH/reporteAnticipos" class="nav-link {% if 'reporteAnticipos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Reporte de Anticipos</p>
             <span class="badge badge-info right">New</span>
@@ -21,7 +22,8 @@
         <!-- RRHH compartido -->
         {% if request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"RRHH" %}
         <li class="nav-item">
-          <a href="/../Reportes/AsistenciasSuc" class="nav-link {% if '/AsistenciasSuc' in request.path %} active {% endif %}">
+          {# Updated href for Reporte De Asistencias #}
+          <a href="/Reportes/RRHH/AsistenciasSuc" class="nav-link {% if 'AsistenciasSuc' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Reporte De Asistencias</p>
           </a>
@@ -29,13 +31,15 @@
         {% endif %}
         {% if not request.user|has_group:"Gerencia" %}
         <li class="nav-item">
-          <a href="/../Reportes/stockcentral" class="nav-link {% if '/stockcentral' in request.path %} active {% endif %}">
+          {# Updated href for Stock Central (assuming Logistica section) #}
+          <a href="/Reportes/Logistica/stockcentral" class="nav-link {% if 'stockcentral' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Stock Central</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/CategoriasDeProductos" class="nav-link {% if 'CategoriasDeProductos' in request.path %} active {% endif %}">
+          {# Updated href for Cat. de Productos (assuming Abastecimiento section) #}
+          <a href="/Reportes/Abastecimiento/CategoriasDeProductos" class="nav-link {% if 'CategoriasDeProductos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Cat. de Productos</p>
             <!-- <span class="badge badge-info right">New</span> -->
@@ -43,12 +47,13 @@
         </li>
         {% endif %}
         <!-- inicio Logistica -->
-        {% if request.user|has_group:"Logistica_Sup" or request.user|has_group:"admin" %} 
-        
+        {% if request.user|has_group:"Logistica_Sup" or request.user|has_group:"admin" %}
+
         {% endif %}
         {% if request.user|has_group:"Logistica" or request.user|has_group:"Logistica_Sup" or request.user|has_group:"admin" %}
         <li class="nav-item">
-          <a href="/../Reportes/Eficiencia_pedidos"
+          {# Updated href for Eficiencia de pedidos (assuming Logistica section) #}
+          <a href="/Reportes/Logistica/Eficiencia_pedidos"
             class="nav-link {% if 'Eficiencia_pedidos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Eficiencia de pedidos</p>
@@ -56,50 +61,56 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/pendiente_despacho" class="nav-link {% if 'pendiente_despacho' in request.path %} active {% endif %}">
+          {# Updated href for Despachos Pendientes (assuming Logistica section) #}
+          <a href="/Reportes/Logistica/pendiente_despacho" class="nav-link {% if 'pendiente_despacho' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Despachos Pendientes</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/MovimientosWms" class="nav-link {% if 'MovimientosWms' in request.path %} active {% endif %}">
+          {# Updated href for Movimientos Wms (assuming Logistica section) #}
+          <a href="/Reportes/Logistica/MovimientosWms" class="nav-link {% if 'MovimientosWms' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Movimientos Wms</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/ConsultaDestino" class="nav-link {% if 'ConsultaDestino' in request.path %} active {% endif %}">
+          {# Updated href for Consulta Destino (assuming Logistica section) #}
+          <a href="/Reportes/Logistica/ConsultaDestino" class="nav-link {% if 'ConsultaDestino' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Consulta Destino</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
-        
-        
+
+
         {% endif %}
       <!-- Fin Logistica -->
-      
+
       <!-- inicio 	Abastecimiento -->
-        {% if request.user|has_group:"Abastecimiento_Sup" or request.user|has_group:"admin" %} 
+        {% if request.user|has_group:"Abastecimiento_Sup" or request.user|has_group:"admin" %}
                   <!-- ver solo el supervisor del area aqui -->
         {% endif %}
         {% if request.user|has_group:"Abastecimiento" or request.user|has_group:"Abastecimiento_Sup" or request.user|has_group:"admin" %}
         <!-- accesos del area aqui -->
         <li class="nav-item">
-          <a href="/../Reportes/stockSupply" class="nav-link {% if 'stockSupply' in request.path %} active {% endif %}">
+          {# Updated href for Stock Supply (assuming Abastecimiento section) #}
+          <a href="/Reportes/Abastecimiento/stockSupply" class="nav-link {% if 'stockSupply' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Stock Supply</p>
             <span class="badge badge-info right">New</span>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Auditoria_orden" class="nav-link {% if 'Auditoria_orden' in request.path %} active {% endif %}">
+          {# Updated href for Auditoría orden (assuming Abastecimiento section) #}
+          <a href="/Reportes/Abastecimiento/Auditoria_orden" class="nav-link {% if 'Auditoria_orden' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Auditoría orden</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/HRecodificaciones"
+          {# Updated href for HRecodificaciones (assuming Abastecimiento section) #}
+          <a href="/Reportes/Abastecimiento/HRecodificaciones"
             class="nav-link {% if 'HRecodificaciones' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>HRecodificaciones</p>
@@ -107,7 +118,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Eficiencia_pedidos"
+          {# Updated href for Eficiencia de pedidos (assuming Abastecimiento section - note: also in Logistica) #}
+          <a href="/Reportes/Abastecimiento/Eficiencia_pedidos"
             class="nav-link {% if 'Eficiencia_pedidos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Eficiencia de pedidos</p>
@@ -115,18 +127,20 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/promocionesActivas"
+          {# Updated href for Promos Activas (assuming Abastecimiento section) #}
+          <a href="/Reportes/Abastecimiento/promocionesActivas"
             class="nav-link {% if 'promocionesActivas' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Promos Activas</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
-        
+
         {% endif %}
         {% if request.user|has_group:"Abastecimiento" or request.user|has_group:"Abastecimiento_Sup" or request.user|has_group:"admin" or request.user|has_group:"Comercial_sup" or request.user|has_group:"Gerencia" or request.user.id == 44 %}
         <li class="nav-item">
-          <a href="/../Reportes/AnalisisProductos" class="nav-link {% if '/AnalisisProductos' in request.path %} active {% endif %}">
+          {# Updated href for Analisis de Productos (assuming Abastecimiento section) #}
+          <a href="/Reportes/Abastecimiento/AnalisisProductos" class="nav-link {% if 'AnalisisProductos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Analisis de Productos</p>
             <span class="badge badge-info right">New</span>
@@ -136,16 +150,18 @@
       <!-- Fin 	Abastecimiento -->
 
       <!-- inicio 	Administracion -->
-        {% if request.user|has_group:"AdministracionSup" or request.user|has_group:"admin" %} 
+        {% if request.user|has_group:"AdministracionSup" or request.user|has_group:"admin" %}
                   <!-- ver solo el supervisor del area aqui -->
         <li class="nav-item">
-          <a href="/../Reportes/Consultagastos" class="nav-link {% if 'Consultagastos' in request.path %} active {% endif %}">
+          {# Updated href for Consulta de gastos (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/Consultagastos" class="nav-link {% if 'Consultagastos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Consulta de gastos</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/DetalleContratosDeAlquiler"
+          {# Updated href for Contratos De Alquiler (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/DetalleContratosDeAlquiler"
             class="nav-link {% if 'DetalleContratosDeAlquiler' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Contratos De Alquiler</p>
@@ -153,42 +169,48 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/GastosSupervision"
+          {# Updated href for Dash Gastos Supervision (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/GastosSupervision"
             class="nav-link {% if 'GastosSupervision' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Dash Gastos Supervision</p>
             <span class="badge badge-info right">New</span>
           </a>
         </li>
-        
+
         {% endif %}
         {% if request.user|has_group:"Administracion" or request.user|has_group:"AdministracionSup" or request.user|has_group:"admin" %}
         <li class="nav-item">
-          <a href="/../Reportes/VentasXmedio_pago" class="nav-link {% if '/VentasXmedio_pago' in request.path %} active {% endif %}">
+          {# Updated href for Resumen de Ventas (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/VentasXmedio_pago" class="nav-link {% if 'VentasXmedio_pago' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Resumen de Ventas</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/VentaVscobranza" class="nav-link {% if '/VentaVscobranza' in request.path %} active {% endif %}">
+          {# Updated href for Venta Vs cobranza (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/VentaVscobranza" class="nav-link {% if 'VentaVscobranza' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Venta Vs cobranza</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Controlcajasmensual" class="nav-link {% if '/Controlcajasmensual' in request.path %} active {% endif %}">
+          {# Updated href for Control cajas Mensual (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/Controlcajasmensual" class="nav-link {% if 'Controlcajasmensual' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Control cajas Mensual</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/ResumenMensualAlquileres" class="nav-link {% if '/ResumenMensualAlquileres' in request.path %} active {% endif %}">
+          {# Updated href for Resumen Mensual Alquileres (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/ResumenMensualAlquileres" class="nav-link {% if 'ResumenMensualAlquileres' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Resumen Mensual Alquileres</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/CargaGastosTesoreria"
+          {# Updated href for Carga Gastos Tesoreria (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/CargaGastosTesoreria"
             class="nav-link {% if 'CargaGastosTesoreria' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Carga Gastos Tesoreria</p>
@@ -196,7 +218,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/FacturaManualLista"
+          {# Updated href for Lista Fact. Manual (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/FacturaManualLista"
             class="nav-link {% if 'FacturaManualLista' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Lista Fact. Manual</p>
@@ -204,7 +227,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/ContratosFranquicias"
+          {# Updated href for Contratos Alquiler Fr (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/ContratosFranquicias"
             class="nav-link {% if 'ContratosFranquicias' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Contratos Alquiler Fr</p>
@@ -215,22 +239,25 @@
       <!-- Fin 	Administracion -->
 
       <!-- inicio 	e-commerce -->
-        {% if request.user|has_group:"e-commerce_sup" or request.user|has_group:"admin"  or request.user|has_group:"AdministracionSup"  %} 
+        {% if request.user|has_group:"e-commerce_sup" or request.user|has_group:"admin"  or request.user|has_group:"AdministracionSup"  %}
                   <!-- ver solo el supervisor del area aqui -->
                   <li class="nav-item">
-                    <a href="/../Reportes/Auditoria_Ecommerce" class="nav-link {% if 'Auditoria_Ecommerce' in request.path %} active {% endif %}">
+                    {# Updated href for Auditoría Ecommerce (assuming Ecommerce section) #}
+                    <a href="/Reportes/Ecommerce/Auditoria_Ecommerce" class="nav-link {% if 'Auditoria_Ecommerce' in request.path %} active {% endif %}">
                       <i class="far fa-circle nav-icon"></i>
                       <p>Auditoría Ecommerce</p>
                     </a>
                   </li>
                   <li class="nav-item">
-                    <a href="/../Reportes/Auditoria_Prisma" class="nav-link {% if 'Auditoria_Prisma' in request.path %} active {% endif %}">
+                    {# Updated href for Track Auditoría Prisma (assuming Ecommerce section) #}
+                    <a href="/Reportes/Ecommerce/Auditoria_Prisma" class="nav-link {% if 'Auditoria_Prisma' in request.path %} active {% endif %}">
                       <i class="far fa-circle nav-icon"></i>
                       <p>Track Auditoría Prisma</p>
                     </a>
                   </li>
                   <li class="nav-item">
-                    <a href="/../Reportes/Segmentacion_clientes" class="nav-link {% if 'Segmentacion_clientes' in request.path %} active {% endif %}">
+                    {# Updated href for Segmentación de clientes (assuming Ecommerce section) #}
+                    <a href="/Reportes/Ecommerce/Segmentacion_clientes" class="nav-link {% if 'Segmentacion_clientes' in request.path %} active {% endif %}">
                       <i class="far fa-circle nav-icon"></i>
                       <p>Segmentación de clientes</p>
                     </a>
@@ -239,27 +266,31 @@
         {% if request.user|has_group:"Logistica_Sup" or request.user|has_group:"e-commerce" or request.user|has_group:"e-commerce_sup" or request.user|has_group:"admin"  or request.user|has_group:"AdministracionSup" %}
         <!-- accesos del area aqui -->
         <li class="nav-item">
-          <a href="/../Reportes/stock_ecommerce" class="nav-link {% if '/stock_ecommerce' in request.path %} active {% endif %}">
+          {# Updated href for Stock e-commerce (assuming Ecommerce section) #}
+          <a href="/Reportes/Ecommerce/stock_ecommerce" class="nav-link {% if 'stock_ecommerce' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Stock e-commerce</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Tracking_Ecommerce" class="nav-link {% if '/Tracking_Ecommerce' in request.path %} active {% endif %}">
+          {# Updated href for Tracking Ecommerce (assuming Ecommerce section) #}
+          <a href="/Reportes/Ecommerce/Tracking_Ecommerce" class="nav-link {% if 'Tracking_Ecommerce' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Tracking Ecommerce</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Pedidos" class="nav-link {% if '/Pedidos' in request.path %} active {% endif %}">
+          {# Updated href for Pedidos (assuming Ecommerce section) #}
+          <a href="/Reportes/Ecommerce/Pedidos" class="nav-link {% if 'Pedidos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Pedidos</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/PedidosUY" class="nav-link {% if '/PedidosUY' in request.path %} active {% endif %}">
+          {# Updated href for Pedidos UY (assuming Ecommerce section) #}
+          <a href="/Reportes/Ecommerce/PedidosUY" class="nav-link {% if 'PedidosUY' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Pedidos UY</p>
             <!-- <span class="badge badge-info right">New</span> -->
@@ -268,19 +299,21 @@
         {% endif %}
         {% if request.user|has_group:"Logistica_Sup" or request.user|has_group:"e-commerce" or request.user|has_group:"e-commerce_sup" or request.user|has_group:"admin"  or request.user|has_group:"Gerencia" %}
         <li class="nav-item">
-          <a href="/../Reportes/TableroDeControl" class="nav-link {% if '/TableroDeControl' in request.path %} active {% endif %}">
+          {# Updated href for Tablero De Control (assuming Ecommerce section) #}
+          <a href="/Reportes/Ecommerce/TableroDeControl" class="nav-link {% if 'TableroDeControl' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Tablero De Control</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         {% endif %}
-      <!-- Fin 	e-commerce -->          
+      <!-- Fin 	e-commerce -->
 
       <!-- inicio 	Gerencia -->
         {% if request.user|has_group:"Gerencia" or request.user|has_group:"Gerencia_Adm" or request.user|has_group:"admin" %}
         <li class="nav-item">
-          <a href="/../Reportes/DetalleRemitos599/{{ request.user.username }}"
+          {# Updated href for Detalle Rem599 (assuming Gerencia section) #}
+          <a href="/Reportes/Gerencia/DetalleRemitos599/{{ request.user.username }}"
             class="nav-link {% if 'DetalleRemitos599' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Detalle Rem599</p>
@@ -288,7 +321,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/ChequesRecibidos/{{ request.user.username }}"
+          {# Updated href for Reporte de cheques (assuming Gerencia section) #}
+          <a href="/Reportes/Gerencia/ChequesRecibidos/{{ request.user.username }}"
             class="nav-link {% if 'ChequesRecibidos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Reporte de cheques</p>
@@ -296,10 +330,10 @@
           </a>
         </li>
         {% endif %}
-        {% if request.user|has_group:"Gerencia" or request.user|has_group:"admin" %} 
-                  <!-- ver solo el supervisor del area aqui -->
+        {% if request.user|has_group:"Gerencia" or request.user|has_group:"admin" %}
         <li class="nav-item">
-          <a href="/../Extras/reporTrello"
+          {# Updated href for Tareas Diarias (assuming Gerencia section, but keeping original path as it's not under /Reportes/) #}
+          <a href="/Extras/reporTrello"
             class="nav-link {% if 'reporTrello' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Tareas Diarias</p>
@@ -307,53 +341,58 @@
           </a>
         </li>
         {% endif %}
-      <!-- Fin 	Gerencia -->          
+      <!-- Fin 	Gerencia -->
 
       <!-- inicio 	Comercial -->
-        {% if request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" %} 
+        {% if request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" %}
                   <!-- ver solo el supervisor del area aqui -->
         <li class="nav-item">
-          <a href="/../Reportes/AdmEmpleados" class="nav-link {% if '/AdmEmpleados' in request.path %} active {% endif %}">
+          {# Updated href for Lista Empleados (assuming Comercial section) #}
+          <a href="/Reportes/Comercial/AdmEmpleados" class="nav-link {% if 'AdmEmpleados' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Lista Empleados</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
-        
+
         {% endif %}
         {% if request.user|has_group:"Comercial_may" or request.user|has_group:"e-commerce" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Abastecimiento"  or request.user|has_group:"Produccion" %}
         <!-- accesos del area aqui -->
         <li class="nav-item">
-          <a href="/../Reportes/VentasXcanal" class="nav-link {% if 'VentasXcanal' in request.path %} active {% endif %}">
+          {# Updated href for Ventas por canal (assuming Comercial section) #}
+          <a href="/Reportes/Comercial/VentasXcanal" class="nav-link {% if 'VentasXcanal' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Ventas por canal</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/stockSucursalesLakers" class="nav-link {% if 'stockSucursales' in request.path %} active {% endif %}">
+          {# Updated href for Stock Sucursales (assuming Comercial section) #}
+          <a href="/Reportes/Comercial/stockSucursalesLakers" class="nav-link {% if 'stockSucursalesLakers' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Stock Sucursales</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Stock_Suc_Articulos" class="nav-link {% if 'Stock_Suc_Articulos' in request.path %} active {% endif %}">
+          {# Updated href for Stock sucursales X Art. (assuming Comercial section) #}
+          <a href="/Reportes/Comercial/Stock_Suc_Articulos" class="nav-link {% if 'Stock_Suc_Articulos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Stock sucursales X Art.</p>
           </a>
         </li>
-        
+
         {% endif %}
         {% if request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" %}
                   <!-- accesos sucursal aqui -->
-        {% endif %}            
+        {% endif %}
         {% if request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" %}
                   <!-- accesos franquisia aqui -->
         {% endif %}
         {% if request.user|has_group:"Logistica_Sup" or request.user|has_group:"Comercial_may" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" %}
         <!-- accesos mayorista aqui -->
         <li class="nav-item">
-          <a href="/../Reportes/Tracking_pedidos_mayoristas" class="nav-link {% if 'Tracking_pedidos_mayoristas' in request.path %} active {% endif %}">
+          {# Updated href for Track Ped Mayoristas (assuming Mayoristas section, linked from Comercial) #}
+          <a href="/Reportes/Mayoristas/Tracking_pedidos_mayoristas" class="nav-link {% if 'Tracking_pedidos_mayoristas' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Track Ped Mayoristas</p>
             <span class="badge badge-warning right">Deleted</span>
@@ -365,7 +404,8 @@
       <!-- inicio 	Supervisores -->
         {% if request.user|has_any_group:"admin,Comercial_sup,e-commerce_sup,AdministracionSup,Logistica_Sup" or request.user.id == 63 %}
         <li class="nav-item">
-          <a href="/../Reportes/Proyectos" class="nav-link {% if 'Proyectos' in request.path %} active {% endif %}">
+          {# Updated href for Proyectos (assuming Supervisores section) #}
+          <a href="/Reportes/Supervisores/Proyectos" class="nav-link {% if 'Proyectos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Proyectos</p>
             <span class="badge badge-info right">New</span>
@@ -374,6 +414,5 @@
         {% endif %}
       <!-- Fin 	Supervisores -->
 
-  </ul>    
+  </ul>
 </li>
-
