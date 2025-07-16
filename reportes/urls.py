@@ -13,8 +13,6 @@ urlpatterns = [
     # Logistica
     path('Logistica/stockcentral', views.stockcentral, name='reportes_logistica_stockcentral'),
     path('Logistica/stockcUY', views.stockcUY, name='reportes_logistica_stock_cuy'),
-    path('Logistica/stockSupply', views.stockcentral_pivot, name='reportes_logistica_stock_supply'),
-    path('Logistica/stockSupplyUY', views.stockcentral_pivotUY, name='reportes_logistica_stock_supply_uy'),
     path('Logistica/pendiente_despacho', views.Pedidos_pendiente_despacho, name='reportes_logistica_pedidos_pendiente_despacho'),
     path('Logistica/MovimientosWms', views.MovimientosWms, name='reportes_logistica_movimientos_wms'),
     path('Logistica/ConsultaDestino', views.ConsultaDestino, name='reportes_logistica_consulta_destino'),
@@ -25,6 +23,8 @@ urlpatterns = [
     path('Abastecimiento/HRecodificaciones', views.HRecodificaciones, name='reportes_abastecimiento_historial_recodificaciones'),
     path('Abastecimiento/Eficiencia_pedidos', views.Eficiencia_pedidos, name='reportes_abastecimiento_eficiencia_pedidos'),
     path('Abastecimiento/promocionesActivas', views.promocionesActivas, name='reportes_abastecimiento_promociones_activas'),
+    path('Abastecimiento/stockSupply', views.stockcentral_pivot, name='reportes_logistica_stock_supply'),
+    path('Abastecimiento/stockSupplyUY', views.stockcentral_pivotUY, name='reportes_logistica_stock_supply_uy'),
 
     # Comercial
     path('Comercial/stockSucursalesLakers', views.stockSucursalesLakers, name='reportes_comercial_stock_sucursales_lakers'),
