@@ -143,6 +143,14 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
+        <li class="nav-item">
+          {# Abastecimiento/AnalisisProductos Link - Apply active if 'AnalisisProductos' is in request.path #}
+          <a href="/Reportes/Abastecimiento/AnalisisProductos" class="nav-link {% if 'AnalisisProductos' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Analisis de Productos</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>
       </ul>
     </li>
 
@@ -400,13 +408,6 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
-        <li class="nav-item">
-          {# Comercial/AnalisisProductos Link - Apply active if 'AnalisisProductos' is in request.path #}
-          <a href="/Reportes/Comercial/AnalisisProductos" class="nav-link {% if 'AnalisisProductos' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Analisis de Productos</p>
-            <span class="badge badge-info right">New</span>
-          </a>
         </li>
       </ul>
     </li>

@@ -25,6 +25,7 @@ urlpatterns = [
     path('Abastecimiento/promocionesActivas', views.promocionesActivas, name='reportes_abastecimiento_promociones_activas'),
     path('Abastecimiento/stockSupply', views.stockcentral_pivot, name='reportes_logistica_stock_supply'),
     path('Abastecimiento/stockSupplyUY', views.stockcentral_pivotUY, name='reportes_logistica_stock_supply_uy'),
+    path('Abastecimiento/AnalisisProductos', views.AnalisisProductos, name='reportes_comercial_analisis_productos'),
 
     # Comercial
     path('Comercial/stockSucursalesLakers', views.stockSucursalesLakers, name='reportes_comercial_stock_sucursales_lakers'),
@@ -32,7 +33,6 @@ urlpatterns = [
     path('Comercial/stockSucursalesTasky', views.stockSucursalesTasky, name='reportes_comercial_stock_sucursales_tasky'),
     path('Comercial/VentasXcanal', views.VentasXcanal, name='reportes_comercial_ventas_por_canal'),
     path('Comercial/AdmEmpleados', views.AdmEmpleados, name='reportes_comercial_adm_empleados'),
-    path('Comercial/AnalisisProductos', views.AnalisisProductos, name='reportes_comercial_analisis_productos'),
 
     # Mayoristas
     path('Mayoristas/Tracking_pedidos_mayoristas', views.Tracking_pedidos_mayoristas, name='reportes_mayoristas_tracking_pedidos_mayoristas'),
