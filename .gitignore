@@ -32,3 +32,5 @@ core/local.py
 manage.py
 core/asgi.py
 core/wsgi.py
+core/settings.py
+core/local.py

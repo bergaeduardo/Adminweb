@@ -21,9 +21,9 @@ DATABASES = {
     # Base de administracio de roles
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'BD_Pruebas',
-        'USER': 'openpg',
-        'PASSWORD': 'openpgpwd',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'extra,123',
         'HOST': '127.0.0.1',
         'DATABASE_PORT': '5232',
     },
@@ -37,7 +37,7 @@ DATABASES = {
             'PORT': '1433',
 
             'OPTIONS': {
-                'driver': 'ODBC Driver 13 for SQL Server',
+                'driver': 'ODBC Driver 17 for SQL Server',
             },
             
     },
@@ -55,7 +55,7 @@ DATABASES = {
 
             'PORT': '1433',
             'OPTIONS': {
-                'driver': 'ODBC Driver 13 for SQL Server',
+                'driver': 'ODBC Driver 17 for SQL Server',
             },
             
     },
@@ -69,7 +69,7 @@ DATABASES = {
             'PORT': '1433',
 
             'OPTIONS': {
-                'driver': 'ODBC Driver 13 for SQL Server',
+                'driver': 'ODBC Driver 17 for SQL Server',
             },
             
     },

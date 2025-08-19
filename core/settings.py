@@ -36,13 +36,17 @@ INSTALLED_APPS = [
     'corsheaders',
     'coreapi',
     'apps.home',  # Enable the inner home (home)
+    'dashboard', # Added the new dashboard app
+    'reportes', # Added the new reportes app
+    'herramientas', # Added the new herramientas app
+    'extras', # Added the new extras app
     'django_filters',
     'bootstrapform',
-    'Transportes',
+    # 'Transportes', # Eliminada la referencia a la app Transportes
     'consultasTango',
     'consultasWMS',
     'consultasLakersBis',
-    
+
 ]
 
 MIDDLEWARE = [

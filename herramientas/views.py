@@ -394,6 +394,12 @@ def MaestroDestinos(request):
     dir_iframe = DIR_HERAMIENTAS['MaestroDestinos']
     return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def GestionEquivalentes(request):
+    Nombre = ''
+    dir_iframe = DIR_HERAMIENTAS['GestionEquivalentes']
+    return redirect(dir_iframe)
+
 # Comercial
 @login_required(login_url="/login/")
 def Gestion_categoria_productos(request):
