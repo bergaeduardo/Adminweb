@@ -1,5 +1,7 @@
-{% load has_group %}  
-<li class="nav-item{% if '/Reportes/' in request.path %} menu-open {% endif %}">
+{% load has_group %}
+{# Main Reportes LI - Apply menu-is-opening if any report path is active #}
+<li class="nav-item{% if '/Reportes/' in request.path %} menu-is-opening {% endif %}">
+  {# Main Reportes Link - Apply active if any report path is active #}
   <a href="#" class="nav-link {% if '/Reportes/' in request.path %} active {% endif %}">
     <i class="nav-icon fas fa-copy"></i>
     <p>
@@ -7,45 +9,70 @@
       <i class="right fas fa-angle-left"></i>
     </p>
   </a>
-  
-  <ul class="nav nav-treeview">
-    <li class="nav-item">
-          <a href="/../Reportes/Proyectos" class="nav-link {% if 'Proyectos' in request.path %} active {% endif %}">
+
+  {# Main Reportes UL - Control display directly based on request.path #}
+  <ul class="nav nav-treeview" style=" display: {% if '/Reportes/' in request.path %} block; {% endif %}">
+
+    {# Supervisores Section #}
+    {# Apply menu-is-opening menu-open if any path in Supervisores section is active #}
+    <li class="nav-item{% if '/Reportes/Supervisores/' in request.path %} menu-is-opening menu-open{% endif %}">
+      {# Supervisores Toggle Link - No active class here #}
+      <a href="#" class="nav-link">
+        <i class="nav-icon fas fa-circle"></i>
+        <p>
+          Supervisores
+          <i class="right fas fa-angle-left"></i>
+        </p>
+      </a>
+      <ul class="nav nav-treeview">
+        <li class="nav-item">
+          {# Supervisores/Proyectos Link - Apply active if 'Proyectos' is in request.path #}
+          <a href="/Reportes/Supervisores/Proyectos" class="nav-link {% if 'Proyectos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Proyectos</p>
             <span class="badge badge-info right">New</span>
           </a>
+        </li>
+      </ul>
     </li>
-    <li class="nav-item">
-      <a href="#" class="nav-link ">
+
+    {# Logistica Section #}
+    {# Apply menu-is-opening menu-open if any path in Logistica section is active #}
+    <li class="nav-item{% if '/Reportes/Logistica/' in request.path %} menu-is-opening menu-open{% endif %}">
+      {# Logistica Toggle Link - No active class here #}
+      <a href="#" class="nav-link">
         <i class="nav-icon fas fa-circle"></i>
         <p>
           Logistica
           <i class="right fas fa-angle-left"></i>
         </p>
       </a>
-      
+
       <ul class="nav nav-treeview">
         <li class="nav-item">
-          <a href="/../Reportes/stockcentral" class="nav-link {% if '/stockcentral' in request.path %} active {% endif %}">
+          {# Logistica/stockcentral Link - Apply active if 'stockcentral' is in request.path #}
+          <a href="/Reportes/Logistica/stockcentral" class="nav-link {% if 'stockcentral' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Stock Central</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/pendiente_despacho" class="nav-link {% if 'pendiente_despacho' in request.path %} active {% endif %}">
+          {# Logistica/pendiente_despacho Link - Apply active if 'pendiente_despacho' is in request.path #}
+          <a href="/Reportes/Logistica/pendiente_despacho" class="nav-link {% if 'pendiente_despacho' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Despachos Pendientes</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/MovimientosWms" class="nav-link {% if 'MovimientosWms' in request.path %} active {% endif %}">
+          {# Logistica/MovimientosWms Link - Apply active if 'MovimientosWms' is in request.path #}
+          <a href="/Reportes/Logistica/MovimientosWms" class="nav-link {% if 'MovimientosWms' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Movimientos Wms</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/ConsultaDestino" class="nav-link {% if 'ConsultaDestino' in request.path %} active {% endif %}">
+          {# Logistica/ConsultaDestino Link - Apply active if 'ConsultaDestino' is in request.path #}
+          <a href="/Reportes/Logistica/ConsultaDestino" class="nav-link {% if 'ConsultaDestino' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Consulta Destino</p>
             <span class="badge badge-info right">New</span>
@@ -53,8 +80,12 @@
         </li>
       </ul>
     </li>
-    <li class="nav-item">
-      <a href="#" class="nav-link ">
+
+    {# Abastecimiento Section #}
+    {# Apply menu-is-opening menu-open if any path in Abastecimiento section is active #}
+    <li class="nav-item{% if '/Reportes/Abastecimiento/' in request.path %} menu-is-opening menu-open{% endif %}">
+      {# Abastecimiento Toggle Link - No active class here #}
+      <a href="#" class="nav-link">
         <i class="nav-icon fas fa-circle"></i>
         <p>
           Abastecimiento
@@ -63,27 +94,31 @@
       </a>
       <ul class="nav nav-treeview">
         <li class="nav-item">
-          <a href="/../Reportes/stockSupply" class="nav-link {% if 'stockSupply' in request.path %} active {% endif %}">
+          {# Abastecimiento/stockSupply Link - Apply active if 'stockSupply' is in request.path #}
+          <a href="/Reportes/Abastecimiento/stockSupply" class="nav-link {% if 'stockSupply' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Stock Supply</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Auditoria_orden" class="nav-link {% if 'Auditoria_orden' in request.path %} active {% endif %}">
+          {# Abastecimiento/Auditoria_orden Link - Apply active if 'Auditoria_orden' is in request.path #}
+          <a href="/Reportes/Abastecimiento/Auditoria_orden" class="nav-link {% if 'Auditoria_orden' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Auditoría orden</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/CategoriasDeProductos" class="nav-link {% if 'CategoriasDeProductos' in request.path %} active {% endif %}">
+          {# Abastecimiento/CategoriasDeProductos Link - Apply active if 'CategoriasDeProductos' is in request.path #}
+          <a href="/Reportes/Abastecimiento/CategoriasDeProductos" class="nav-link {% if 'CategoriasDeProductos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Cat. de Productos</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/HRecodificaciones"
+          {# Abastecimiento/HRecodificaciones Link - Apply active if 'HRecodificaciones' is in request.path #}
+          <a href="/Reportes/Abastecimiento/HRecodificaciones"
             class="nav-link {% if 'HRecodificaciones' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>HRecodificaciones</p>
@@ -91,7 +126,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Eficiencia_pedidos"
+          {# Abastecimiento/Eficiencia_pedidos Link - Apply active if 'Eficiencia_pedidos' is in request.path #}
+          <a href="/Reportes/Abastecimiento/Eficiencia_pedidos"
             class="nav-link {% if 'Eficiencia_pedidos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Eficiencia de pedidos</p>
@@ -99,7 +135,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/promocionesActivas"
+          {# Abastecimiento/promocionesActivas Link - Apply active if 'promocionesActivas' is in request.path #}
+          <a href="/Reportes/Abastecimiento/promocionesActivas"
             class="nav-link {% if 'promocionesActivas' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Promos Activas</p>
@@ -107,17 +144,21 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/AnalisisProductos" class="nav-link {% if '/AnalisisProductos' in request.path %} active {% endif %}">
+          {# Abastecimiento/AnalisisProductos Link - Apply active if 'AnalisisProductos' is in request.path #}
+          <a href="/Reportes/Abastecimiento/AnalisisProductos" class="nav-link {% if 'AnalisisProductos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Analisis de Productos</p>
             <span class="badge badge-info right">New</span>
           </a>
         </li>
-        
       </ul>
     </li>
-    <li class="nav-item Nivel02">
-      <a href="#" class="nav-link ">
+
+    {# Administracion Section #}
+    {# Apply menu-is-opening menu-open if any path in Administracion section is active #}
+    <li class="nav-item Nivel02{% if '/Reportes/Administracion/' in request.path %} menu-is-opening menu-open{% endif %}">
+      {# Administracion Toggle Link - No active class here #}
+      <a href="#" class="nav-link">
         <i class="nav-icon fas fa-circle"></i>
         <p>
           Administracion
@@ -126,37 +167,43 @@
       </a>
       <ul class="nav nav-treeview Nivel03">
         <li class="nav-item">
-          <a href="/../Reportes/VentasXmedio_pago" id="level3" class="nav-link {% if 'VentasXmedio_pago' in request.path %} active {% endif %}">
+          {# Administracion/VentasXmedio_pago Link - Apply active if 'VentasXmedio_pago' is in request.path #}
+          <a href="/Reportes/Administracion/VentasXmedio_pago" id="level3" class="nav-link {% if 'VentasXmedio_pago' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Resumen de Ventas</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Consultagastos" class="nav-link {% if 'Consultagastos' in request.path %} active {% endif %}">
+          {# Administracion/Consultagastos Link - Apply active if 'Consultagastos' is in request.path #}
+          <a href="/Reportes/Administracion/Consultagastos" class="nav-link {% if 'Consultagastos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Consulta de gastos</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/VentaVscobranza" class="nav-link {% if 'VentaVscobranza' in request.path %} active {% endif %}">
+          {# Administracion/VentaVscobranza Link - Apply active if 'VentaVscobranza' is in request.path #}
+          <a href="/Reportes/Administracion/VentaVscobranza" class="nav-link {% if 'VentaVscobranza' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Venta Vs cobranza</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Controlcajasmensual" class="nav-link {% if '/Controlcajasmensual' in request.path %} active {% endif %}">
+          {# Administracion/Controlcajasmensual Link - Apply active if 'Controlcajasmensual' is in request.path #}
+          <a href="/Reportes/Administracion/Controlcajasmensual" class="nav-link {% if 'Controlcajasmensual' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Control cajas Mensual</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/ResumenMensualAlquileres" class="nav-link {% if '/ResumenMensualAlquileres' in request.path %} active {% endif %}">
+          {# Administracion/ResumenMensualAlquileres Link - Apply active if 'ResumenMensualAlquileres' is in request.path #}
+          <a href="/Reportes/Administracion/ResumenMensualAlquileres" class="nav-link {% if 'ResumenMensualAlquileres' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Resumen xMes Alquileres</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/CargaGastosTesoreria"
+          {# Administracion/CargaGastosTesoreria Link - Apply active if 'CargaGastosTesoreria' is in request.path #}
+          <a href="/Reportes/Administracion/CargaGastosTesoreria"
             class="nav-link {% if 'CargaGastosTesoreria' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Carga Gastos Tesoreria</p>
@@ -164,7 +211,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/DetalleContratosDeAlquiler"
+          {# Administracion/DetalleContratosDeAlquiler Link - Apply active if 'DetalleContratosDeAlquiler' is in request.path #}
+          <a href="/Reportes/Administracion/DetalleContratosDeAlquiler"
             class="nav-link {% if 'DetalleContratosDeAlquiler' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Contratos De Alquiler</p>
@@ -172,7 +220,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/ContratosFranquicias"
+          {# Administracion/ContratosFranquicias Link - Apply active if 'ContratosFranquicias' is in request.path #}
+          <a href="/Reportes/Administracion/ContratosFranquicias"
             class="nav-link {% if 'ContratosFranquicias' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Contratos Alquiler Fr</p>
@@ -180,7 +229,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/FacturaManualLista"
+          {# Administracion/FacturaManualLista Link - Apply active if 'FacturaManualLista' is in request.path #}
+          <a href="/Reportes/Administracion/FacturaManualLista"
             class="nav-link {% if 'FacturaManualLista' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Lista Fact. Manual</p>
@@ -189,8 +239,12 @@
         </li>
       </ul>
     </li>
-    <li class="nav-item">
-      <a href="#" class="nav-link ">
+
+    {# e-commerce Section #}
+    {# Apply menu-is-opening menu-open if any path in Ecommerce section is active #}
+    <li class="nav-item{% if '/Reportes/Ecommerce/' in request.path %} menu-is-opening menu-open{% endif %}">
+      {# Ecommerce Toggle Link - No active class here #}
+      <a href="#" class="nav-link">
         <i class="nav-icon fas fa-circle"></i>
         <p>
           e-commerce
@@ -199,52 +253,60 @@
       </a>
       <ul class="nav nav-treeview">
         <li class="nav-item">
-          <a href="/../Reportes/stock_ecommerce" class="nav-link {% if '/stock_ecommerce' in request.path %} active {% endif %}">
+          {# Ecommerce/stock_ecommerce Link - Apply active if 'stock_ecommerce' is in request.path #}
+          <a href="/Reportes/Ecommerce/stock_ecommerce" class="nav-link {% if 'stock_ecommerce' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Stock e-commerce</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Tracking_Ecommerce" class="nav-link {% if '/Tracking_Ecommerce' in request.path %} active {% endif %}">
+          {# Ecommerce/Tracking_Ecommerce Link - Apply active if 'Tracking_Ecommerce' is in request.path #}
+          <a href="/Reportes/Ecommerce/Tracking_Ecommerce" class="nav-link {% if 'Tracking_Ecommerce' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Tracking Ecommerce</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Pedidos" class="nav-link {% if '/Pedidos' in request.path %} active {% endif %}">
+          {# Ecommerce/Pedidos Link - Apply active if 'Pedidos' is in request.path #}
+          <a href="/Reportes/Ecommerce/Pedidos" class="nav-link {% if 'Pedidos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Pedidos</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/PedidosUY" class="nav-link {% if '/PedidosUY' in request.path %} active {% endif %}">
+          {# Ecommerce/PedidosUY Link - Apply active if 'PedidosUY' is in request.path #}
+          <a href="/Reportes/Ecommerce/PedidosUY" class="nav-link {% if 'PedidosUY' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Pedidos UY</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Auditoria_Ecommerce" class="nav-link {% if 'Auditoria_Ecommerce' in request.path %} active {% endif %}">
+          {# Ecommerce/Auditoria_Ecommerce Link - Apply active if 'Auditoria_Ecommerce' is in request.path #}
+          <a href="/Reportes/Ecommerce/Auditoria_Ecommerce" class="nav-link {% if 'Auditoria_Ecommerce' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Auditoría Ecommerce</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Auditoria_Prisma" class="nav-link {% if 'Auditoria_Prisma' in request.path %} active {% endif %}">
+          {# Ecommerce/Auditoria_Prisma Link - Apply active if 'Auditoria_Prisma' is in request.path #}
+          <a href="/Reportes/Ecommerce/Auditoria_Prisma" class="nav-link {% if 'Auditoria_Prisma' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Track Auditoría Prisma</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Segmentacion_clientes" class="nav-link {% if 'Segmentacion_clientes' in request.path %} active {% endif %}">
+          {# Ecommerce/Segmentacion_clientes Link - Apply active if 'Segmentacion_clientes' is in request.path #}
+          <a href="/Reportes/Ecommerce/Segmentacion_clientes" class="nav-link {% if 'Segmentacion_clientes' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Segmentación de clientes</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/TableroDeControl" class="nav-link {% if '/TableroDeControl' in request.path %} active {% endif %}">
+          {# Ecommerce/TableroDeControl Link - Apply active if 'TableroDeControl' is in request.path #}
+          <a href="/Reportes/Ecommerce/TableroDeControl" class="nav-link {% if 'TableroDeControl' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Tablero De Control</p>
             <span class="badge badge-info right">New</span>
@@ -252,18 +314,23 @@
         </li>
       </ul>
     </li>
-    <li class="nav-item">
-      <a href="#" class="nav-link ">
+
+    {# Gerencia Section #}
+    {# Apply menu-is-opening menu-open if any path in Gerencia section is active #}
+    <li class="nav-item{% if '/Reportes/Gerencia/' in request.path %} menu-is-opening menu-open{% endif %}">
+      {# Gerencia Toggle Link - No active class here #}
+      <a href="#" class="nav-link">
         <i class="nav-icon fas fa-circle"></i>
         <p>
           Gerencia
           <i class="right fas fa-angle-left"></i>
         </p>
       </a>
-      
+
       <ul class="nav nav-treeview">
         <li class="nav-item">
-          <a href="/../Reportes/DetalleRemitos599/{{ request.user.username }}"
+          {# Gerencia/DetalleRemitos599 Link - Apply active if 'DetalleRemitos599' is in request.path (handles parameter) #}
+          <a href="/Reportes/Gerencia/DetalleRemitos599/{{ request.user.username }}"
             class="nav-link {% if 'DetalleRemitos599' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Detalle Rem599</p>
@@ -271,7 +338,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/ChequesRecibidos/{{ request.user.username }}"
+          {# Gerencia/ChequesRecibidos Link - Apply active if 'ChequesRecibidos' is in request.path (handles parameter) #}
+          <a href="/Reportes/Gerencia/ChequesRecibidos/{{ request.user.username }}"
             class="nav-link {% if 'ChequesRecibidos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Reporte de cheques</p>
@@ -279,8 +347,9 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Extras/reporTrello"
-            class="nav-link {% if 'reporTrello' in request.path %} active {% endif %}">
+          {# Tareas Diarias Link (outside /Reportes/ structure) - Apply active if exact path matches #}
+          <a href="/Extras/reporTrello"
+            class="nav-link {% if request.path == '/Extras/reporTrello' %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Tareas Diarias</p>
             <!-- <span class="badge badge-info right">2</span> -->
@@ -288,7 +357,11 @@
         </li>
       </ul>
     </li>
-    <li class="nav-item">
+
+    {# Comercial Section #}
+    {# Apply menu-is-opening menu-open if any path in Comercial section is active #}
+    <li class="nav-item{% if '/Reportes/Comercial/' in request.path or '/Reportes/Mayoristas/' in request.path %} menu-is-opening menu-open{% endif %}"> {# Include Mayoristas path check as one link points there #}
+      {# Comercial Toggle Link - No active class here #}
       <a href="#" class="nav-link">
         <i class="nav-icon fas fa-circle"></i>
         <p>
@@ -296,61 +369,79 @@
           <i class="right fas fa-angle-left"></i>
         </p>
       </a>
-      
+
       <ul class="nav nav-treeview">
         <li class="nav-item">
-          <a href="/../Reportes/VentasXcanal" class="nav-link {% if 'VentasXcanal' in request.path %} active {% endif %}">
+          {# Comercial/VentasXcanal Link - Apply active if 'VentasXcanal' is in request.path #}
+          <a href="/Reportes/Comercial/VentasXcanal" class="nav-link {% if 'VentasXcanal' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Ventas por canal</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/stockSucursalesLakers" class="nav-link {% if 'stockSucursales' in request.path %} active {% endif %}">
+          {# Comercial/stockSucursalesLakers Link - Apply active if 'stockSucursalesLakers' is in request.path #}
+          <a href="/Reportes/Comercial/stockSucursalesLakers" class="nav-link {% if 'stockSucursalesLakers' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Stock Sucursales</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Stock_Suc_Articulos" class="nav-link {% if 'Stock_Suc_Articulos' in request.path %} active {% endif %}">
+          {# Comercial/Stock_Suc_Articulos Link - Apply active if 'Stock_Suc_Articulos' is in request.path #}
+          <a href="/Reportes/Comercial/Stock_Suc_Articulos" class="nav-link {% if 'Stock_Suc_Articulos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Stock sucursales X Art.</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/Tracking_pedidos_mayoristas" class="nav-link {% if 'Tracking_pedidos_mayoristas' in request.path %} active {% endif %}">
+          {# Mayoristas/Tracking_pedidos_mayoristas Link (under Comercial section) - Apply active if 'Tracking_pedidos_mayoristas' is in request.path #}
+          <a href="/Reportes/Mayoristas/Tracking_pedidos_mayoristas" class="nav-link {% if 'Tracking_pedidos_mayoristas' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Track Ped Mayoristas</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/AdmEmpleados" class="nav-link {% if '/AdmEmpleados' in request.path %} active {% endif %}">
+          {# Comercial/AdmEmpleados Link - Apply active if 'AdmEmpleados' is in request.path #}
+          <a href="/Reportes/Comercial/AdmEmpleados" class="nav-link {% if 'AdmEmpleados' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Lista Empleados</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
-        
+        <li class="nav-item">
+          {# Comercial/AnalisisProductos Link - Apply active if 'AnalisisProductos' is in request.path #}
+          <a href="/Reportes/Comercial/AnalisisProductos" class="nav-link {% if 'AnalisisProductos' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Analisis de Productos</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>
       </ul>
     </li>
-    <li class="nav-item">
-      <a href="#" class="nav-link ">
+
+    {# RRHH Section #}
+    {# Apply menu-is-opening menu-open if any path in RRHH section is active #}
+    <li class="nav-item{% if '/Reportes/RRHH/' in request.path %} menu-is-opening menu-open{% endif %}">
+      {# RRHH Toggle Link - No active class here #}
+      <a href="#" class="nav-link">
         <i class="nav-icon fas fa-circle"></i>
         <p>
           RRHH
           <i class="right fas fa-angle-left"></i>
         </p>
       </a>
-      
+
       <ul class="nav nav-treeview">
         <li class="nav-item">
-          <a href="/../Reportes/AsistenciasSuc" class="nav-link {% if '/AsistenciasSuc' in request.path %} active {% endif %}">
+          {# RRHH/AsistenciasSuc Link - Apply active if 'AsistenciasSuc' is in request.path #}
+          <a href="/Reportes/RRHH/AsistenciasSuc" class="nav-link {% if 'AsistenciasSuc' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Reporte De Asistencias</p>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/../Reportes/reporteAnticipos" class="nav-link {% if '/reporteAnticipos' in request.path %} active {% endif %}">
+          {# RRHH/reporteAnticipos Link - Apply active if 'reporteAnticipos' is in request.path #}
+          <a href="/Reportes/RRHH/reporteAnticipos" class="nav-link {% if 'reporteAnticipos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Reporte de Anticipos</p>
             <span class="badge badge-info right">New</span>
