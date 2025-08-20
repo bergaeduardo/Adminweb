@@ -81,7 +81,7 @@ class SucursalesLakers(models.Model):
     version_soft_lapos = models.CharField(db_column='VERSION_SOFT_LAPOS', max_length=30, blank=True, null=True)  # Field name made lowercase.
     cable_lapos_integrado = models.CharField(db_column='CABLE_LAPOS_INTEGRADO', max_length=30, blank=True, null=True)  # Field name made lowercase.
     n_llave_tango = models.CharField(db_column='N_LLAVE_TANGO', max_length=20, blank=True, null=True)  # Field name made lowercase.
-    llave_prueba = models.BinaryField(db_column='LLAVE_PRUEBA', blank=True, null=True)  # Field name made lowercase.
+    llave_prueba = models.BinaryField(db_column='NRO_SUC_ACTUAL', blank=True, null=True)  # Field name made lowercase.
     base_nombre = models.CharField(db_column='BASE_NOMBRE', max_length=50, blank=True, null=True)  # Field name made lowercase.
     conexion_teamviewer_hija = models.CharField(db_column='CONEXION_TEAMVIEWER_HIJA', max_length=30, blank=True, null=True)  # Field name made lowercase.
     usuario_pc_madre = models.CharField(db_column='USUARIO_PC_MADRE', max_length=30, blank=True, null=True)  # Field name made lowercase.
