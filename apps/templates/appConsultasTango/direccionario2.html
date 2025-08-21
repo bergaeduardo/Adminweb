@@ -185,10 +185,10 @@
                       <a class="text-secondary"> Canal: <b>{{ dato.canal }}</b></a>
                     </li>
                     <li>
-                      <a href="" class="btn-link text-secondary"> Tipo de Local: <b>{{ dato.tipo_local }}</b></a>
+                      <a class="btn-link text-secondary"> Tipo de Local: <b>{{ dato.tipo_local }}</b></a>
                     </li>
                     <li>
-                      <a href="" class="btn-link text-secondary"> Tienda: <b>{{ dato.tienda }}</b></a>
+                      <a class="btn-link text-secondary"> Tienda: <b>{{ dato.tienda }}</b></a>
                     </li>
                     <li>
                       <a class="text-secondary"> Tango: <b>{{ dato.tango }}</b></a>
@@ -202,6 +202,12 @@
                     <li>
                       <a class="text-secondary"> Retiro Expres: <b>{{ dato.retiro_expres }}</b></a>
                     </li>
+                    <li>
+                      <a class="btn-link text-secondary"> Suc. Ferreteria: <b>{{ dato.nro_sucursal_madre|default_if_none:"" }}</b></a>
+                    </li>
+                    <li>
+                      <a class="btn-link text-secondary"> Suc. Anterior: <b>{{ dato.nro_sucursal_anterior|default_if_none:"" }}</b></a>
+                    </li>
                   </ul>
                 </div>
                 {% if request.user|has_group:"admin" or request.user|has_group:"soporteExt" %}
@@ -210,17 +216,17 @@
                   <div class="card-comment">
                     <ul class="list-unstyled">
                       <li>
-                        <a class="text-secondary"> Base: <b>{{ dato.base_nombre }}</b></a>
+                        <a class="text-secondary"> Base: <b>{{ dato.base_nombre|default_if_none:"" }}</b></a>
                       </li>
                       <li>
-                        <a class="text-secondary"> Conexion: <b id="copy_to_clipboard">{{ dato.conexion_dns }} </b></a>
+                        <a class="text-secondary"> Conexion: <b id="copy_to_clipboard">{{ dato.conexion_dns|default_if_none:"" }} </b></a>
                         <button type="button" class="btn btn-tool copy_to_clipboard swalDefaultSuccess" address="{{ dato.conexion_dns }}">
                           <i class="fa fa-copy"></i>
                         </button>
                         <span class="mensaje" id="mensaje"></span>
                       </li>
                       <li>
-                        <a class="text-secondary"> Llave Tango: <b id="copy_to_clipboard">{{ dato.n_llave_tango }} </b></a>
+                        <a class="text-secondary"> Llave Tango: <b id="copy_to_clipboard">{{ dato.n_llave_tango|default_if_none:"" }} </b></a>
                         <button type="button" class="btn btn-tool copy_to_clipboard swalDefaultSuccess" address="{{ dato.n_llave_tango }}">
                           <i class="fa fa-copy"></i>
                         </button>

@@ -25,18 +25,18 @@ $(document).ready(function(){
     
     
     $('.input-search').keyup(function(){
+        var buscando = $(this).val().toLowerCase(); // Convertir texto de búsqueda a minúsculas
         var nombres = $('.username');
-        var buscando = $(this).val();
-        var item='';
-        for( var i = 0; i < nombres.length; i++ ){
-            item = $(nombres[i]).html().toLowerCase();
-            for(var x = 0; x < item.length; x++ ){
-                if( buscando.length == 0 || item.indexOf( buscando ) > -1 ){
-                    $(nombres[i]).parents('.product-item').show(); 
-                }else{
-                        $(nombres[i]).parents('.product-item').hide();
-                }
+
+        nombres.each(function() {
+            var item = $(this).html().toLowerCase(); // El texto del título de la tarjeta en minúsculas
+            
+            // Si el texto de búsqueda está en el título, muestra el contenedor del producto. Si no, lo oculta.
+            if (item.indexOf(buscando) > -1) {
+                $(this).parents('.product-item').show();
+            } else {
+                $(this).parents('.product-item').hide();
             }
-        }
+        });
     });
 });
