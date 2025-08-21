@@ -80,7 +80,7 @@ def editarSucursal(request,id):
         messages.success(request, 'OK')
         infForm = sucForm.cleaned_data
         # print(infForm)
-        return redirect('extras:direccionario') # Updated redirect
+        return redirect('extras:editarSucursal',id=id) # Updated redirect
 
     return  render(request,'appConsultasTango/editarSucursal.html',{'formulario':sucForm,'Disabled':Disabled})
 
@@ -94,7 +94,7 @@ def registraSucursal(request):
             messages.success(request, 'OK')
             infForm = formulario.cleaned_data
             # print(infForm)
-            return redirect('extras:direccionario') # Updated redirect
+            return redirect('extras:extras_direccionario') # Updated redirect
 
     else:
         formulario=sucursalesform()
