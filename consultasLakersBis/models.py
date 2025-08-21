@@ -40,6 +40,9 @@ class Direccionario(models.Model):
     deposito = models.CharField(db_column='COD_DEPOSI', max_length=2, blank=True, null=True)
     n_llave_tango = models.CharField(db_column='N_LLAVE_TANGO', max_length=20, blank=True, null=True)
     retiro_expres = models.CharField(db_column='RETIRO_EXPRES', max_length=2)
+    nro_sucursal_anterior = models.IntegerField(db_column='NRO_SUC_ANTERIOR', blank=True, null=True)
+    nro_sucursal_madre = models.IntegerField(db_column='NRO_SUC_MADRE', blank=True, null=True)
+
 
     class Meta:
         managed = False  # Created from a view. Don't remove.
