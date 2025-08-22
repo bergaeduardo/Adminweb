@@ -15,6 +15,7 @@
   
   {% block stylesheets %}{% endblock stylesheets %}
 
+
 </head>
 <body class="hold-transition sidebar-mini sidebar-collapse layout-fixed">
   <div class="wrapper">
@@ -41,5 +42,24 @@
 
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}{% endblock javascripts %}
+<script>
+  $(document).ready(function() {
+    $('.nav-treeview').each(function() {
+      var $this = $(this);
+      var items = $this.children('li').get();
+      items.sort(function(a, b) {
+        var keyA = $(a).find('p').text();
+        var keyB = $(b).find('p').text();
+        if (keyA < keyB) return -1;
+        if (keyA > keyB) return 1;
+        return 0;
+      });
+      var ul = $this;
+      $.each(items, function(i, li) {
+        ul.append(li);
+      });
+    });
+  });
+</script>
 </body>
 </html>
