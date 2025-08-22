@@ -1,4 +1,5 @@
 {% extends "layouts/base.html" %}
+{% load has_group %} <!-- \apps\home\templatetags\has_group.py -->
 
 {% block title %} {{Nombre}} {% endblock %} 
 
@@ -19,7 +20,8 @@
 
 {% endblock stylesheets %}
 
-{% block content %}  
+{% block content %}
+{% with user_groups=request.user|get_user_groups %}  
 
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
@@ -39,33 +41,105 @@
         </div><!-- /.row -->
       </div><!-- /.container-fluid -->
     </div>
-    <!-- /.content-header -->
+    <section class="content">
+      <div class="container-fluid">
+        
+        <div style="position: relative; border: 1px solid #ddd; border-radius: .25rem; padding: 1rem; margin-top: 10px;">
+          {% if request.user|has_any_group:"RRHH,admin" %}
+          <a href="javascript:void(0);" id="info-icon" title="Mostrar Información" style="position: absolute; top: 10px; left: 10px; z-index: 1000; font-size: 1.5rem; color: #6c757d;">
+            <i class="fas fa-info-circle"></i>
+          </a>
 
+          <div id="popup-info" style="display: none; position: absolute; top: 40px; left: 10px; background-color: white; border: 1px solid #ccc; padding: 15px; z-index: 1001; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 5px; min-width: 800px;">
+            <p style="margin-bottom: 10px; font-weight: bold;">URL del Contenido:</p>
+            <div style="display: flex; align-items: center; background-color: #f1f1f1; padding: 8px; border-radius: 4px;">
+              <input type="text" id="iframe-url-text" value="{{dir_iframe}}" readonly style="border: none; background: transparent; width: 100%; outline: none; margin-right: 10px; font-family: monospace;">
+              <button id="copy-button" title="Copiar al portapapeles" style="border: none; background: none; cursor: pointer; font-size: 1.2rem; padding: 0 5px;">
+                <i class="far fa-copy"></i>
+              </button>
+            </div>
+            <div id="copy-feedback" style="margin-top: 8px; color: green; font-size: 0.9em; text-align: right; display: none;">
+              ¡URL copiada!
+            </div>
+          </div>
+          {% endif %}
+          <div id="iframe-wrapper">
+            </div>
+
+          <noscript>
+            <div style="width: 100%; text-align: center; padding: 20px;">
+              <p>Para ver este contenido, por favor habilite JavaScript.</p>
+              <iframe frameborder="0" src="{{dir_iframe}}" width="1200" height="700"></iframe>
+            </div>
+          </noscript>
+        </div>
+        
+      </div></section>
+{% endwith %}
     <script>
-      if (window.innerHeight){
-         //navegadores basados en mozilla
-         largo = window.innerHeight - 80
-         ancho = window.innerWidth - 80
-      }else{
-         if (document.body.clientHeight){
-             //Navegadores basados en IExplorer, es que no tengo innerheight
-             largo = document.body.clientHeight - 80
-             ancho = document.body.clientWidth - 80
-         }else{
-             //otros navegadores
-             largo = 700
-             ancho = 1200
-         }
-      }
-      document.write ('<iframe frameborder="0" src={{dir_iframe}} width="' + ancho + '" height="' + largo + '">')
-      document.write ('</iframe>')
+      // Lógica para crear el Iframe con tamaño dinámico
+      (function() {
+        var largo, ancho;
+        // Se ajusta la altura para compensar el nuevo marco (padding).
+        // Puedes ajustar el valor '120' si necesitas más o menos espacio.
+        var alturaOffset = 120; 
+
+        if (window.innerHeight) {
+           largo = window.innerHeight - alturaOffset;
+           ancho = '100%';
+        } else if (document.body.clientHeight) {
+           largo = document.body.clientHeight - alturaOffset;
+           ancho = '100%';
+        } else {
+           largo = 700; // Altura por defecto
+           ancho = '100%'; // Ancho responsivo
+        }
+        
+        var iframeWrapper = document.getElementById('iframe-wrapper');
+        if (iframeWrapper) {
+          iframeWrapper.innerHTML = '<iframe frameborder="0" src="{{dir_iframe}}" width="' + ancho + '" height="' + largo + '" style="display: block; border: none;"></iframe>';
+        }
+      })();
+
+      // Lógica para el Popup y el botón de copiar
+      (function() {
+        var infoIcon = document.getElementById('info-icon');
+        var popup = document.getElementById('popup-info');
+        var copyButton = document.getElementById('copy-button');
+        var urlTextInput = document.getElementById('iframe-url-text');
+        var copyFeedback = document.getElementById('copy-feedback');
+
+        // Mostrar/ocultar el popup al hacer clic en el ícono de información
+        if (infoIcon && popup) {
+          infoIcon.addEventListener('click', function(event) {
+            event.preventDefault();
+            popup.style.display = (popup.style.display === 'none' || popup.style.display === '') ? 'block' : 'none';
+          });
+        }
+
+        // Copiar la URL al portapapeles al hacer clic en el botón de copiar
+        if (copyButton && urlTextInput) {
+          copyButton.addEventListener('click', function() {
+            navigator.clipboard.writeText(urlTextInput.value).then(function() {
+              copyFeedback.style.display = 'block';
+              setTimeout(function() {
+                copyFeedback.style.display = 'none';
+              }, 2500); // Ocultar mensaje después de 2.5 segundos
+            }).catch(function(err) {
+              console.error('Error al intentar copiar la URL: ', err);
+              alert('No se pudo copiar la URL. Inténtelo manualmente.');
+            });
+          });
+        }
+
+        // Opcional: Cerrar el popup si el usuario hace clic fuera de él
+        document.addEventListener('click', function(event) {
+          if (popup && !popup.contains(event.target) && !infoIcon.contains(event.target)) {
+            popup.style.display = 'none';
+          }
+        });
+      })();
     </script>
-    <!-- siguinete por si si los navegadores no entienden Javascript, o está deshabilitado -->
-    <noscript>
-      <iframe frameborder="0" src={{dir_iframe}} width="1200" height=700></iframe>
-    </noscript>
-    
-    <!-- /.content -->
   </div>
   <!-- /.content-wrapper -->
 
