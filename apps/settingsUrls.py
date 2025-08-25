@@ -126,6 +126,7 @@ DIR_HERAMIENTAS = {
     'CargaContratosFr':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias/cargaContratosAlquileres.php',
     'CargaFacturasSuc':SERVIDOR['production'] + 'administracion/controlSucursales/cargaFacturaSucursales.php',
     'EgresosCajaTesoreria':SERVIDOR['production'] + 'administracion/tesoreria/cargaGastos.php',
+    'GestionDeProveedores':'https://proveedores.xl.com.ar/administracion/dashboard/',
     # RRHH
     'adminEmpleados':SERVIDOR['production'] + 'administracion/recursosHumanos/controlHorarios/controlHorario.php',
     'altaVendedores':SERVIDOR['production'] + 'administracion/recursoshumanos/altaVendedores/altaVendedores.php',
