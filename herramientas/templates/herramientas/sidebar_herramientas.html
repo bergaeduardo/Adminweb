@@ -509,11 +509,25 @@
       <a href="/../Herramientas/CargaProyecto" class="nav-link {% if  'CargaProyecto' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Cargar Proyecto</p>
-        <span class="badge badge-info right">New</span>
+        <!-- <span class="badge badge-info right">New</span> -->
         </a>
       </li>
     {% endif %}     
     <!-- Fin 	Supervisores -->
+
+    <!-- inicio 	Admin -->
+    {% if request.user|has_any_group:"admin" %}
+    <li class="nav-item">
+      <a href="/../Herramientas/AdminNotificaciones"
+        class="nav-link {% if 'AdminNotificaciones' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Admin Notificaciones</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>
+    {% endif %}
+    <!-- Fin 	Admin -->
+
   </ul>
 
 </li>

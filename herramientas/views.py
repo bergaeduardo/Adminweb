@@ -937,6 +937,15 @@ def CargaProyecto(request):
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
     # return redirect(dir_iframe)
 
+# Admin
+
+@login_required(login_url="/login/")
+def AdminNotificaciones(request):
+    Nombre = ''
+    dir_iframe = DIR_HERAMIENTAS['AdminNotificaciones'] #+ UserName
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+    # return redirect(dir_iframe)
+
 
 # --- Moved from viewsExtras.py ---
 @login_required(login_url="/login/")

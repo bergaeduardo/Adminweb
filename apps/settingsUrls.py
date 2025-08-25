@@ -139,6 +139,9 @@ DIR_HERAMIENTAS = {
     
     #Supervisores
     'CargaProyecto':SERVIDOR['production'] + 'projects/adminProyectos/cargarProyecto.php',
+
+    # Admin
+    'AdminNotificaciones':SERVIDOR['production'] + 'sistemas/adminNotificaciones/',
 }
 
 DIR_EXTRAS = {
