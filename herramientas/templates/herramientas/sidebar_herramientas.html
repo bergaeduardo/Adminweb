@@ -282,6 +282,22 @@
         <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
+    <li class="nav-item">
+      <a href="/../Herramientas/GestionDeProveedores"
+        class="nav-link {% if 'GestionDeProveedores' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Gestion De Proveedores</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="/../Herramientas/CargarContratosDeAlquiler"
+        class="nav-link {% if 'CargarContratosDeAlquiler' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Cargar Contratos De Alquiler</p>
+        <!-- <span class="badge badge-info right">New</span> -->
+      </a>
+    </li>
 
     {% endif %}
     {% if request.user|has_any_group:"admin,AdministracionSup,Administracion,Tesoreria" %}

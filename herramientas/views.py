@@ -865,6 +865,12 @@ def RelacionesCtaCont(request):
     dir_iframe = DIR_HERAMIENTAS['RelacionesCtaCont'] #+ UserName
     return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def GestionDeProveedores(request):
+    Nombre = ''
+    dir_iframe = DIR_HERAMIENTAS['GestionDeProveedores'] #+ UserName
+    return redirect(dir_iframe)
+
 # Administracion_CE             ***Comercio Exterior***
 @login_required(login_url="/login/")
 def Cargarcontenedor(request):
