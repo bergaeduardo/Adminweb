@@ -74,7 +74,7 @@ urlpatterns = [
     # Gerencia
     path('rendircobranzas/<str:UserName>', views.rendircobranzas, name='herramientas_rendir_cobranzas'),
     path('GestionarCobro/<str:UserName>', views.GestionarCobro, name='herramientas_gestionar_cobro'),
-    path('RegistrarEfectivo/<str:UserName>', views.RegistrarEfectivo, name='herramientas_registrar_efectivo'),
+    # path('RegistrarEfectivo/<str:UserName>', views.RegistrarEfectivo, name='herramientas_registrar_efectivo'),
     path('gestionPremiosComercial', views.gestionPremiosComercial, name='herramientas_gestion_premios_comercial'),
     # Administracion
     path('ControlGastosSupervision', views.ControlGastosSupervision, name='herramientas_control_gastos_supervision'),
