@@ -82,7 +82,7 @@ DIR_HERAMIENTAS = {
     'ImportarRemEcommerce': SERVIDOR['production'] + 'ecommerce/abastecimiento/',
     'ImprimirEtiquetasBultos': SERVIDOR['production']  + 'logistica/etiquetas/',
     # Abastecimiento
-    'Stock_excluido': SERVIDOR['production']  + 'sistemas/stockExcluido/index.php',
+    'Stock_excluido': SERVIDOR['production']  + 'comercial/abastecimiento/stockExcluido/index.php',
     'Carga_de_orden': SERVIDOR['production']  + 'sistemas/distriCuero/index.php',
     'Activar_orden': SERVIDOR['production']  + 'sistemas/distriCuero/activaOrdenes.php',
     'Desactivar_orden': SERVIDOR['production']  + 'sistemas/distriCuero/desactivaOrdenes.php',
