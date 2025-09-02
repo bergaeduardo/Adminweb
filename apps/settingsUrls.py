@@ -99,6 +99,7 @@ DIR_HERAMIENTAS = {
     'PromoBancos':SERVIDOR['production']  + 'promoBancos/',
     'AltaNuevosLocales':SERVIDOR['production']  + 'app/usuarios',
     'UsuariosFranquicias':SERVIDOR['production']  + 'usuariosFranquicias/',
+    'ObjetivosVentaFranquicias':SERVIDOR['production']  + 'comercial/franquicias/objetivosVenta/',
     # Mayoristas
     'Adm_Pedido':SERVIDOR['production']  + 'sistemas/despachoMayorista/index.php',
     # Ecommerce
