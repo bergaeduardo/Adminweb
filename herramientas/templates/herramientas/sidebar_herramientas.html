@@ -463,6 +463,13 @@
         <p>Gestion Cat.Productos</p>
       </a>
     </li>
+        <li class="nav-item">
+      <a href="/../Herramientas/ObjetivosVentaFranquicias" class="nav-link {% if 'ObjetivosVentaFranquicias' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Objetivos Ventas Franquicias</p>
+        <!-- <span class="badge badge-danger right">New</span> -->
+      </a>
+    </li>
     {% endif %}
     {% if request.user|has_any_group:"admin,Comercial_sup,Comercial_fr" %}
     <!-- accesos del area aqui -->
@@ -483,15 +490,6 @@
       <a href="/../Herramientas/AdministrarInternos" class="nav-link {% if 'AdministrarInternos' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Adm. Internos</p>
-        <!-- <span class="badge badge-danger right">New</span> -->
-      </a>
-    </li>
-    {% endif %}
-       <!-- accesos del area aqui -->
-    <li class="nav-item">
-      <a href="/../Herramientas/ObjetivosVentaFranquicias" class="nav-link {% if 'ObjetivosVentaFranquicias' in request.path %} active {% endif %}">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Objetivos Ventas Franquicias</p>
         <!-- <span class="badge badge-danger right">New</span> -->
       </a>
     </li>
