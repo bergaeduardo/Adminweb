@@ -236,6 +236,12 @@ def GastosSupervision(request):
     dir_iframe = DIR_REPORTES['GastosSupervision']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
+@login_required(login_url="/login/")
+def controlVentasSucursales(request):
+    Nombre='Control Ventas Sucursales'
+    dir_iframe = DIR_REPORTES['controlVentasSucursales']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 # Gerencia
 
 @login_required(login_url="/login/")
