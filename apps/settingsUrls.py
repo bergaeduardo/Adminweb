@@ -63,6 +63,7 @@ DIR_REPORTES = {
     'DetalleContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/detalleContratosAlquiler.php',
     'ContratosFranquicias':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias/detalleContratosAlquiler.php',
     'GastosSupervision':SERVIDOR['production'] + 'comercial/supervision/presupuesto/dashboard.php',
+    'controlVentasSucursales':SERVIDOR['production'] + 'administracion/controlSucursales/controlVentasSucursales.php',
     # Gerencia
     'DetalleRemitos599':SERVIDOR['production']  + 'sistemas/599/consultaderemitos.php?userName=',
     'ChequesRecibidos':SERVIDOR['production']  + 'sistemas/599/reportedecheques.php?userName=',
