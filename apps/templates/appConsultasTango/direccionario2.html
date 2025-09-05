@@ -147,8 +147,15 @@
                       <button type="button" class="btn btn-tool copy_to_clipboard swalDefaultSuccess" address="{{ dato.mail }}">
                         <i class="fas fa-envelope"></i>
                       </button>
-                      <b> e-mail:</b> 
-                      {{ dato.mail }}
+                      <b> Local:</b> 
+                      {{ dato.mail|default_if_none:"" }}
+                    </span>
+                    <span class="description">
+                      <button type="button" class="btn btn-tool copy_to_clipboard swalDefaultSuccess" address="{{ dato.mail }}">
+                        <i class="fas fa-envelope"></i>
+                      </button>
+                      <b> Empresa:</b> 
+                      {{ dato.mail_grupo_emp|default_if_none:"" }}
                     </span>
                     <span class="mensaje" id="mensaje"></span>
                     <!-- <a class="text-secondary"> Conexion: <b id="copy_to_clipboard">{{ dato.conexion_dns }} </b></a>

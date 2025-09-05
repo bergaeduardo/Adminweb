@@ -42,6 +42,7 @@ class Direccionario(models.Model):
     retiro_expres = models.CharField(db_column='RETIRO_EXPRES', max_length=2)
     nro_sucursal_anterior = models.IntegerField(db_column='NRO_SUC_ANTERIOR', blank=True, null=True)
     nro_sucursal_madre = models.IntegerField(db_column='NRO_SUC_MADRE', blank=True, null=True)
+    mail_grupo_emp = models.CharField(db_column='MAIL_GRUP_EMP', max_length=50, blank=True, null=True)
 
 
     class Meta:
