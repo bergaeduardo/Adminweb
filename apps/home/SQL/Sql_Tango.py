@@ -38,14 +38,31 @@ def validar_factManualCargada(sucursal,factura):
     return resulatado[0]
 
 def validar_articulo(articulo):
+    # verificar si es kit
     with connections['mi_db_2'].cursor() as cursor:
-        sql = '''SELECT COALESCE(
-                    (SELECT TOP 1 DESCRIPCIO 
-                     FROM SJ_ETIQUETAS_FINAL 
-                     WHERE COD_ARTICU LIKE ''' + "'" + articulo[:11] + "%'" + '''),
-                'ERROR') AS RESULT'''
+        sql = '''select PROMO_MENU from STA11
+                WHERE COD_ARTICU LIKE ''' + "'" + articulo + "'"
         cursor.execute(sql)
-        resultado = cursor.fetchone()
+        esKit = cursor.fetchone()
+    
+    if esKit[0] == 'P':
+        with connections['mi_db_2'].cursor() as cursor:
+            sql = '''SELECT COALESCE(
+                        (SELECT TOP 1 DESCRIPCIO 
+                        FROM SJ_ETIQUETAS_FINAL 
+                        WHERE COD_ARTICU LIKE ''' + "'" + articulo + "'" + '''),
+                    'ERROR') AS RESULT'''
+            cursor.execute(sql)
+            resultado = cursor.fetchone()
+    else:
+        with connections['mi_db_2'].cursor() as cursor:
+            sql = '''SELECT COALESCE(
+                        (SELECT TOP 1 DESCRIPCIO 
+                        FROM SJ_ETIQUETAS_FINAL 
+                        WHERE COD_ARTICU LIKE ''' + "'" + articulo[:11] + "%'" + '''),
+                    'ERROR') AS RESULT'''
+            cursor.execute(sql)
+            resultado = cursor.fetchone()
     return resultado[0]
 
 def obtenerInformacionArticulo(CodigoArt,DescripcionMetaTag):
@@ -66,6 +83,7 @@ def borrar_contTabla(nombre_tabla):
     with connections['mi_db_2'].cursor() as cursor:        
         sql = '''DELETE FROM '''+ nombre_tabla
         cursor.execute(sql)
+    print('Se borro la tabla ' + nombre_tabla)
 
 def validar_pedido(pedido,talon_pedido):
     with connections['mi_db_2'].cursor() as cursor:

@@ -1012,7 +1012,6 @@ def import_file_etiquetas(request):
                             if fila > 1:
                                 articulo = worksheet.cell(row=fila, column=i).value
                                 art_valido= validar_articulo(articulo)
-                                print('art_valido: ' + str(art_valido))
                                 if art_valido == 'ERROR':
                                     mensaje_error = 'Hay articulos que no existen en SJ_ETIQUETAS_FINAL'
                                     row_data.append('*' + str(cell.value) + '*')
@@ -1049,7 +1048,7 @@ def import_file_etiquetas(request):
 
 def upload_file_artEtiquetas(path_filname):
     excel_file =path_filname
-    empexceldata = pd.read_excel(excel_file)
+    empexceldata = pd.read_excel(excel_file, engine='openpyxl')
     dbframe = empexceldata
     borrar_contTabla('SJ_T_ETIQUETAS_FINAL')
 
