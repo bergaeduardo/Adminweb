@@ -1053,8 +1053,7 @@ def upload_file_artEtiquetas(path_filname):
     borrar_contTabla('SJ_T_ETIQUETAS_FINAL')
 
     for df in dbframe.itertuples():
-
-        articulo = df.ARTICULO
+        articulo = str(df.ARTICULO)
         descripcion = str(df.DESCRIPCION)
         cargar_articulo(articulo,descripcion)
 

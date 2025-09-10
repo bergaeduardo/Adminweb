@@ -41,10 +41,10 @@ def validar_articulo(articulo):
     # verificar si es kit
     with connections['mi_db_2'].cursor() as cursor:
         sql = '''select PROMO_MENU from STA11
-                WHERE COD_ARTICU LIKE ''' + "'" + articulo + "'"
+                WHERE COD_ARTICU LIKE ''' + "'" + articulo + "%'"
         cursor.execute(sql)
         esKit = cursor.fetchone()
-    
+
     if esKit[0] == 'P':
         with connections['mi_db_2'].cursor() as cursor:
             sql = '''SELECT COALESCE(
@@ -75,8 +75,10 @@ def obtenerInformacionArticulo(CodigoArt,DescripcionMetaTag):
     return resulatado[0]
 
 def cargar_articulo(articulo, descripcion):
+    # print('Cargar articulo: ' + articulo + ' ' + descripcion)
     with connections['mi_db_2'].cursor() as cursor:
         sql = '''INSERT INTO SJ_T_ETIQUETAS_FINAL (COD_ARTICU, DESCRIPCIO) VALUES (''' + "'" + articulo + "'" + ',' + "'" + descripcion + "'" + ')'
+        # print('sql: ' + sql)
         cursor.execute(sql)
 
 def borrar_contTabla(nombre_tabla):
