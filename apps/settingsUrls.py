@@ -44,7 +44,7 @@ DIR_REPORTES = {
     'AdmEmpleados':SERVIDOR['production']  + 'administracion/recursosHumanos/controlHorarios/verControlHorario.php',
     'AnalisisProductos':SERVIDOR['production']  + 'comercial/abastecimiento/analisisProducto/listado.php',
     # Mayoristas
-    'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'Despacho/tracking.php',
+    'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'comercial/mayoristas/despacho/login.php',
     # Ecommerce
     'Pedidos': SERVIDOR['production'] + 'ECOMMERCE/',
     'Tracking_Ecommerce':SERVIDOR['production'] + 'ecommerce/seguimientoPedidos/',
