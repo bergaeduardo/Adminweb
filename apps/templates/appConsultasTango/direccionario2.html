@@ -150,13 +150,17 @@
                       <b> Local:</b> 
                       {{ dato.mail|default_if_none:"" }}
                     </span>
+                    {% if dato.mails_empresa %}
                     <span class="description">
-                      <button type="button" class="btn btn-tool copy_to_clipboard swalDefaultSuccess" address="{{ dato.mail }}">
+                      <button type="button" class="btn btn-tool copy_to_clipboard swalDefaultSuccess" address="{{ dato.mails_empresa }}">
                         <i class="fas fa-envelope"></i>
                       </button>
                       <b> Empresa:</b> 
-                      {{ dato.mail_grupo_emp|default_if_none:"" }}
+                      {% for mail in dato.mails_empresa %}
+                        <br>{{ mail }}
+                      {% endfor %}
                     </span>
+                    {% endif %}
                     <span class="mensaje" id="mensaje"></span>
                     <!-- <a class="text-secondary"> Conexion: <b id="copy_to_clipboard">{{ dato.conexion_dns }} </b></a>
                         <button type="button" class="btn btn-tool copy_to_clipboard swalDefaultSuccess" address="{{ dato.conexion_dns }}">

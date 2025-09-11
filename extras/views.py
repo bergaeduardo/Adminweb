@@ -117,12 +117,21 @@ def direccionario(request):
     return render(request,'home/direccionario.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 @login_required(login_url="/login/")
-def agenda(request):    # <<<----- Direccionario Cards -->
+def agenda(request):
     Nombre='Direccionario'
     datos = Direccionario.objects.all()
     canal = filtroCanal()
     tipo_local = filtroTipoLocal()
     grupo = filtroGrupoEmpresario()
+
+    for dato in datos:
+        if dato.mail_grupo_emp:
+            # Reemplazar comas y espacios por punto y coma para tener un único delimitador
+            mail_string = dato.mail_grupo_emp.replace(',', ';').replace(' ', ';')
+            # Dividir la cadena y limpiar cada dirección de correo
+            dato.mails_empresa = [mail.strip() for mail in mail_string.split(';') if mail.strip()]
+        else:
+            dato.mails_empresa = []
 
     return render(request,'appConsultasTango/direccionario2.html',{'datos': datos,'canal':canal,'tipo_local':tipo_local,'grupo':grupo,'Nombre':Nombre})
 
