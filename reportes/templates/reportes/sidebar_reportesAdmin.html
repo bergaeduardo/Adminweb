@@ -211,6 +211,15 @@
           </a>
         </li>
         <li class="nav-item">
+          {# Updated href for Saldo Caja Tesoreria (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/saldoCaja"
+            class="nav-link {% if 'saldoCaja' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Saldo Caja Tesoreria</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>
+        <li class="nav-item">
           {# Administracion/DetalleContratosDeAlquiler Link - Apply active if 'DetalleContratosDeAlquiler' is in request.path #}
           <a href="/Reportes/Administracion/DetalleContratosDeAlquiler"
             class="nav-link {% if 'DetalleContratosDeAlquiler' in request.path %} active {% endif %}">

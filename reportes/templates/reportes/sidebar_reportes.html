@@ -218,6 +218,15 @@
           </a>
         </li>
         <li class="nav-item">
+          {# Updated href for Saldo Caja Tesoreria (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/saldoCaja"
+            class="nav-link {% if 'saldoCaja' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Saldo Caja Tesoreria</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>
+        <li class="nav-item">
           {# Updated href for Lista Fact. Manual (assuming Administracion section) #}
           <a href="/Reportes/Administracion/FacturaManualLista"
             class="nav-link {% if 'FacturaManualLista' in request.path %} active {% endif %}">

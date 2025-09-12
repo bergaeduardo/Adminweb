@@ -242,6 +242,12 @@ def controlVentasSucursales(request):
     dir_iframe = DIR_REPORTES['controlVentasSucursales']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
+@login_required(login_url="/login/")
+def saldoCaja(request):
+    Nombre='Saldo Caja Tesoreria'
+    dir_iframe = DIR_REPORTES['saldoCaja']
+    return redirect(dir_iframe)
+
 # Gerencia
 
 @login_required(login_url="/login/")
