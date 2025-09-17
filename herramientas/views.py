@@ -1229,21 +1229,20 @@ def import_file_cierrePedidosUY(request):
 
 def upload_file_CierrePedidos(path_filname):
     excel_file =path_filname
-    empexceldata = pd.read_excel(excel_file)
+    empexceldata = pd.read_excel(excel_file, engine='openpyxl')
     dbframe = empexceldata
-    
     for df in dbframe.itertuples():
         
-        numero_pedido = df.NRO_PEDIDO
+        numero_pedido = ' 0000' + str(df.NRO_PEDIDO)[-9:]  #Toma los ultimos 9 digitos del numero de pedido
         talon_pedido = str(df.TALON_PED)
 
-        if type(numero_pedido) == int:
-            pedido = ' 0000' + str(numero_pedido)
-        else:
-            pedido = numero_pedido
-            print('Dato sin concatenar')
+        # if type(numero_pedido) == int:
+        #     pedido = ' 0000' + numero_pedido
+        # else:
+        #     pedido = numero_pedido
+        #     print('Dato sin concatenar')
         
-        cerrar_pedido(talon_pedido,pedido)
+        cerrar_pedido(talon_pedido,numero_pedido)
 
 
 @login_required(login_url="/login/")
@@ -1331,7 +1330,7 @@ def import_file_ubi(request):
 
 def upload_file_ubi(path_filname):
     excel_file =path_filname
-    empexceldata = pd.read_excel(excel_file)
+    empexceldata = pd.read_excel(excel_file, engine='openpyxl')
     dbframe = empexceldata
 
     for df in dbframe.itertuples():

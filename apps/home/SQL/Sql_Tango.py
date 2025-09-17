@@ -88,6 +88,8 @@ def borrar_contTabla(nombre_tabla):
     print('Se borro la tabla ' + nombre_tabla)
 
 def validar_pedido(pedido,talon_pedido):
+    talon_pedido = str(talon_pedido)
+    pedido = ' 0000' + str(pedido)[-9:]
     with connections['mi_db_2'].cursor() as cursor:
         
         sql = '''SELECT COUNT(*) CONTAR FROM 
@@ -115,7 +117,7 @@ def validar_pedidoAsignado(pedido):
 
 def cerrar_pedido(talon_pedido,pedido):
     with connections['mi_db_2'].cursor() as cursor:
-        sql = '''EXEC RO_CERRAR_PEDIDOS ''' + talon_pedido + ",'" + pedido + "'"
+        sql = '''EXEC RO_CERRAR_PEDIDOS '''+ "'" + talon_pedido + "','" + pedido + "'"
         # print(sql)
         cursor.execute(sql) # Guarda los cambios en la base de datos
 
