@@ -33,6 +33,7 @@ urlpatterns = [
     path('Comercial/stockSucursalesTasky', views.stockSucursalesTasky, name='reportes_comercial_stock_sucursales_tasky'),
     path('Comercial/VentasXcanal', views.VentasXcanal, name='reportes_comercial_ventas_por_canal'),
     path('Comercial/AdmEmpleados', views.AdmEmpleados, name='reportes_comercial_adm_empleados'),
+    path('Comercial/compararStock/', views.compararStock, name='reportes_comercial_comparar_stock'),
 
     # Mayoristas
     path('Mayoristas/Tracking_pedidos_mayoristas', views.Tracking_pedidos_mayoristas, name='reportes_mayoristas_tracking_pedidos_mayoristas'),

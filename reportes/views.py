@@ -124,6 +124,12 @@ def Stock_central(request):
     dir_iframe = DIR_REPORTES['Stock_central']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
+@login_required(login_url="/login/")
+def compararStock(request):
+    Nombre='Comparar Stock'
+    dir_iframe = DIR_REPORTES['compararStock']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 
 # Mayoristas
 
@@ -131,7 +137,7 @@ def Stock_central(request):
 def Tracking_pedidos_mayoristas(request):
     Nombre='Tracking pedidos_mayoristas'
     dir_iframe = DIR_REPORTES['Tracking_pedidos_mayoristas']
-    # return render(request,'home/page-404.html')
+    return redirect(dir_iframe)
 
 
 # Ecommerce

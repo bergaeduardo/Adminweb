@@ -43,8 +43,9 @@ DIR_REPORTES = {
     'VentasXcanal':SERVIDOR['production']  + 'comercial/abastecimiento/ventasAbastecimiento/',
     'AdmEmpleados':SERVIDOR['production']  + 'administracion/recursosHumanos/controlHorarios/verControlHorario.php',
     'AnalisisProductos':SERVIDOR['production']  + 'comercial/abastecimiento/analisisProducto/listado.php',
+    'compararStock':SERVIDOR['production']  + 'controlGestion/compararStock/',
     # Mayoristas
-    'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'comercial/mayoristas/despacho/login.php',
+    'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'comercial/mayoristas/despacho/tracking.php',
     # Ecommerce
     'Pedidos': SERVIDOR['production'] + 'ECOMMERCE/',
     'Tracking_Ecommerce':SERVIDOR['production'] + 'ecommerce/seguimientoPedidos/',
