@@ -373,7 +373,7 @@
           </a>
         </li>
         <li class="nav-item">
-          {% if request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Sistemas" %}
+          {# Updated href for Lista Empleados (assuming Comercial section) #}
           <a href="Reportes/Comercial/compararStock/" class="nav-link {% if 'compararStock' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Comparar Stock</p>
