@@ -96,6 +96,7 @@ class SucursalesLakers(models.Model):
     horario = models.CharField(db_column='HORARIO', max_length=50, blank=True, null=True)  # Field name made lowercase.
     integra_vtex = models.BooleanField(db_column='INTEGRA_VTEX', blank=True, null=True)  # Field name made lowercase.
     retiro_expres = models.BooleanField(db_column='RETIRO_EXPRES', blank=True, null=True) # Field name made lowercase.
+    mail_grupo_emp = models.CharField(db_column='MAIL_GRUP_EMP', max_length=200, blank=True, null=True)
 
     class Meta:
         managed = True
