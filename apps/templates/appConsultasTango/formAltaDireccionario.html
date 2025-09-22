@@ -417,15 +417,10 @@
 <script>
 window.onload = function(){
     $(document).ready(function(){
-        $(".toggle").click(function(){
-            var findClass = 'toggle.btn-light.off';
-            if ( $(this).is( "."+findClass ) ) {
-                $("#nro_suc_madre").removeAttr("disabled");
-                console.log('removeAttr')
-            }else if($(this).is( ".toggle.btn-primary" ) ){            
-                $("#nro_suc_madre").attr("disabled","");
-                console.log('addAttr')
-            }
+        // Mantener nro_suc_madre habilitado solo cuando el checkbox esté encendido
+        var ferreteriaId = "{{ formulario.empresa_ferreteria.name }}";
+        $(document).on('change', "#"+ferreteriaId, function(){
+            $("#nro_suc_madre").prop('disabled', !this.checked);
         });
         // $(".retiro").click(function() {
         //     if ($(this).val("True")) {
@@ -509,13 +504,21 @@ window.onload = function(){
         $("#"+id).attr("checked","");
     }
 
-    if(ferreteria==true || ferreteria!="None"){
-            $(".toggle").removeClass("btn-light off");
-            $(".toggle").addClass("btn-primary");
-            $(".toggle").attr("value","true");
-            $("#nro_suc_madre").removeAttr("disabled");
-            
+    // Forzar estado inicial del toggle según el valor recibido del back
+    (function(){
+        var ferreteriaId = "{{ formulario.empresa_ferreteria.name }}";
+        var raw = String(ferreteria || '').toLowerCase();
+        var isOn = (raw === 'true' || raw === '1' || raw === 'on');
+        var $chk = $("#"+ferreteriaId);
+        if (isOn) {
+            $chk.prop('checked', true).change();
+            if (typeof $().bootstrapToggle === 'function') { $chk.bootstrapToggle('on'); }
+        } else {
+            $chk.prop('checked', false).change();
+            if (typeof $().bootstrapToggle === 'function') { $chk.bootstrapToggle('off'); }
         }
+        $("#nro_suc_madre").prop('disabled', !isOn);
+    })();
 };
 
 
