@@ -9,6 +9,60 @@
         </div>
     </div>
 {% endif %}	
+
+<style>
+    /* Modern, clean look enhancements without changing layout structure */
+    .cont_group {
+        background: #ffffff;
+        border-radius: .75rem;
+        box-shadow: 0 4px 14px rgba(17, 17, 26, 0.08);
+        padding: 2rem 1.5rem;
+    }
+    #titulo {
+        font-weight: 600;
+        color: #344767;
+        letter-spacing: .2px;
+        margin-bottom: 1.25rem;
+    }
+    .cont_group .label_form, .cont_group .label_form_2 {
+        font-weight: 600;
+        color: #46566b;
+    }
+    .cont_group .form-control, .cont_group .custom-select {
+        border-radius: .5rem !important;
+        border-color: #e3e6ec;
+    }
+    .cont_group .form-control:focus, .cont_group .custom-select:focus {
+        border-color: #8da2fb;
+        box-shadow: 0 0 0 .2rem rgba(141, 162, 251, .15);
+    }
+    .cont_group .btn {
+        border-radius: .5rem;
+    }
+    .cont_group .btn-success {
+        box-shadow: 0 6px 12px rgba(52, 199, 89, .15);
+    }
+    .cont_group .btn-secondary {
+        box-shadow: 0 6px 12px rgba(17, 17, 26, .06);
+    }
+    /* Grid de dos columnas para mejor alineación (solo dentro del contenedor del formulario) */
+    .cont_group .input-group {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(260px, 1fr));
+        column-gap: 2rem;
+        row-gap: 1rem;
+        align-items: end;
+    }
+    .cont_group .input-group > div { margin-bottom: 0; }
+    /* Anula márgenes heredados que desalinean la segunda columna */
+    .cont_group .ml-5 { margin-left: 0 !important; }
+    .cont_group textarea.form-control { min-height: 112px; }
+    .span-2 { grid-column: 1 / -1; }
+    @media (max-width: 768px) {
+        .cont_group .input-group { grid-template-columns: 1fr; }
+    }
+</style>
+
 <form enctype="multipart/form-data" method="post" class="needs-validation mt-4" autocomplete="off" novalidate>
     {% csrf_token %}
     <div class="container cont_group mt-4 mb-2 pb-2">
@@ -38,7 +92,7 @@
                             <div class="valid-feedback">Valid.</div>
                             <div class="invalid-feedback mt-4">Este campo es obligatorio</div>
                             <div>
-                                <label class="label_form_2 ml-5" for="pwd">{{ formulario.cod_client.label }}:</label>
+                                <label class="label_form_2" for="pwd">{{ formulario.cod_client.label }}:</label>
                                 <input 
                                     type="text" 
                                     id="{{ formulario.cod_client.name }}" 
@@ -155,9 +209,9 @@
                             <div class="valid-feedback">Valid.</div>
                             <div class="invalid-feedback mt-4">Este campo es obligatorio</div>
                             <div>
-                                <label class="label_form_2 ml-5" for="pwd">e-{{ formulario.mail.label }}:</label>
+                                <label class="label_form_2 ml-5" for="{{ formulario.mail.name }}">e-{{ formulario.mail.label }}:</label>
                                 <input 
-                                    type="mail" 
+                                    type="email" 
                                     class="form-control ml-5 input_2 email" 
                                     id="{{ formulario.mail.name }}" 
                                     name="{{ formulario.mail.name }}"
@@ -167,6 +221,23 @@
                             </div>
                             <div class="valid-feedback">Valid.</div>
                             <div class="invalid-feedback mt-4">Este campo es obligatorio</div>
+
+                            <!-- Nuevo campo: e-Mail Empresa (mail_grupo_emp) como lista editable -->
+                            <div>
+                                <label class="label_form_2 ml-5" for="mail_grupo_emp_display">e-Mail Empresa:</label>
+                                <textarea 
+                                    class="form-control ml-5 input_2 email"
+                                    id="mail_grupo_emp_display"
+                                    rows="3"
+                                    placeholder="Ingrese uno por línea o sepárelos por coma, punto y coma o espacio"></textarea>
+                                <small class="form-text text-muted ml-5">Se guardará normalizado con “;”.</small>
+                                <!-- Campo real que enviará el formulario -->
+                                <input 
+                                    type="hidden"
+                                    id="{{ formulario.mail_grupo_emp.name }}"
+                                    name="{{ formulario.mail_grupo_emp.name }}"
+                                    value="{{ formulario.mail_grupo_emp.value | default:'' }}">
+                            </div>
 
                             <div>
                                 <label class="label_form" for="uname">{{ formulario.tipo_local.label }}:</label>
@@ -332,11 +403,11 @@
         <input 
             name="" 
             id="guardar" 
-            class="btn btn-success" 
+            class="btn btn-success btn-md" 
             type="submit" 
             value="Guardar">
             
-        <a name="" id="" class="btn btn-secondary" href="/../Extras/direccionario" role="button">Cancelar</a>
+        <a name="" id="" class="btn btn-secondary btn-md" href="/../Extras/direccionario" role="button">Cancelar</a>
     </div>
 </form>
 
@@ -381,7 +452,25 @@ window.onload = function(){
     })
     
 
+    // Utilidades para manejar listas de emails
+    function normalizeEmails(text) {
+        if (!text) return '';
+        return text.split(/[\s,;]+/).filter(Boolean).join(';');
+    }
+    function toDisplayList(text) {
+        if (!text) return '';
+        return text.split(/[\s,;]+/).filter(Boolean).join('\n');
+    }
+
+    // Pre-cargar la vista de lista para e-Mail Empresa
+    var hiddenMailEmpId = "{{ formulario.mail_grupo_emp.name }}";
+    var rawMailEmp = $("#"+hiddenMailEmpId).val();
+    $("#mail_grupo_emp_display").val(toDisplayList(rawMailEmp));
+
     $("#guardar").click(function(){
+        // Normalizar la lista al campo hidden antes de enviar
+        var displayVal = $("#mail_grupo_emp_display").val();
+        $("#"+hiddenMailEmpId).val(normalizeEmails(displayVal));
         $('input:disabled').removeAttr('disabled'); 
         console.log('guardar')
     })

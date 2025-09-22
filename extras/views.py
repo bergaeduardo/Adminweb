@@ -79,8 +79,8 @@ def editarSucursal(request,id):
         suc.save()
         messages.success(request, 'OK')
         infForm = sucForm.cleaned_data
-        # print(infForm)
-        return redirect('extras:editarSucursal',id=id) # Updated redirect
+        # Redirige al listado del direccionario tras guardar
+        return redirect('extras:extras_direccionario')
 
     return  render(request,'appConsultasTango/editarSucursal.html',{'formulario':sucForm,'Disabled':Disabled})
 
