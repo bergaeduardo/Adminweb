@@ -130,6 +130,12 @@ def compararStock(request):
     dir_iframe = DIR_REPORTES['compararStock']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
+@login_required(login_url="/login/")
+def compararVentas(request):
+    Nombre='Comparar Ventas'
+    dir_iframe = DIR_REPORTES['compararVentas']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 
 # Mayoristas
 
