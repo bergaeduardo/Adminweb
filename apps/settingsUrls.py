@@ -86,6 +86,7 @@ DIR_HERAMIENTAS = {
     'ImpRotulos': SERVIDOR['production'] + 'remapp/index.html',
     'ImportarRemEcommerce': SERVIDOR['production'] + 'ecommerce/abastecimiento/',
     'ImprimirEtiquetasBultos': SERVIDOR['production']  + 'logistica/etiquetas/',
+    'RemisionMasiva': SERVIDOR['production']  + 'logistica/remisionMasiva/',
     # Abastecimiento
     'Stock_excluido': SERVIDOR['production']  + 'comercial/abastecimiento/stockExcluido/index.php',
     'Carga_de_orden': SERVIDOR['production']  + 'sistemas/distriCuero/index.php',
