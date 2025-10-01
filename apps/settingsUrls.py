@@ -41,7 +41,7 @@ DIR_REPORTES = {
     'Stock_central': SERVIDOR['production']  + 'logistica/stock.php',
     'promocionesActivas': SERVIDOR['production']  + 'comercial/mayoristas/promocionesBancarias/promocionesActivas.php',
     'VentasXcanal':SERVIDOR['production']  + 'comercial/abastecimiento/ventasAbastecimiento/',
-    'AdmEmpleados':SERVIDOR['production']  + 'administracion/recursosHumanos/controlHorarios/verControlHorario.php',
+    # 'AdmEmpleados':SERVIDOR['production']  + 'administracion/recursosHumanos/controlHorarios/verControlHorario.php',
     'AnalisisProductos':SERVIDOR['production']  + 'comercial/abastecimiento/analisisProducto/listado.php',
     'compararStock':SERVIDOR['production']  + 'controlGestion/compararStock/',
     'compararVentas':SERVIDOR['production']  + 'controlGestion/compararVentas/',
@@ -134,7 +134,7 @@ DIR_HERAMIENTAS = {
     'EgresosCajaTesoreria':SERVIDOR['production'] + 'administracion/tesoreria/cargaGastos.php',
     'GestionDeProveedores':'https://proveedores.xl.com.ar/administracion/dashboard/',
     # RRHH
-    'adminEmpleados':SERVIDOR['production'] + 'administracion/recursosHumanos/controlHorarios/controlHorario.php',
+    # 'adminEmpleados':SERVIDOR['production'] + 'administracion/recursosHumanos/controlHorarios/controlHorario.php',
     'altaVendedores':SERVIDOR['production'] + 'administracion/recursoshumanos/altaVendedores/altaVendedores.php',
     'listarGrupos':SERVIDOR['production'] + 'administracion/recursosHumanos/altaVendedores/listarGrupos.php',
     'gestionarVendedores':SERVIDOR['production'] + 'administracion/recursosHumanos/altaVendedores/gestionarVendedores.php',

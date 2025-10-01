@@ -22,13 +22,7 @@
     {% endif %}
     <!-- RRHH -->
     {% if request.user|has_any_group:"RRHH,admin" %}
-    <li class="nav-item">
-      <a href="/../Herramientas/adminEmpleados" class="nav-link {% if '/adminEmpleados' in request.path %} active {% endif %}">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Admin. Empleados</p>
-        <!-- <span class="badge badge-info right">New</span> -->
-      </a>
-    </li>
+    
     {% endif %}  
     <!-- RRHH compartido -->
     {% if request.user|has_any_group:"admin,Comercial_sup,RRHH" %}

@@ -98,7 +98,7 @@ urlpatterns = [
     path('EditarContenedor', views.EditarContenedor, name='herramientas_editar_contenedor'),
 
     # RRHH
-    path('adminEmpleados', views.adminEmpleados, name='herramientas_admin_empleados'),
+    # path('adminEmpleados', views.adminEmpleados, name='herramientas_admin_empleados'),
     path('altaVendedores', views.altaVendedores, name='herramientas_alta_vendedores'),
     path('grupoVendedores', views.listarGrupos, name='herramientas_listar_grupos'),
     path('gestionarVendedores', views.gestionarVendedores, name='herramientas_gestionar_vendedores'),

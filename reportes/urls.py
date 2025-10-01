@@ -32,7 +32,7 @@ urlpatterns = [
     path('Comercial/Stock_Suc_Articulos', views.Stock_Sucursales, name='reportes_comercial_stock_sucursales_articulos'),
     path('Comercial/stockSucursalesTasky', views.stockSucursalesTasky, name='reportes_comercial_stock_sucursales_tasky'),
     path('Comercial/VentasXcanal', views.VentasXcanal, name='reportes_comercial_ventas_por_canal'),
-    path('Comercial/AdmEmpleados', views.AdmEmpleados, name='reportes_comercial_adm_empleados'),
+    # path('Comercial/AdmEmpleados', views.AdmEmpleados, name='reportes_comercial_adm_empleados'),
     path('Comercial/compararStock/', views.compararStock, name='reportes_comercial_comparar_stock'),
     path('Comercial/compararVentas/', views.compararVentas, name='reportes_comercial_comparar_ventas'),
 

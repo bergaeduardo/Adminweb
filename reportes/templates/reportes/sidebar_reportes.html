@@ -373,14 +373,7 @@
       <!-- inicio 	Comercial -->
         {% if request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" %}
                   <!-- ver solo el supervisor del area aqui -->
-        <li class="nav-item">
-          {# Updated href for Lista Empleados (assuming Comercial section) #}
-          <a href="/Reportes/Comercial/AdmEmpleados" class="nav-link {% if 'AdmEmpleados' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Lista Empleados</p>
-            <!-- <span class="badge badge-info right">New</span> -->
-          </a>
-        </li>
+        
         <li class="nav-item">
           {# Updated href for Comparar Stock (assuming Comercial section) #}
           <a href="/Reportes/Comercial/compararStock/" class="nav-link {% if 'compararStock' in request.path %} active {% endif %}">
