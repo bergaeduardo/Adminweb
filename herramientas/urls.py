@@ -41,6 +41,7 @@ urlpatterns = [
     path('EditarGrupoPromo', views.EditarGrupoPromo, name='herramientas_editar_grupo_promo'),
     path('MaestroDestinos', views.MaestroDestinos, name='herramientas_maestro_destinos'),
     path('GestionEquivalentes', views.GestionEquivalentes, name='herramientas_gestion_equivalentes'),
+    path('StockBase', views.StockBase, name='herramientas_stock_base'),
     # Comercial
     path('GestionCategoriaProductos', views.Gestion_categoria_productos, name='herramientas_gestion_categoria_productos'),
     path('AdministrarCuotas', views.AdministrarCuotas, name='herramientas_administrar_cuotas'),
@@ -93,6 +94,7 @@ urlpatterns = [
     path('CargaFacturasSuc', views.CargaFacturasSuc, name='herramientas_carga_facturas_sucursales'),
     path('EgresosCajaTesoreria', views.EgresosCajaTesoreria, name='herramientas_egresos_caja_tesoreria'),
     path('GestionDeProveedores',views.GestionDeProveedores, name='herramientas_gestion_proveedores'),
+    path('MedidasLocales', views.MedidasLocales, name='herramientas_medidas_locales'),
 
     # Administracion_CE             ***Comercio Exterior***
     path('Cargarcontenedor', views.Cargarcontenedor, name='herramientas_cargar_contenedor'),

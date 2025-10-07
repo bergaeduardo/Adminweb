@@ -344,6 +344,18 @@ def ImpRemEcom(request):
 # Abastecimiento
 
 @login_required(login_url="/login/")
+def StockBase(request):
+    Nombre = 'Stock Base'
+    dir_iframe = DIR_HERAMIENTAS['StockBase']
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre})
+
+@login_required(login_url="/login/")
+def MedidasLocales(request):
+    Nombre = 'Medidas Locales'
+    dir_iframe = DIR_HERAMIENTAS['MedidasLocales']
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre})
+
+@login_required(login_url="/login/")
 def Recodificacion(request):
     Nombre = 'Recodificacion Outlet'
     dir_iframe = DIR_HERAMIENTAS['Recodificacion']

@@ -99,6 +99,8 @@ DIR_HERAMIENTAS = {
     'EditarGrupoPromo':SERVIDOR['production']  + 'comercial/mayoristas/promocionesBancarias/listarGruposPromo.php',
     'MaestroDestinos':SERVIDOR['production']  + 'comercial/abastecimiento/destinos/maestroDestinos.php',
     'GestionEquivalentes':SERVIDOR['production']  + 'comercial/abastecimiento/analisisProducto/gestion_equivalencias.php',
+    'StockBase':SERVIDOR['production']  + 'comercial/abastecimiento/stock_base/',
+    'MedidasLocales':SERVIDOR['production']  + 'comercial/abastecimiento/gestor_locales/',
     # Comercial
     'Gestion_categoria_productos':SERVIDOR['production']  + 'comercial/producto/gestionCategoriaProductos.php',
     'AdministrarCuotas':SERVIDOR['production']  + 'promociones/Cuotas/gestionar.php',
