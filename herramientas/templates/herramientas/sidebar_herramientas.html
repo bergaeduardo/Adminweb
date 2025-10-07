@@ -94,7 +94,7 @@
         class="nav-link {% if 'ImprimirEtiquetasBultos' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Imp.Etiquetas de Bultos</p>
-        <span class="badge badge-info right">New</span>
+        <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
     {% endif %}
@@ -182,6 +182,14 @@
         <i class="far fa-circle nav-icon"></i>
         <p>Gestión Art. Equivalentes</p>
         <!-- <span class="badge badge-info right">New</span> -->
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="/../Herramientas/StockBase"
+        class="nav-link {% if 'StockBase' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Gestión Stock Base</p>
+        <span class="badge badge-info right">New</span>
       </a>
     </li>
 
@@ -309,7 +317,7 @@
         class="nav-link {% if 'GestionDeProveedores' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Gestion De Proveedores</p>
-        <span class="badge badge-info right">New</span>
+        <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
     <li class="nav-item">
@@ -340,6 +348,18 @@
         <i class="far fa-circle nav-icon"></i>
         <p>Cargar Contenedor</p>
         <!-- <span class="badge badge-info right">2</span> -->
+      </a>
+    </li>
+    {% endif %}
+    <!-- Fin Administracion_CE ***Comercio Exterior*** -->
+
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento,AdministracionSup,Administracion" %}
+    <li class="nav-item">
+      <a href="/../Herramientas/MedidasLocales"
+        class="nav-link {% if 'MedidasLocales' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Medidas Locales</p>
+        <span class="badge badge-info right">New</span>
       </a>
     </li>
     {% endif %}
@@ -446,7 +466,7 @@
         class="nav-link {% if 'PromoBancos' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Promo Bancos</p>
-        <span class="badge badge-info right">New</span>
+        <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
     <li class="nav-item">
@@ -454,7 +474,7 @@
         class="nav-link {% if 'AltaNuevosLocales' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Alta Locales</p>
-        <span class="badge badge-info right">New</span>
+        <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
     <li class="nav-item">
@@ -462,7 +482,7 @@
         class="nav-link {% if 'UsuariosFranquicias' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Usuarios Franquicias</p>
-        <span class="badge badge-info right">New</span>
+        <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
     {% endif %}
