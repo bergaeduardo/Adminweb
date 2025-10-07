@@ -1,0 +1,307 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Carga Masiva de Volúmenes {% endblock %}
+
+{% block stylesheets %}
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+
+<!-- Content Wrapper -->
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1><i class="fas fa-upload"></i> Carga Masiva de Volúmenes</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="#">Herramientas</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'herramientas:eb_sinc_art_volumen_list' %}">Volúmenes de Artículos</a></li>
+            <li class="breadcrumb-item active">Carga Masiva</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      
+      <!-- Instrucciones -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card card-info">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-info-circle"></i>
+                Instrucciones para Carga Masiva
+              </h3>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-8">
+                  <h5><i class="fas fa-list-ol"></i> Pasos a seguir:</h5>
+                  <ol class="list-group list-group-numbered">
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                      <div class="ms-2 me-auto">
+                        <div class="fw-bold">Descargar Plantilla</div>
+                        Descarga la plantilla Excel con los datos actuales
+                      </div>
+                      <span class="badge bg-primary rounded-pill">1</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                      <div class="ms-2 me-auto">
+                        <div class="fw-bold">Modificar Datos</div>
+                        Edita solo las columnas marcadas en verde (dimensiones y pesos)
+                      </div>
+                      <span class="badge bg-primary rounded-pill">2</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                      <div class="ms-2 me-auto">
+                        <div class="fw-bold">Subir Archivo</div>
+                        Sube el archivo modificado usando el formulario de abajo
+                      </div>
+                      <span class="badge bg-primary rounded-pill">3</span>
+                    </li>
+                  </ol>
+                </div>
+                <div class="col-md-4">
+                  <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Importante:</strong>
+                    <ul class="mb-0 mt-2">
+                      <li>Las dimensiones están en <strong>centímetros (cm)</strong></li>
+                      <li>Los pesos están en <strong>gramos (g)</strong></li>
+                      <li>No modifiques códigos de artículo</li>
+                      <li>Usa punto (.) para decimales</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Descarga de plantilla -->
+        <div class="col-md-6">
+          <div class="card card-success">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-download"></i>
+                1. Descargar Plantilla Excel
+              </h3>
+            </div>
+            <div class="card-body text-center">
+              <div class="mb-3">
+                <i class="fas fa-file-excel fa-4x text-success"></i>
+              </div>
+              <p class="text-muted">
+                La plantilla contiene todos los artículos actuales con sus datos.
+                Las columnas editables están marcadas en verde claro.
+              </p>
+              <a href="{% url 'herramientas:eb_sinc_art_volumen_descargar_plantilla' %}" 
+                 class="btn btn-success btn-lg">
+                <i class="fas fa-download"></i> Descargar Plantilla
+              </a>
+              <br><br>
+              <small class="text-muted">
+                <i class="fas fa-info-circle"></i>
+                Archivo Excel (.xlsx) con datos actuales
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subida de archivo -->
+        <div class="col-md-6">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-upload"></i>
+                2. Subir Archivo Modificado
+              </h3>
+            </div>
+            <div class="card-body">
+              <form method="post" enctype="multipart/form-data" 
+                    action="{% url 'herramientas:eb_sinc_art_volumen_carga_masiva' %}">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                  <label for="archivo_excel">
+                    <i class="fas fa-file-upload"></i>
+                    Seleccionar archivo Excel (.xlsx)
+                  </label>
+                  <div class="input-group">
+                    <div class="custom-file">
+                      <input type="file" 
+                             class="custom-file-input" 
+                             id="archivo_excel" 
+                             name="archivo_excel"
+                             accept=".xlsx"
+                             required>
+                      <label class="custom-file-label" for="archivo_excel">
+                        Elegir archivo...
+                      </label>
+                    </div>
+                  </div>
+                  <small class="form-text text-muted">
+                    Solo archivos Excel (.xlsx). Tamaño máximo: 5 MB
+                  </small>
+                </div>
+
+                <div class="form-group">
+                  <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="confirmar-carga" required>
+                    <label class="custom-control-label" for="confirmar-carga">
+                      He revisado los datos y confirmo que deseo actualizar la información
+                    </label>
+                  </div>
+                </div>
+
+                <div class="text-center">
+                  <button type="submit" class="btn btn-primary btn-lg" id="btn-subir" disabled>
+                    <i class="fas fa-upload"></i> Procesar Archivo
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Validaciones y formato -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card card-warning">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                Validaciones y Formato de Datos
+              </h3>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <h5><i class="fas fa-check-circle text-success"></i> Formatos Válidos:</h5>
+                  <table class="table table-sm">
+                    <tr>
+                      <td><strong>Dimensiones:</strong></td>
+                      <td>12.5, 10, 25.75 (en cm)</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Pesos:</strong></td>
+                      <td>250, 1500, 750 (en gramos)</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Campos vacíos:</strong></td>
+                      <td>Permitidos (se guardan como NULL)</td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="col-md-6">
+                  <h5><i class="fas fa-times-circle text-danger"></i> Formatos NO Válidos:</h5>
+                  <table class="table table-sm">
+                    <tr>
+                      <td><strong>Con comas:</strong></td>
+                      <td>12,5 (usar 12.5)</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Con texto:</strong></td>
+                      <td>"12 cm", "grande"</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Negativos:</strong></td>
+                      <td>-10, -5.5</td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones de navegación -->
+      <div class="row">
+        <div class="col-12 text-center">
+          <div class="btn-group" role="group">
+            <a href="{% url 'herramientas:eb_sinc_art_volumen_list' %}" class="btn btn-secondary btn-lg">
+              <i class="fas fa-arrow-left"></i> Volver al Listado
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+  <!-- jQuery -->
+  <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap 4 -->
+  <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE App -->
+  <script src="/static/assets/js/adminlte.min.js"></script>
+  
+  <script>
+    $(document).ready(function() {
+      // Actualizar nombre del archivo seleccionado
+      $('#archivo_excel').on('change', function() {
+        const fileName = $(this).val().split('\\').pop();
+        $(this).siblings('.custom-file-label').addClass('selected').html(fileName);
+        
+        // Validar extensión
+        if (fileName && !fileName.toLowerCase().endsWith('.xlsx')) {
+          alert('Por favor, seleccione un archivo Excel (.xlsx)');
+          $(this).val('');
+          $(this).siblings('.custom-file-label').removeClass('selected').html('Elegir archivo...');
+        }
+      });
+      
+      // Habilitar botón de subida cuando se confirme
+      $('#confirmar-carga').change(function() {
+        const isChecked = $(this).is(':checked');
+        const hasFile = $('#archivo_excel').val().length > 0;
+        
+        $('#btn-subir').prop('disabled', !(isChecked && hasFile));
+      });
+      
+      // Validar antes del envío
+      $('form').submit(function(e) {
+        const archivo = $('#archivo_excel').val();
+        const confirmado = $('#confirmar-carga').is(':checked');
+        
+        if (!archivo) {
+          e.preventDefault();
+          alert('Debe seleccionar un archivo Excel.');
+          return false;
+        }
+        
+        if (!confirmado) {
+          e.preventDefault();
+          alert('Debe confirmar que desea procesar el archivo.');
+          return false;
+        }
+        
+        // Mostrar indicador de carga
+        $('#btn-subir').html('<i class="fas fa-spinner fa-spin"></i> Procesando...').prop('disabled', true);
+        
+        return true;
+      });
+    });
+  </script>
+{% endblock javascripts %}

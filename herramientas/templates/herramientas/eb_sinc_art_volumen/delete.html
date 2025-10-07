@@ -1,0 +1,276 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Eliminar Artículo - {{ articulo.COD_ARTICULO }} {% endblock %}
+
+{% block stylesheets %}
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+
+<!-- Content Wrapper -->
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1><i class="fas fa-trash text-danger"></i> Eliminar Artículo</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="#">Herramientas</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'herramientas:eb_sinc_art_volumen_list' %}">Volúmenes de Artículos</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'herramientas:eb_sinc_art_volumen_detail' articulo.COD_ARTICULO %}">{{ articulo.COD_ARTICULO }}</a></li>
+            <li class="breadcrumb-item active">Eliminar</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      
+      <!-- Confirmación de eliminación -->
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="card card-danger">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                Confirmar Eliminación
+              </h3>
+            </div>
+            <div class="card-body">
+              
+              <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle fa-2x float-left mr-3"></i>
+                <h5>¡Atención! Acción Irreversible</h5>
+                Está a punto de eliminar permanentemente el siguiente artículo de la base de datos. 
+                Esta acción <strong>NO SE PUEDE DESHACER</strong>.
+              </div>
+
+              <!-- Información del artículo a eliminar -->
+              <div class="card card-outline card-danger mb-4">
+                <div class="card-header">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    Información del Artículo a Eliminar
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <table class="table table-striped">
+                        <tr>
+                          <td class="font-weight-bold">Código Artículo:</td>
+                          <td><span class="badge badge-primary badge-lg">{{ articulo.COD_ARTICULO }}</span></td>
+                        </tr>
+                        <tr>
+                          <td class="font-weight-bold">Descripción:</td>
+                          <td>{{ articulo.DESCRIPCION }}</td>
+                        </tr>
+                        <tr>
+                          <td class="font-weight-bold">Estado:</td>
+                          <td>
+                            {% if articulo.ESTADO %}
+                              <span class="badge badge-success">Activo</span>
+                            {% else %}
+                              <span class="badge badge-danger">Inactivo</span>
+                            {% endif %}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="font-weight-bold">Fecha Alta:</td>
+                          <td>
+                            {% if articulo.FECHA_ALTA %}
+                              {{ articulo.FECHA_ALTA|date:"d/m/Y H:i" }}
+                            {% else %}
+                              <span class="text-muted">No registrada</span>
+                            {% endif %}
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="row">
+                        <div class="col-6">
+                          <div class="small-box bg-info">
+                            <div class="inner">
+                              <h4>Embalaje</h4>
+                              <p>
+                                {{ articulo.altoEmbalaje|default:'-' }} × 
+                                {{ articulo.anchoEmbalaje|default:'-' }} × 
+                                {{ articulo.largoEmbalaje|default:'-' }}<br>
+                                <small>{{ articulo.pesoEmbalaje|default:'-' }}g</small>
+                              </p>
+                            </div>
+                            <div class="icon">
+                              <i class="fas fa-cube"></i>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-6">
+                          <div class="small-box bg-success">
+                            <div class="inner">
+                              <h4>Real</h4>
+                              <p>
+                                {{ articulo.altoReal|default:'-' }} × 
+                                {{ articulo.anchoReal|default:'-' }} × 
+                                {{ articulo.largoReal|default:'-' }}<br>
+                                <small>{{ articulo.pesoReal|default:'-' }}g</small>
+                              </p>
+                            </div>
+                            <div class="icon">
+                              <i class="fas fa-box-open"></i>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Consecuencias de la eliminación -->
+              <div class="alert alert-warning">
+                <i class="fas fa-info-circle"></i>
+                <strong>Consecuencias de esta acción:</strong>
+                <ul class="mb-0 mt-2">
+                  <li>Se perderán todos los datos de dimensiones y pesos del artículo</li>
+                  <li>Los cálculos de volumen que dependan de este artículo pueden verse afectados</li>
+                  <li>La información de fechas de alta y sincronización se perderá permanentemente</li>
+                  <li>Esta acción no afectará otros sistemas que puedan usar el código del artículo</li>
+                </ul>
+              </div>
+
+              <!-- Checkbox de confirmación -->
+              <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="confirmar-eliminacion">
+                <label class="form-check-label font-weight-bold" for="confirmar-eliminacion">
+                  He leído y entiendo las consecuencias de esta acción. Confirmo que deseo eliminar este artículo.
+                </label>
+              </div>
+
+              <!-- Formulario de eliminación -->
+              <form method="post" id="form-eliminar">
+                {% csrf_token %}
+                
+                <div class="text-center">
+                  <div class="btn-group" role="group">
+                    <button type="submit" class="btn btn-danger btn-lg" id="btn-eliminar" disabled>
+                      <i class="fas fa-trash"></i> 
+                      Eliminar Definitivamente
+                    </button>
+                    <a href="{% url 'herramientas:eb_sinc_art_volumen_detail' articulo.COD_ARTICULO %}" class="btn btn-secondary btn-lg">
+                      <i class="fas fa-times"></i> 
+                      Cancelar
+                    </a>
+                    <a href="{% url 'herramientas:eb_sinc_art_volumen_list' %}" class="btn btn-outline-secondary btn-lg">
+                      <i class="fas fa-list"></i> 
+                      Volver al Listado
+                    </a>
+                  </div>
+                </div>
+              </form>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información adicional -->
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="card card-info">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-question-circle"></i>
+                ¿Necesitas ayuda?
+              </h3>
+            </div>
+            <div class="card-body">
+              <p class="mb-0">
+                <strong>Si tienes dudas sobre esta eliminación:</strong>
+              </p>
+              <ul class="mb-3">
+                <li>Consulta con el administrador del sistema antes de proceder</li>
+                <li>Verifica que no existan dependencias en otros módulos</li>
+                <li>Considera si sería mejor desactivar el artículo en lugar de eliminarlo</li>
+              </ul>
+              
+              <div class="text-muted">
+                <small>
+                  <i class="fas fa-clock"></i>
+                  Los datos eliminados no pueden recuperarse desde el sistema. 
+                  Asegúrate de tener un respaldo si es necesario.
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+  <!-- jQuery -->
+  <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap 4 -->
+  <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE App -->
+  <script src="/static/assets/js/adminlte.min.js"></script>
+  
+  <script>
+    $(document).ready(function() {
+      // Habilitar/deshabilitar botón de eliminación basado en checkbox
+      $('#confirmar-eliminacion').change(function() {
+        const isChecked = $(this).is(':checked');
+        $('#btn-eliminar').prop('disabled', !isChecked);
+        
+        if (isChecked) {
+          $('#btn-eliminar').removeClass('btn-secondary').addClass('btn-danger');
+        } else {
+          $('#btn-eliminar').removeClass('btn-danger').addClass('btn-secondary');
+        }
+      });
+      
+      // Confirmación final antes del envío
+      $('#form-eliminar').submit(function(e) {
+        const confirmado = $('#confirmar-eliminacion').is(':checked');
+        
+        if (!confirmado) {
+          e.preventDefault();
+          alert('Debe confirmar que entiende las consecuencias antes de proceder.');
+          return false;
+        }
+        
+        const confirm2 = confirm(
+          '¿ESTÁ COMPLETAMENTE SEGURO de que desea eliminar el artículo {{ articulo.COD_ARTICULO }}?\n\n' +
+          'Esta es la ÚLTIMA OPORTUNIDAD para cancelar esta acción irreversible.\n\n' +
+          'Haga clic en "Aceptar" para ELIMINAR DEFINITIVAMENTE o "Cancelar" para detener.'
+        );
+        
+        if (!confirm2) {
+          e.preventDefault();
+          return false;
+        }
+        
+        // Mostrar indicador de carga
+        $('#btn-eliminar').html('<i class="fas fa-spinner fa-spin"></i> Eliminando...').prop('disabled', true);
+        
+        return true;
+      });
+    });
+  </script>
+{% endblock javascripts %}

@@ -188,6 +188,19 @@
     {% endif %}
     <!-- Fin 	Abastecimiento -->
 
+    <!-- inicio 	Gestión de Volúmenes -->
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento,e-commerce" %}
+    <li class="nav-item">
+      <a href="{% url 'herramientas:eb_sinc_art_volumen_list' %}"
+        class="nav-link {% if 'eb-sinc-art-volumen' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Gestión de Volúmenes</p>
+        <span class="badge badge-danger right">New</span>
+      </a>
+    </li>
+    {% endif %}
+    <!-- Fin 	Gestión de Volúmenes -->
+
     <!-- inicio 	Administracion -->
     {% if request.user|has_any_group:"admin,AdministracionSup" %}
     <li class="nav-item">
@@ -381,7 +394,7 @@
         class="nav-link {% if '/list' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Sub Categorias Vtex</p>
-        <span class="badge badge-info right">new</span>
+        <!-- <span class="badge badge-info right">new</span> -->
       </a>
     </li>
     {% endif %}

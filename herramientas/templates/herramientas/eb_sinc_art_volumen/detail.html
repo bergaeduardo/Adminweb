@@ -1,0 +1,362 @@
+{% extends "layouts/base.html" %}
+{% load volumen_filters %}
+
+{% block title %} Detalle de Artículo - {{ articulo.COD_ARTICULO }} {% endblock %}
+
+{% block stylesheets %}
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+
+<!-- Content Wrapper -->
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1><i class="fas fa-cube"></i> Detalle de Artículo</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="#">Herramientas</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'herramientas:eb_sinc_art_volumen_list' %}">Volúmenes de Artículos</a></li>
+            <li class="breadcrumb-item active">{{ articulo.COD_ARTICULO }}</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      
+      <!-- Información básica -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-info-circle"></i>
+                Información del Artículo
+              </h3>
+              <div class="card-tools">
+                <div class="btn-group">
+                  <a href="{% url 'herramientas:eb_sinc_art_volumen_edit' articulo.COD_ARTICULO %}" class="btn btn-warning btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                  </a>
+                  <a href="{% url 'herramientas:eb_sinc_art_volumen_list' %}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-arrow-left"></i> Volver al listado
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <table class="table table-bordered">
+                    <tr>
+                      <td class="font-weight-bold bg-light" style="width: 40%;">Código Artículo:</td>
+                      <td><span class="badge badge-primary badge-lg">{{ articulo.COD_ARTICULO }}</span></td>
+                    </tr>
+                    <tr>
+                      <td class="font-weight-bold bg-light">Descripción:</td>
+                      <td>{{ articulo.DESCRIPCION }}</td>
+                    </tr>
+                    <tr>
+                      <td class="font-weight-bold bg-light">Rubro:</td>
+                      <td>
+                        {% if articulo.Rubro %}
+                          <span class="badge badge-secondary badge-lg">{{ articulo.Rubro }}</span>
+                        {% else %}
+                          <span class="text-muted">Sin rubro asignado</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="font-weight-bold bg-light">Fecha Alta:</td>
+                      <td>
+                        {% if articulo.FECHA_ALTA %}
+                          <i class="fas fa-calendar"></i> {{ articulo.FECHA_ALTA|date:"d/m/Y H:i" }}
+                        {% else %}
+                          <span class="text-muted">No registrada</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="font-weight-bold bg-light">Estado:</td>
+                      <td>
+                        {% if articulo.ESTADO %}
+                          <span class="badge badge-success"><i class="fas fa-check"></i> Activo</span>
+                        {% else %}
+                          <span class="badge badge-danger"><i class="fas fa-times"></i> Inactivo</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="font-weight-bold bg-light">Última Sincronización:</td>
+                      <td>
+                        {% if articulo.FECHA_SINC %}
+                          <i class="fas fa-sync"></i> {{ articulo.FECHA_SINC|date:"d/m/Y H:i" }}
+                        {% else %}
+                          <span class="text-muted">No sincronizado</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="col-md-6">
+                  <div class="text-center">
+                    <div class="callout callout-info">
+                      <h5><i class="fas fa-box"></i> Resumen Visual</h5>
+                      <div class="row">
+                        <div class="col-6">
+                          <strong>Embalaje</strong><br>
+                          <div class="bg-info text-white p-2 rounded">
+                            <i class="fas fa-cube"></i><br>
+                            {{ articulo.altoEmbalaje|mm_a_cm|floatformat:1|default:'-' }} × {{ articulo.anchoEmbalaje|mm_a_cm|floatformat:1|default:'-' }} × {{ articulo.largoEmbalaje|mm_a_cm|floatformat:1|default:'-' }} cm<br>
+                            <small>{{ articulo.pesoEmbalaje|default:'-' }}g</small>
+                          </div>
+                        </div>
+                        <div class="col-6">
+                          <strong>Real</strong><br>
+                          <div class="bg-success text-white p-2 rounded">
+                            <i class="fas fa-box-open"></i><br>
+                            {{ articulo.altoReal|mm_a_cm|floatformat:1|default:'-' }} × {{ articulo.anchoReal|mm_a_cm|floatformat:1|default:'-' }} × {{ articulo.largoReal|mm_a_cm|floatformat:1|default:'-' }} cm<br>
+                            <small>{{ articulo.pesoReal|default:'-' }}g</small>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dimensiones detalladas -->
+      <div class="row">
+        <!-- Dimensiones de Embalaje -->
+        <div class="col-md-6">
+          <div class="card card-info">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-archive"></i>
+                Dimensiones de Embalaje
+              </h3>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-4 text-center">
+                  <div class="info-box">
+                    <span class="info-box-icon bg-info"><i class="fas fa-level-up-alt"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Alto</span>
+                      <span class="info-box-number">{{ articulo.altoEmbalaje|mm_a_cm|floatformat:1|default:'-' }}</span>
+                      <span class="info-box-text">cm</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4 text-center">
+                  <div class="info-box">
+                    <span class="info-box-icon bg-info"><i class="fas fa-exchange-alt"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Ancho</span>
+                      <span class="info-box-number">{{ articulo.anchoEmbalaje|mm_a_cm|floatformat:1|default:'-' }}</span>
+                      <span class="info-box-text">cm</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4 text-center">
+                  <div class="info-box">
+                    <span class="info-box-icon bg-info"><i class="fas fa-long-arrow-alt-right"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Largo</span>
+                      <span class="info-box-number">{{ articulo.largoEmbalaje|mm_a_cm|floatformat:1|default:'-' }}</span>
+                      <span class="info-box-text">cm</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="text-center mt-3">
+                <div class="info-box">
+                  <span class="info-box-icon bg-info"><i class="fas fa-weight-hanging"></i></span>
+                  <div class="info-box-content">
+                    <span class="info-box-text">Peso de Embalaje</span>
+                    <span class="info-box-number">{{ articulo.pesoEmbalaje|default:'-' }}</span>
+                    <span class="info-box-text">gramos</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dimensiones Reales -->
+        <div class="col-md-6">
+          <div class="card card-success">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-shipping-fast"></i>
+                Dimensiones Reales
+              </h3>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-4 text-center">
+                  <div class="info-box">
+                    <span class="info-box-icon bg-success"><i class="fas fa-level-up-alt"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Alto</span>
+                      <span class="info-box-number">{{ articulo.altoReal|mm_a_cm|floatformat:1|default:'-' }}</span>
+                      <span class="info-box-text">cm</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4 text-center">
+                  <div class="info-box">
+                    <span class="info-box-icon bg-success"><i class="fas fa-exchange-alt"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Ancho</span>
+                      <span class="info-box-number">{{ articulo.anchoReal|mm_a_cm|floatformat:1|default:'-' }}</span>
+                      <span class="info-box-text">cm</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4 text-center">
+                  <div class="info-box">
+                    <span class="info-box-icon bg-success"><i class="fas fa-long-arrow-alt-right"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Largo</span>
+                      <span class="info-box-number">{{ articulo.largoReal|mm_a_cm|floatformat:1|default:'-' }}</span>
+                      <span class="info-box-text">cm</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="text-center mt-3">
+                <div class="info-box">
+                  <span class="info-box-icon bg-success"><i class="fas fa-weight-hanging"></i></span>
+                  <div class="info-box-content">
+                    <span class="info-box-text">Peso Real</span>
+                    <span class="info-box-number">{{ articulo.pesoReal|default:'-' }}</span>
+                    <span class="info-box-text">gramos</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cálculos automáticos -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card card-warning">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-calculator"></i>
+                Cálculos Automáticos
+              </h3>
+            </div>
+            <div class="card-body">
+              <div class="row text-center">
+                <div class="col-md-3">
+                  <div class="info-box bg-warning">
+                    <span class="info-box-icon"><i class="fas fa-archive"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Volumen Embalaje</span>
+                      <span class="info-box-number">
+                        {{ articulo|calcular_volumen_m3:'embalaje'|default:'-' }}
+                      </span>
+                      <span class="info-box-text">m³</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="info-box bg-success">
+                    <span class="info-box-icon"><i class="fas fa-shipping-fast"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Volumen Real</span>
+                      <span class="info-box-number">
+                        {{ articulo|calcular_volumen_m3:'real'|default:'-' }}
+                      </span>
+                      <span class="info-box-text">m³</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="info-box bg-info">
+                    <span class="info-box-icon"><i class="fas fa-weight"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Diferencia Peso</span>
+                      <span class="info-box-number">
+                        {% if articulo.pesoEmbalaje and articulo.pesoReal %}
+                          {{ articulo.pesoEmbalaje|sub:articulo.pesoReal|floatformat:0 }}
+                        {% else %}
+                          -
+                        {% endif %}
+                      </span>
+                      <span class="info-box-text">gramos</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="info-box bg-purple">
+                    <span class="info-box-icon"><i class="fas fa-compress-arrows-alt"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Densidad</span>
+                      <span class="info-box-number">
+                        {{ articulo|calcular_densidad_kg_m3|default:'-' }}
+                      </span>
+                      <span class="info-box-text">Kg/m³</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="row">
+        <div class="col-12 text-center">
+          <div class="btn-group" role="group">
+            <a href="{% url 'herramientas:eb_sinc_art_volumen_edit' articulo.COD_ARTICULO %}" class="btn btn-warning btn-lg">
+              <i class="fas fa-edit"></i> Editar Artículo
+            </a>
+            <a href="{% url 'herramientas:eb_sinc_art_volumen_list' %}" class="btn btn-secondary btn-lg">
+              <i class="fas fa-arrow-left"></i> Volver al Listado
+            </a>
+            <a href="{% url 'herramientas:eb_sinc_art_volumen_delete' articulo.COD_ARTICULO %}" 
+               class="btn btn-danger btn-lg"
+               onclick="return confirm('¿Está seguro de que desea eliminar este artículo?');">
+              <i class="fas fa-trash"></i> Eliminar
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+  <!-- jQuery -->
+  <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap 4 -->
+  <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE App -->
+  <script src="/static/assets/js/adminlte.min.js"></script>
+{% endblock javascripts %}

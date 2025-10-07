@@ -1363,3 +1363,344 @@ def upload_file_ubi(path_filname):
             
         
         actualizar_ubicacion(id_Ubi,nom_ubi,tipo,estado_ubi,orden_rack,orden_modulo,orden_altura)
+
+# ========================================
+# CRUD para EB_sincArt_volumen
+# ========================================
+
+from .forms import EBSincArtVolumenForm
+from .sql_volumen import (
+    obtener_articulos_volumen, 
+    obtener_articulo_volumen_por_codigo,
+    actualizar_articulo_volumen,
+    crear_articulo_volumen,
+    eliminar_articulo_volumen,
+    buscar_articulos_volumen,
+    obtener_rubros_disponibles
+)
+from .excel_utils import generar_plantilla_excel, procesar_archivo_excel
+from django.http import HttpResponse
+import io
+
+@login_required(login_url="/login/")
+def eb_sinc_art_volumen_list(request):
+    """Lista todos los artículos de volumen con funcionalidad de búsqueda y filtros"""
+    # Configurar la base de datos
+    nombre_db = 'LAKER_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    search_term = request.GET.get('search', '')
+    filtro_estado = request.GET.get('estado', '')
+    filtro_rubro = request.GET.get('rubro', '')
+    
+    # Convertir filtro_estado a formato esperado por la función SQL
+    estado_sql = None
+    if filtro_estado == 'activo':
+        estado_sql = 'activo'
+    elif filtro_estado == 'inactivo':
+        estado_sql = 'inactivo'
+    
+    if search_term:
+        articulos = buscar_articulos_volumen(search_term, estado_sql, filtro_rubro or None)
+    else:
+        articulos = obtener_articulos_volumen(estado_sql, filtro_rubro or None)
+    
+    # Obtener rubros disponibles para el filtro
+    rubros_disponibles = obtener_rubros_disponibles()
+    
+    # Paginación
+    paginator = Paginator(articulos, 25)  # 25 artículos por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'search_term': search_term,
+        'filtro_estado': filtro_estado,
+        'filtro_rubro': filtro_rubro,
+        'rubros_disponibles': rubros_disponibles,
+        'total_articulos': len(articulos)
+    }
+    
+    return render(request, 'herramientas/eb_sinc_art_volumen/list.html', context)
+
+@login_required(login_url="/login/")
+def eb_sinc_art_volumen_detail(request, cod_articulo):
+    """Muestra los detalles de un artículo específico"""
+    # Configurar la base de datos
+    nombre_db = 'LAKER_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    articulo = obtener_articulo_volumen_por_codigo(cod_articulo)
+    
+    if not articulo:
+        messages.error(request, 'Artículo no encontrado.')
+        return redirect('herramientas:eb_sinc_art_volumen_list')
+    
+    return render(request, 'herramientas/eb_sinc_art_volumen/detail.html', {'articulo': articulo})
+
+@login_required(login_url="/login/")
+def eb_sinc_art_volumen_edit(request, cod_articulo):
+    """Edita un artículo existente"""
+    # Configurar la base de datos
+    nombre_db = 'LAKER_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    articulo = obtener_articulo_volumen_por_codigo(cod_articulo)
+    
+    if not articulo:
+        messages.error(request, 'Artículo no encontrado.')
+        return redirect('herramientas:eb_sinc_art_volumen_list')
+    
+    if request.method == 'POST':
+        form = EBSincArtVolumenForm(request.POST, initial_data=articulo)
+        if form.is_valid():
+            try:
+                # Convertir cm a mm para almacenamiento en BD
+                def cm_a_mm(valor_cm):
+                    if valor_cm is None:
+                        return None
+                    return int(float(valor_cm) * 10)
+                
+                datos_actualizados = {
+                    'alto_embalaje': cm_a_mm(form.cleaned_data['alto_embalaje']),
+                    'ancho_embalaje': cm_a_mm(form.cleaned_data['ancho_embalaje']),
+                    'largo_embalaje': cm_a_mm(form.cleaned_data['largo_embalaje']),
+                    'alto_real': cm_a_mm(form.cleaned_data['alto_real']),
+                    'ancho_real': cm_a_mm(form.cleaned_data['ancho_real']),
+                    'largo_real': cm_a_mm(form.cleaned_data['largo_real']),
+                    'peso_embalaje': form.cleaned_data['peso_embalaje'],
+                    'peso_real': form.cleaned_data['peso_real']
+                }
+                
+                actualizar_articulo_volumen(cod_articulo, datos_actualizados)
+                messages.success(request, f'Artículo {cod_articulo} actualizado exitosamente.')
+                return redirect('herramientas:eb_sinc_art_volumen_detail', cod_articulo=cod_articulo)
+                
+            except Exception as e:
+                messages.error(request, f'Error al actualizar el artículo: {str(e)}')
+    else:
+        form = EBSincArtVolumenForm(initial_data=articulo)
+    
+    context = {
+        'form': form,
+        'articulo': articulo,
+        'cod_articulo': cod_articulo
+    }
+    
+    return render(request, 'herramientas/eb_sinc_art_volumen/edit.html', context)
+
+@login_required(login_url="/login/")
+def eb_sinc_art_volumen_delete(request, cod_articulo):
+    """Elimina un artículo"""
+    # Configurar la base de datos
+    nombre_db = 'LAKER_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    articulo = obtener_articulo_volumen_por_codigo(cod_articulo)
+    
+    if not articulo:
+        messages.error(request, 'Artículo no encontrado.')
+        return redirect('herramientas:eb_sinc_art_volumen_list')
+    
+    if request.method == 'POST':
+        try:
+            eliminar_articulo_volumen(cod_articulo)
+            messages.success(request, f'Artículo {cod_articulo} eliminado exitosamente.')
+            return redirect('herramientas:eb_sinc_art_volumen_list')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar el artículo: {str(e)}')
+    
+    return render(request, 'herramientas/eb_sinc_art_volumen/delete.html', {'articulo': articulo})
+
+@login_required(login_url="/login/")
+def eb_sinc_art_volumen_descargar_plantilla(request):
+    """Genera y descarga una plantilla Excel para carga masiva"""
+    # Configurar la base de datos
+    nombre_db = 'LAKER_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    try:
+        # Usar la función simplificada que sabemos que funciona
+        from .excel_utils_simple import generar_plantilla_excel_simple
+        wb = generar_plantilla_excel_simple()
+        
+        # Usar BytesIO para manejar el contenido en memoria
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        content = output.getvalue()
+        
+        # Crear respuesta HTTP con archivo Excel
+        response = HttpResponse(
+            content,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="Plantilla_Volumenes_Articulos.xlsx"'
+        response['Content-Length'] = str(len(content))
+        
+        return response
+        
+    except Exception as e:
+        messages.error(request, f'Error al generar la plantilla: {str(e)}')
+        return redirect('herramientas:eb_sinc_art_volumen_list')
+
+@login_required(login_url="/login/")
+def eb_sinc_art_volumen_carga_masiva(request):
+    """Maneja la carga masiva desde archivo Excel"""
+    # Configurar la base de datos
+    nombre_db = 'LAKER_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    if request.method == 'POST':
+        if 'archivo_excel' not in request.FILES:
+            messages.error(request, 'No se seleccionó ningún archivo.')
+            return redirect('herramientas:eb_sinc_art_volumen_list')
+        
+        archivo = request.FILES['archivo_excel']
+        
+        # Validar extensión
+        if not archivo.name.endswith('.xlsx'):
+            messages.error(request, 'El archivo debe tener extensión .xlsx')
+            return redirect('herramientas:eb_sinc_art_volumen_list')
+        
+        try:
+            errores, actualizaciones = procesar_archivo_excel(archivo)
+            
+            if errores:
+                error_msg = f'Se procesaron {actualizaciones} registros correctamente. Errores encontrados:<br>'
+                error_msg += '<br>'.join(errores[:10])  # Mostrar máximo 10 errores
+                if len(errores) > 10:
+                    error_msg += f'<br>... y {len(errores) - 10} errores más.'
+                messages.warning(request, error_msg)
+            else:
+                messages.success(request, f'Carga masiva completada exitosamente. Se actualizaron {actualizaciones} artículos.')
+            
+        except Exception as e:
+            messages.error(request, f'Error al procesar el archivo: {str(e)}')
+    
+    return redirect('herramientas:eb_sinc_art_volumen_list')
+
+@login_required(login_url="/login/")
+def eb_sinc_art_volumen_carga_masiva_form(request):
+    """Muestra el formulario para carga masiva"""
+    return render(request, 'herramientas/eb_sinc_art_volumen/carga_masiva.html')
+
+def test_excel_download(request):
+    """Vista de prueba simple para descargar Excel"""
+    try:
+        print("[TEST] Creando archivo Excel simple...")
+        
+        import openpyxl
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Test"
+        
+        ws['A1'] = "Prueba"
+        ws['B1'] = "Excel"
+        ws['A2'] = "Funciona"
+        ws['B2'] = "OK"
+        
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        response = HttpResponse(
+            output.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="test.xlsx"'
+        
+        print("[TEST] Archivo Excel de prueba creado correctamente")
+        return response
+        
+    except Exception as e:
+        print(f"[TEST ERROR] {str(e)}")
+        return HttpResponse(f"Error: {str(e)}", content_type="text/plain")
+
+def test_plantilla_step_by_step(request):
+    """Prueba la generación de plantilla paso a paso"""
+    # Configurar la base de datos
+    nombre_db = 'LAKER_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    try:
+        print("[STEP 1] Configurando base de datos...")
+        
+        print("[STEP 2] Importando funciones...")
+        from .sql_volumen import obtener_articulos_volumen
+        
+        print("[STEP 3] Obteniendo artículos...")
+        articulos = obtener_articulos_volumen()
+        print(f"[STEP 3] Se obtuvieron {len(articulos)} artículos")
+        
+        print("[STEP 4] Creando Excel básico con datos...")
+        import openpyxl
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Volumenes"
+        
+        # Encabezados básicos
+        ws['A1'] = "COD_ARTICULO"
+        ws['B1'] = "DESCRIPCION"
+        ws['C1'] = "RUBRO"
+        
+        # Agregar algunos datos (máximo 10 para prueba)
+        for i, articulo in enumerate(articulos[:10], 2):
+            ws[f'A{i}'] = articulo.get('COD_ARTICULO', '')
+            ws[f'B{i}'] = articulo.get('DESCRIPCION', '')
+            ws[f'C{i}'] = articulo.get('Rubro', '')
+        
+        print("[STEP 5] Generando respuesta...")
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        response = HttpResponse(
+            output.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="test_plantilla_simple.xlsx"'
+        
+        print("[STEP 5] ¡Éxito! Plantilla básica generada")
+        return response
+        
+    except Exception as e:
+        print(f"[STEP ERROR] Error en paso: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return HttpResponse(f"Error en generación paso a paso: {str(e)}", content_type="text/plain")
+
+def test_plantilla_simplificada(request):
+    """Prueba con plantilla Excel simplificada"""
+    # Configurar la base de datos
+    nombre_db = 'LAKER_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    try:
+        print("[SIMPLE] Importando función simplificada...")
+        from .excel_utils_simple import generar_plantilla_excel_simple
+        
+        print("[SIMPLE] Generando plantilla...")
+        wb = generar_plantilla_excel_simple()
+        
+        print("[SIMPLE] Creando respuesta...")
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        response = HttpResponse(
+            output.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="Plantilla_Simplificada.xlsx"'
+        
+        print("[SIMPLE] ¡Éxito! Plantilla simplificada generada")
+        return response
+        
+    except Exception as e:
+        print(f"[SIMPLE ERROR] Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return HttpResponse(f"Error en plantilla simplificada: {str(e)}", content_type="text/plain")

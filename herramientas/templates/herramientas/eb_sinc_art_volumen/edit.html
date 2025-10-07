@@ -1,0 +1,368 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Editar Artículo - {{ articulo.COD_ARTICULO }} {% endblock %}
+
+{% block stylesheets %}
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+
+<!-- Content Wrapper -->
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1><i class="fas fa-edit"></i> Editar Artículo</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="#">Herramientas</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'herramientas:eb_sinc_art_volumen_list' %}">Volúmenes de Artículos</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'herramientas:eb_sinc_art_volumen_detail' articulo.COD_ARTICULO %}">{{ articulo.COD_ARTICULO }}</a></li>
+            <li class="breadcrumb-item active">Editar</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      
+      <form method="post" novalidate>
+        {% csrf_token %}
+        
+        <div class="row">
+          <!-- Información básica (solo lectura) -->
+          <div class="col-md-6">
+            <div class="card card-primary">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fas fa-info-circle"></i>
+                  Información del Artículo (Solo Lectura)
+                </h3>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label>{{ form.cod_articulo.label }}</label>
+                  {{ form.cod_articulo }}
+                  <small class="form-text text-muted">Este campo no se puede modificar.</small>
+                </div>
+                <div class="form-group">
+                  <label>{{ form.descripcion.label }}</label>
+                  {{ form.descripcion }}
+                  <small class="form-text text-muted">Este campo no se puede modificar.</small>
+                </div>
+                <div class="form-group">
+                  <label>{{ form.rubro.label }}</label>
+                  {{ form.rubro }}
+                  <small class="form-text text-muted">Este campo no se puede modificar.</small>
+                </div>
+                <div class="alert alert-info">
+                  <i class="fas fa-lightbulb"></i>
+                  <strong>Información:</strong> Los campos código, descripción y rubro se obtienen automáticamente del sistema y no pueden modificarse manualmente.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Acciones rápidas -->
+          <div class="col-md-6">
+            <div class="card card-warning">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fas fa-tools"></i>
+                  Acciones Rápidas
+                </h3>
+              </div>
+              <div class="card-body text-center">
+                <div class="btn-group-vertical w-100" role="group">
+                  <button type="button" class="btn btn-info mb-2" onclick="copiarDimensiones()">
+                    <i class="fas fa-copy"></i> Copiar dimensiones de embalaje a real
+                  </button>
+                  <button type="button" class="btn btn-success mb-2" onclick="copiarPesos()">
+                    <i class="fas fa-balance-scale"></i> Copiar peso de embalaje a real
+                  </button>
+                  <button type="button" class="btn btn-warning mb-2" onclick="limpiarCampos()">
+                    <i class="fas fa-eraser"></i> Limpiar todos los campos
+                  </button>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <strong>Nota:</strong> Todos los valores de dimensiones se expresan en milímetros (mm) y los pesos en gramos (g).
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <!-- Dimensiones de Embalaje -->
+          <div class="col-md-6">
+            <div class="card card-info">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fas fa-cube"></i>
+                  Dimensiones de Embalaje
+                </h3>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="{{ form.alto_embalaje.id_for_label }}">
+                        <i class="fas fa-arrows-alt-v"></i> {{ form.alto_embalaje.label }}
+                      </label>
+                      {{ form.alto_embalaje }}
+                      {% if form.alto_embalaje.errors %}
+                        <div class="invalid-feedback d-block">
+                          {{ form.alto_embalaje.errors.0 }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="{{ form.ancho_embalaje.id_for_label }}">
+                        <i class="fas fa-arrows-alt-h"></i> {{ form.ancho_embalaje.label }}
+                      </label>
+                      {{ form.ancho_embalaje }}
+                      {% if form.ancho_embalaje.errors %}
+                        <div class="invalid-feedback d-block">
+                          {{ form.ancho_embalaje.errors.0 }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="{{ form.largo_embalaje.id_for_label }}">
+                        <i class="fas fa-ruler"></i> {{ form.largo_embalaje.label }}
+                      </label>
+                      {{ form.largo_embalaje }}
+                      {% if form.largo_embalaje.errors %}
+                        <div class="invalid-feedback d-block">
+                          {{ form.largo_embalaje.errors.0 }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="{{ form.peso_embalaje.id_for_label }}">
+                    <i class="fas fa-weight-hanging"></i> {{ form.peso_embalaje.label }}
+                  </label>
+                  {{ form.peso_embalaje }}
+                  {% if form.peso_embalaje.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ form.peso_embalaje.errors.0 }}
+                    </div>
+                  {% endif %}
+                </div>
+                
+                <!-- Vista previa del volumen de embalaje -->
+                <div class="alert alert-info">
+                  <i class="fas fa-calculator"></i>
+                  <strong>Volumen calculado:</strong>
+                  <span id="volumen-embalaje">-</span> mm³
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dimensiones Reales -->
+          <div class="col-md-6">
+            <div class="card card-success">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fas fa-box-open"></i>
+                  Dimensiones Reales
+                </h3>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="{{ form.alto_real.id_for_label }}">
+                        <i class="fas fa-arrows-alt-v"></i> {{ form.alto_real.label }}
+                      </label>
+                      {{ form.alto_real }}
+                      {% if form.alto_real.errors %}
+                        <div class="invalid-feedback d-block">
+                          {{ form.alto_real.errors.0 }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="{{ form.ancho_real.id_for_label }}">
+                        <i class="fas fa-arrows-alt-h"></i> {{ form.ancho_real.label }}
+                      </label>
+                      {{ form.ancho_real }}
+                      {% if form.ancho_real.errors %}
+                        <div class="invalid-feedback d-block">
+                          {{ form.ancho_real.errors.0 }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <label for="{{ form.largo_real.id_for_label }}">
+                        <i class="fas fa-ruler"></i> {{ form.largo_real.label }}
+                      </label>
+                      {{ form.largo_real }}
+                      {% if form.largo_real.errors %}
+                        <div class="invalid-feedback d-block">
+                          {{ form.largo_real.errors.0 }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="{{ form.peso_real.id_for_label }}">
+                    <i class="fas fa-weight-hanging"></i> {{ form.peso_real.label }}
+                  </label>
+                  {{ form.peso_real }}
+                  {% if form.peso_real.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ form.peso_real.errors.0 }}
+                    </div>
+                  {% endif %}
+                </div>
+                
+                <!-- Vista previa del volumen real -->
+                <div class="alert alert-success">
+                  <i class="fas fa-calculator"></i>
+                  <strong>Volumen calculado:</strong>
+                  <span id="volumen-real">-</span> mm³
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-footer text-center">
+                <div class="btn-group" role="group">
+                  <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                  </button>
+                  <a href="{% url 'herramientas:eb_sinc_art_volumen_detail' articulo.COD_ARTICULO %}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-times"></i> Cancelar
+                  </a>
+                  <a href="{% url 'herramientas:eb_sinc_art_volumen_list' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-list"></i> Volver al Listado
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </form>
+    </div>
+  </section>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+  <!-- jQuery -->
+  <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap 4 -->
+  <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE App -->
+  <script src="/static/assets/js/adminlte.min.js"></script>
+  
+  <script>
+    $(document).ready(function() {
+      // Calcular volúmenes en tiempo real
+      function calcularVolumenes() {
+        // Volumen de embalaje
+        const altoEmb = parseInt($('#id_alto_embalaje').val()) || 0;
+        const anchoEmb = parseInt($('#id_ancho_embalaje').val()) || 0;
+        const largoEmb = parseInt($('#id_largo_embalaje').val()) || 0;
+        const volumenEmb = altoEmb * anchoEmb * largoEmb;
+        
+        $('#volumen-embalaje').text(volumenEmb > 0 ? volumenEmb.toLocaleString() : '-');
+        
+        // Volumen real
+        const altoReal = parseInt($('#id_alto_real').val()) || 0;
+        const anchoReal = parseInt($('#id_ancho_real').val()) || 0;
+        const largoReal = parseInt($('#id_largo_real').val()) || 0;
+        const volumenReal = altoReal * anchoReal * largoReal;
+        
+        $('#volumen-real').text(volumenReal > 0 ? volumenReal.toLocaleString() : '-');
+      }
+      
+      // Eventos para recalcular volúmenes
+      $('input[type="number"]').on('input', calcularVolumenes);
+      
+      // Cálculo inicial
+      calcularVolumenes();
+    });
+    
+    // Funciones para acciones rápidas
+    function copiarDimensiones() {
+      $('#id_alto_real').val($('#id_alto_embalaje').val());
+      $('#id_ancho_real').val($('#id_ancho_embalaje').val());
+      $('#id_largo_real').val($('#id_largo_embalaje').val());
+      
+      // Recalcular volumen
+      $('input[type="number"]').trigger('input');
+      
+      // Mostrar notificación
+      mostrarNotificacion('Dimensiones copiadas exitosamente', 'success');
+    }
+    
+    function copiarPesos() {
+      $('#id_peso_real').val($('#id_peso_embalaje').val());
+      mostrarNotificacion('Peso copiado exitosamente', 'success');
+    }
+    
+    function limpiarCampos() {
+      if (confirm('¿Está seguro de que desea limpiar todos los campos editables?')) {
+        $('input[type="number"]').val('');
+        $('input[type="number"]').trigger('input');
+        mostrarNotificacion('Campos limpiados', 'warning');
+      }
+    }
+    
+    function mostrarNotificacion(mensaje, tipo) {
+      const alertClass = tipo === 'success' ? 'alert-success' : 'alert-warning';
+      const icon = tipo === 'success' ? 'fa-check' : 'fa-exclamation-triangle';
+      
+      const alert = `
+        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999;">
+          <i class="fas ${icon}"></i> ${mensaje}
+          <button type="button" class="close" data-dismiss="alert">
+            <span>&times;</span>
+          </button>
+        </div>
+      `;
+      
+      $('body').append(alert);
+      
+      // Auto-eliminar después de 3 segundos
+      setTimeout(() => {
+        $('.alert').fadeOut();
+      }, 3000);
+    }
+  </script>
+{% endblock javascripts %}

@@ -120,6 +120,25 @@ urlpatterns = [
     path('import_file_cierrePedidosUY', views.import_file_cierrePedidosUY, name='herramientas_import_file_cierre_pedidos_uy'),
     path('import_file_ubi', views.import_file_ubi, name='herramientas_import_file_ubi'),
 
+    # EB_sincArt_volumen - URLs específicas PRIMERO (antes de las dinámicas)
+    path('eb-sinc-art-volumen/', views.eb_sinc_art_volumen_list, name='eb_sinc_art_volumen_list'),
+    # Excel URLs específicas
+    path('eb-sinc-art-volumen/descargar-plantilla/', views.eb_sinc_art_volumen_descargar_plantilla, name='eb_sinc_art_volumen_descargar_plantilla'),
+    path('eb-sinc-art-volumen/carga-masiva/', views.eb_sinc_art_volumen_carga_masiva, name='eb_sinc_art_volumen_carga_masiva'),
+    path('eb-sinc-art-volumen/carga-masiva/form/', views.eb_sinc_art_volumen_carga_masiva_form, name='eb_sinc_art_volumen_carga_masiva_form'),
+    # URLs dinámicas DESPUÉS
+    path('eb-sinc-art-volumen/<str:cod_articulo>/', views.eb_sinc_art_volumen_detail, name='eb_sinc_art_volumen_detail'),
+    path('eb-sinc-art-volumen/<str:cod_articulo>/edit/', views.eb_sinc_art_volumen_edit, name='eb_sinc_art_volumen_edit'),
+    path('eb-sinc-art-volumen/<str:cod_articulo>/delete/', views.eb_sinc_art_volumen_delete, name='eb_sinc_art_volumen_delete'),
+    
+    # Vista de prueba para Excel
+    path('test-excel/', views.test_excel_download, name='test_excel_download'),
+    path('test-plantilla-step/', views.test_plantilla_step_by_step, name='test_plantilla_step'),
+    path('test-plantilla-simple/', views.test_plantilla_simplificada, name='test_plantilla_simple'),
+    
+    # URL alternativa para plantilla
+    path('plantilla-download/', views.eb_sinc_art_volumen_descargar_plantilla, name='plantilla_download_alt'),
+
 ]
 
 if settings.DEBUG:
