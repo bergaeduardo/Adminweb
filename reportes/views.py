@@ -136,6 +136,12 @@ def compararVentas(request):
     dir_iframe = DIR_REPORTES['compararVentas']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
+@login_required(login_url="/login/")
+def PresupuestoComercial(request):
+    Nombre=''
+    dir_iframe = DIR_REPORTES['PresupuestoComercial']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 
 # Mayoristas
 
@@ -413,7 +419,7 @@ def stockcUY(request):
 def stockcentral_ecommerce(request):
     Nombre='Stock Central ecommerce'
     parametro=''
-    Nombre='Stock Central'
+    Nombre='Stock Central Ecommerce'
     nombre_db='LAKER_SA'
     conection = 'mi_db_2'
     cambiar_conexion(conection,nombre_db)

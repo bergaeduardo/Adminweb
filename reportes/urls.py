@@ -35,6 +35,7 @@ urlpatterns = [
     # path('Comercial/AdmEmpleados', views.AdmEmpleados, name='reportes_comercial_adm_empleados'),
     path('Comercial/compararStock/', views.compararStock, name='reportes_comercial_comparar_stock'),
     path('Comercial/compararVentas/', views.compararVentas, name='reportes_comercial_comparar_ventas'),
+    path('Comercial/PresupuestoComercial/', views.PresupuestoComercial, name='reportes_comercial_presupuesto_comercial'),
 
     # Mayoristas
     path('Mayoristas/Tracking_pedidos_mayoristas', views.Tracking_pedidos_mayoristas, name='reportes_mayoristas_tracking_pedidos_mayoristas'),
