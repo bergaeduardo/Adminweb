@@ -68,6 +68,7 @@ DIR_REPORTES = {
     'GastosSupervision':SERVIDOR['production'] + 'comercial/supervision/presupuesto/dashboard.php',
     'controlVentasSucursales':SERVIDOR['production'] + 'administracion/controlSucursales/controlVentasSucursales.php',
     'saldoCaja':SERVIDOR['production'] + 'administracion/tesoreria/saldoCaja.php',
+    'costoOcupacion':SERVIDOR['production'] + 'administracion/impuestos/alquileres/costoOcupacion.php',
 
     # Gerencia
     'DetalleRemitos599':SERVIDOR['production']  + 'sistemas/599/consultaderemitos.php?userName=',
