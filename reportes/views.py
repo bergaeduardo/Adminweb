@@ -266,6 +266,12 @@ def saldoCaja(request):
     dir_iframe = DIR_REPORTES['saldoCaja']
     return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def costoOcupacion(request):
+    Nombre='Costo de Ocupación'
+    dir_iframe = DIR_REPORTES['costoOcupacion']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 # Gerencia
 
 @login_required(login_url="/login/")

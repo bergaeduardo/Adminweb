@@ -69,6 +69,7 @@ urlpatterns = [
     path('Administracion/GastosSupervision', views.GastosSupervision, name='reportes_administracion_gastos_supervision'),
     path('Administracion/controlVentasSucursales', views.controlVentasSucursales, name='reportes_administracion_control_ventas_sucursales'),
     path('Administracion/saldoCaja', views.saldoCaja, name='saldo_caja_tesoreria'),
+    path('Administracion/costoOcupacion', views.costoOcupacion, name='costo_ocupacion'),
 
     # Supervisores
     path('Supervisores/Proyectos', views.Proyectos, name='reportes_supervisores_proyectos'),
