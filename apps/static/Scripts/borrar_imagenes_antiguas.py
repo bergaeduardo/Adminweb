@@ -11,8 +11,8 @@ logging.basicConfig(filename='log.txt', level=logging.ERROR,
 # Directorio donde se encuentran las imágenes
 ruta = MEDIA_ROOT
 
-# Fecha límite (últimos 30 días)
-fecha_limite = datetime.now() - timedelta(days=60)
+# Fecha límite (últimos 120 días)
+fecha_limite = datetime.now() - timedelta(days=120)
 
 # Extensiones de imágenes permitidas
 extensiones_imagenes = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
