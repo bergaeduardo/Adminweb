@@ -55,28 +55,28 @@ def generar_plantilla_excel_simple():
     # Obtener datos actuales para llenar la plantilla
     articulos = obtener_articulos_volumen()
     
-    # Llenar datos (convertir mm a cm)
+    # Llenar datos (ya almacenados en cm)
     for row_num, articulo in enumerate(articulos, 2):
         try:
             ws.cell(row=row_num, column=1, value=articulo['COD_ARTICULO'])
             ws.cell(row=row_num, column=2, value=articulo['DESCRIPCION'])
             ws.cell(row=row_num, column=3, value=articulo.get('Rubro', ''))
             
-            # Convertir dimensiones de mm a cm (función robusta)
-            def safe_mm_to_cm(mm_value):
-                if mm_value is None or mm_value == 0:
+            # Las dimensiones ya están en cm, no necesitan conversión
+            def safe_value(value):
+                if value is None or value == 0:
                     return None
                 try:
-                    return round(float(mm_value) / 10.0, 2)
+                    return float(value)
                 except (ValueError, TypeError):
                     return None
             
-            ws.cell(row=row_num, column=4, value=safe_mm_to_cm(articulo.get('altoEmbalaje')))
-            ws.cell(row=row_num, column=5, value=safe_mm_to_cm(articulo.get('anchoEmbalaje')))
-            ws.cell(row=row_num, column=6, value=safe_mm_to_cm(articulo.get('largoEmbalaje')))
-            ws.cell(row=row_num, column=7, value=safe_mm_to_cm(articulo.get('altoReal')))
-            ws.cell(row=row_num, column=8, value=safe_mm_to_cm(articulo.get('anchoReal')))
-            ws.cell(row=row_num, column=9, value=safe_mm_to_cm(articulo.get('largoReal')))
+            ws.cell(row=row_num, column=4, value=safe_value(articulo.get('altoEmbalaje')))
+            ws.cell(row=row_num, column=5, value=safe_value(articulo.get('anchoEmbalaje')))
+            ws.cell(row=row_num, column=6, value=safe_value(articulo.get('largoEmbalaje')))
+            ws.cell(row=row_num, column=7, value=safe_value(articulo.get('altoReal')))
+            ws.cell(row=row_num, column=8, value=safe_value(articulo.get('anchoReal')))
+            ws.cell(row=row_num, column=9, value=safe_value(articulo.get('largoReal')))
             
             # Pesos se mantienen en gramos
             ws.cell(row=row_num, column=10, value=articulo.get('pesoEmbalaje'))
@@ -124,7 +124,7 @@ def generar_plantilla_excel_simple():
             "4. PROCESAMIENTO:",
             "   - Guarde el archivo manteniendo el formato Excel (.xlsx)",
             "   - Suba el archivo usando la función 'Carga Masiva'",
-            "   - El sistema convertirá automáticamente cm a mm para almacenamiento"
+            "   - Los datos se almacenan directamente en centímetros"
         ]
         
         for row_num, texto in enumerate(instrucciones, 1):

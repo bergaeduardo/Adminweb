@@ -1468,19 +1468,14 @@ def eb_sinc_art_volumen_edit(request, cod_articulo):
         form = EBSincArtVolumenForm(request.POST, initial_data=articulo)
         if form.is_valid():
             try:
-                # Convertir cm a mm para almacenamiento en BD
-                def cm_a_mm(valor_cm):
-                    if valor_cm is None:
-                        return None
-                    return int(float(valor_cm) * 10)
-                
+                # Ahora guardamos directamente en cm (no hay conversión)
                 datos_actualizados = {
-                    'alto_embalaje': cm_a_mm(form.cleaned_data['alto_embalaje']),
-                    'ancho_embalaje': cm_a_mm(form.cleaned_data['ancho_embalaje']),
-                    'largo_embalaje': cm_a_mm(form.cleaned_data['largo_embalaje']),
-                    'alto_real': cm_a_mm(form.cleaned_data['alto_real']),
-                    'ancho_real': cm_a_mm(form.cleaned_data['ancho_real']),
-                    'largo_real': cm_a_mm(form.cleaned_data['largo_real']),
+                    'alto_embalaje': form.cleaned_data['alto_embalaje'],
+                    'ancho_embalaje': form.cleaned_data['ancho_embalaje'],
+                    'largo_embalaje': form.cleaned_data['largo_embalaje'],
+                    'alto_real': form.cleaned_data['alto_real'],
+                    'ancho_real': form.cleaned_data['ancho_real'],
+                    'largo_real': form.cleaned_data['largo_real'],
                     'peso_embalaje': form.cleaned_data['peso_embalaje'],
                     'peso_real': form.cleaned_data['peso_real']
                 }

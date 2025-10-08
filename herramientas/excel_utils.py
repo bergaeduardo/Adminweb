@@ -195,13 +195,13 @@ def procesar_archivo_excel(archivo_excel):
                 
                 cod_articulo = str(cod_articulo).strip()
                 
-                # Leer dimensiones (convertir de cm a mm)
-                alto_embalaje = convertir_cm_a_mm(ws.cell(row=row_num, column=4).value)
-                ancho_embalaje = convertir_cm_a_mm(ws.cell(row=row_num, column=5).value)
-                largo_embalaje = convertir_cm_a_mm(ws.cell(row=row_num, column=6).value)
-                alto_real = convertir_cm_a_mm(ws.cell(row=row_num, column=7).value)
-                ancho_real = convertir_cm_a_mm(ws.cell(row=row_num, column=8).value)
-                largo_real = convertir_cm_a_mm(ws.cell(row=row_num, column=9).value)
+                # Leer dimensiones (mantener en cm)
+                alto_embalaje = validar_numero_decimal(ws.cell(row=row_num, column=4).value)
+                ancho_embalaje = validar_numero_decimal(ws.cell(row=row_num, column=5).value)
+                largo_embalaje = validar_numero_decimal(ws.cell(row=row_num, column=6).value)
+                alto_real = validar_numero_decimal(ws.cell(row=row_num, column=7).value)
+                ancho_real = validar_numero_decimal(ws.cell(row=row_num, column=8).value)
+                largo_real = validar_numero_decimal(ws.cell(row=row_num, column=9).value)
                 
                 # Leer pesos (mantener en gramos)
                 peso_embalaje = validar_numero_entero(ws.cell(row=row_num, column=10).value)

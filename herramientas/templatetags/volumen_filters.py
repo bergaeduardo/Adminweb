@@ -31,39 +31,43 @@ def calcular_volumen(dimensiones):
 
 @register.filter
 def formato_dimension(value):
-    """Formatea una dimensión con 'cm' si tiene valor (convierte de mm)"""
+    """Formatea una dimensión con 'cm' si tiene valor (ya en cm)"""
     if value and value != 0:
         try:
-            cm_value = round(float(value) / 10, 2)
-            return f"{cm_value} cm"
+            return f"{float(value):.1f} cm"
         except (ValueError, TypeError):
             return "-"
     return "-"
 
 @register.filter
-def mm_a_cm(value):
-    """Convierte milímetros a centímetros"""
+def valor_cm(value):
+    """Retorna el valor en cm (datos ya almacenados en cm)"""
     if value and value != 0:
         try:
-            return round(float(value) / 10, 2)
+            return float(value)
         except (ValueError, TypeError):
             return None
     return None
 
 @register.filter
-def mm3_a_m3(value):
-    """Convierte mm³ a m³"""
+def mm_a_cm(value):
+    """Alias de valor_cm para compatibilidad con templates existentes"""
+    return valor_cm(value)
+
+@register.filter
+def cm3_a_m3(value):
+    """Convierte cm³ a m³"""
     if value and value != 0:
         try:
-            # 1 m³ = 1,000,000,000 mm³
-            return round(float(value) / 1000000000, 6)
+            # 1 m³ = 1,000,000 cm³
+            return round(float(value) / 1000000, 6)
         except (ValueError, TypeError):
             return None
     return None
 
 @register.filter
 def calcular_volumen_m3(articulo, tipo='embalaje'):
-    """Calcula volumen en m³ desde dimensiones en mm"""
+    """Calcula volumen en m³ desde dimensiones en cm"""
     try:
         if tipo == 'embalaje':
             alto = articulo.get('altoEmbalaje') or 0
@@ -75,10 +79,10 @@ def calcular_volumen_m3(articulo, tipo='embalaje'):
             largo = articulo.get('largoReal') or 0
             
         if alto and ancho and largo:
-            # Volumen en mm³
-            volumen_mm3 = float(alto) * float(ancho) * float(largo)
-            # Convertir a m³ (dividir por 1,000,000,000)
-            volumen_m3 = volumen_mm3 / 1000000000
+            # Volumen en cm³ (datos vienen en cm de la BD)
+            volumen_cm3 = float(alto) * float(ancho) * float(largo)
+            # Convertir a m³ (dividir por 1,000,000)
+            volumen_m3 = volumen_cm3 / 1000000
             return round(volumen_m3, 6)
     except (ValueError, TypeError, AttributeError):
         pass
@@ -86,7 +90,7 @@ def calcular_volumen_m3(articulo, tipo='embalaje'):
 
 @register.filter
 def calcular_densidad_kg_m3(articulo):
-    """Calcula densidad en kg/m³"""
+    """Calcula densidad en kg/m³ desde dimensiones en cm y peso en gramos"""
     try:
         peso_real = articulo.get('pesoReal') or 0
         alto = articulo.get('altoReal') or 0
@@ -94,9 +98,9 @@ def calcular_densidad_kg_m3(articulo):
         largo = articulo.get('largoReal') or 0
         
         if peso_real and alto and ancho and largo:
-            # Volumen en m³
-            volumen_mm3 = float(alto) * float(ancho) * float(largo)
-            volumen_m3 = volumen_mm3 / 1000000000
+            # Volumen en m³ (desde cm³)
+            volumen_cm3 = float(alto) * float(ancho) * float(largo)
+            volumen_m3 = volumen_cm3 / 1000000
             
             # Peso en kg (convertir de gramos)
             peso_kg = float(peso_real) / 1000
@@ -134,7 +138,7 @@ def tiene_dimensiones_completas(articulo, tipo='embalaje'):
 
 @register.filter
 def calcular_densidad(articulo):
-    """Calcula la densidad del artículo (peso/volumen)"""
+    """Calcula la densidad del artículo (peso/volumen) desde dimensiones en cm"""
     try:
         peso = articulo.get('pesoReal', 0) or 0
         alto = articulo.get('altoReal', 0) or 0
@@ -142,9 +146,9 @@ def calcular_densidad(articulo):
         largo = articulo.get('largoReal', 0) or 0
         
         if peso > 0 and alto > 0 and ancho > 0 and largo > 0:
-            # Convertir mm³ a cm³ y calcular densidad
-            volumen_cm3 = (alto * ancho * largo) / 1000
-            densidad = peso / volumen_cm3
+            # Volumen en cm³ (dimensiones ya en cm)
+            volumen_cm3 = alto * ancho * largo
+            densidad = peso / volumen_cm3  # g/cm³
             return round(densidad, 2)
         return 0
     except (TypeError, ZeroDivisionError):
