@@ -1,0 +1,993 @@
+/**
+ * Estilos para Sistema de Ayuda de Tablas de Stock
+ * Estilos reutilizables para tooltips, modales y componentes de ayuda
+ * 
+ * @author Sistema Adminweb
+ * @version 1.0
+ */
+
+/* ========================================
+   TOOLTIPS MEJORADOS
+   ======================================== */
+
+.tooltip-inner {
+    max-width: 320px;
+    text-align: left;
+    background-color: #2c3e50;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.4;
+    padding: 10px 14px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.tooltip.bs-tooltip-top .arrow:before {
+    border-top-color: #2c3e50;
+}
+
+.tooltip.bs-tooltip-bottom .arrow:before {
+    border-bottom-color: #2c3e50;
+}
+
+.tooltip.bs-tooltip-left .arrow:before {
+    border-left-color: #2c3e50;
+}
+
+.tooltip.bs-tooltip-right .arrow:before {
+    border-right-color: #2c3e50;
+}
+
+/* Tooltip optimizado sin animación conflictiva */
+.tooltip {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 1070;
+}
+
+.tooltip.show {
+    opacity: 1;
+}
+
+/* Posicionamiento fijo para evitar reposicionamiento */
+.tooltip.bs-tooltip-top {
+    margin-bottom: 8px;
+}
+
+.tooltip.bs-tooltip-bottom {
+    margin-top: 8px;
+}
+
+/* Optimización para tooltips de encabezados */
+th[data-toggle="tooltip"] .tooltip {
+    pointer-events: none;
+}
+
+/* ========================================
+   ICONOS DE INFORMACIÓN EN HEADERS
+   ======================================== */
+
+.info-header {
+    position: relative;
+    cursor: help;
+    padding: 8px 24px 8px 4px !important;
+    vertical-align: middle;
+    line-height: 1.2;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 80px;
+}
+
+.info-header::after {
+    content: "\f05a"; /* Unicode para fa-info-circle */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    font-size: 11px;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+    color: #495057;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #17a2b8;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    z-index: 5;
+}
+
+.info-header:hover::after {
+    opacity: 1;
+    color: #ffffff !important;
+    background-color: #17a2b8;
+    border-color: #138496;
+    transform: scale(1.15);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+th[data-toggle="tooltip"] {
+    cursor: help;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+th[data-toggle="tooltip"]:hover {
+    background-color: rgba(23, 162, 184, 0.1);
+    white-space: normal;
+    overflow: visible;
+}
+
+/* Encabezados compactos para móviles */
+@media (max-width: 768px) {
+    .info-header {
+        font-size: 10px;
+        padding: 6px 18px 6px 2px !important;
+        min-width: 60px;
+        max-width: 80px;
+    }
+    
+    .info-header::after {
+        font-size: 9px;
+        width: 14px;
+        height: 14px;
+        top: 2px;
+        right: 2px;
+        border-width: 1px;
+    }
+    
+    th[data-toggle="tooltip"] {
+        max-width: 80px;
+    }
+}
+
+/* Estilo especial para encabezados largos */
+.compact-header {
+    font-size: 11px !important;
+    line-height: 1.1 !important;
+    padding: 6px 20px 6px 3px !important;
+}
+
+.compact-header::after {
+    font-size: 10px;
+    width: 16px;
+    height: 16px;
+    top: 2px;
+    right: 2px;
+    border-width: 1px;
+}
+
+/* ========================================
+   MODAL DE AYUDA MEJORADO
+   ======================================== */
+
+.help-modal .modal-dialog {
+    transition: transform 0.3s ease-out;
+    max-width: 950px;
+    margin: 2rem auto;
+}
+
+.help-modal .modal-content {
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    border: none;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.help-modal .modal-header {
+    border-radius: 15px 15px 0 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-bottom: none;
+    padding: 1.5rem 2rem 1.25rem;
+    position: relative;
+}
+
+.help-modal .modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    pointer-events: none;
+}
+
+.help-modal .modal-header .modal-title {
+    font-weight: 700;
+    font-size: 1.3rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.help-modal .modal-header .close {
+    color: rgba(255,255,255,0.9);
+    opacity: 0.8;
+    text-shadow: none;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.help-modal .modal-header .close:hover {
+    color: #ffffff;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.help-modal .modal-body {
+    padding: 2.5rem;
+    max-height: 75vh;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.help-modal .modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.help-modal .modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.help-modal .modal-body::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #667eea, #764ba2);
+    border-radius: 4px;
+}
+
+.help-modal .modal-body::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5a6fd8, #6a42a0);
+}
+
+.help-modal .modal-footer {
+    border-top: 1px solid rgba(0,0,0,0.1);
+    background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 0 0 15px 15px;
+    padding: 1.25rem 2rem;
+}
+
+/* ========================================
+   BOTÓN DE AYUDA
+   ======================================== */
+
+.help-button {
+    transition: all 0.3s ease;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+}
+
+.help-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.help-button i {
+    margin-right: 0.25rem;
+}
+
+/* ========================================
+   TABLA DE AYUDA EN MODAL
+   ======================================== */
+
+.help-table {
+    font-size: 0.875rem;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: none;
+}
+
+.help-table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    font-weight: 600;
+    border: none;
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.help-table td {
+    padding: 1rem 0.75rem;
+    vertical-align: top;
+    line-height: 1.5;
+    border-bottom: 1px solid #e9ecef;
+    background-color: #ffffff;
+}
+
+.help-table tbody tr:nth-child(even) td {
+    background-color: #f8f9fa;
+}
+
+.help-table tbody tr:hover td {
+    background-color: rgba(102, 126, 234, 0.1);
+    transform: translateX(2px);
+    transition: all 0.3s ease;
+}
+
+.help-table .column-name {
+    font-weight: 700;
+    color: #2c3e50;
+    white-space: nowrap;
+    font-size: 0.9rem;
+}
+
+.help-table .column-description {
+    color: #495057;
+    line-height: 1.6;
+}
+
+/* Filas destacadas */
+.help-table tbody tr.table-warning td {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 193, 7, 0.05));
+    border-left: 4px solid #ffc107;
+}
+
+.help-table tbody tr.table-info td {
+    background: linear-gradient(135deg, rgba(23, 162, 184, 0.15), rgba(23, 162, 184, 0.05));
+    border-left: 4px solid #17a2b8;
+}
+
+/* ========================================
+   RESALTADO DE FILAS EN TABLA PRINCIPAL
+   ======================================== */
+
+.stock-table tbody tr.table-warning {
+    background-color: rgba(255, 193, 7, 0.2) !important;
+    border-left: 3px solid #ffc107;
+}
+
+.stock-table tbody tr.table-danger {
+    background-color: rgba(108, 117, 125, 0.1) !important;
+    border-left: 3px solid #6c757d;
+}
+
+.stock-table tbody tr.table-secondary {
+    background-color: rgba(108, 117, 125, 0.15) !important;
+    border-left: 3px solid #6c757d;
+    color: #495057;
+}
+
+.stock-table tbody tr.table-success {
+    background-color: rgba(40, 167, 69, 0.2) !important;
+    border-left: 3px solid #28a745;
+}
+
+.stock-table tbody tr.table-info {
+    background-color: rgba(23, 162, 184, 0.2) !important;
+    border-left: 3px solid #17a2b8;
+}
+
+.stock-table tbody tr[title] {
+    cursor: help;
+}
+
+/* ========================================
+   WRAPPER RESPONSIVO PARA LA TABLA
+   ======================================== */
+
+.table-responsive-custom {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive-custom::-webkit-scrollbar {
+    height: 6px;
+}
+
+.table-responsive-custom::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.table-responsive-custom::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.table-responsive-custom::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* ========================================
+   ALERTAS Y NOTIFICACIONES
+   ======================================== */
+
+.help-alert {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.help-alert::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+}
+
+.help-alert-light {
+    background: linear-gradient(135deg, rgba(23, 162, 184, 0.1), rgba(23, 162, 184, 0.05));
+    border: 1px solid rgba(23, 162, 184, 0.2);
+}
+
+.help-alert-light::before {
+    background: linear-gradient(180deg, #17a2b8, #138496);
+}
+
+.help-alert-warning {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 193, 7, 0.05));
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.help-alert-warning::before {
+    background: linear-gradient(180deg, #ffc107, #e0a800);
+}
+
+.help-alert h6 {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.help-alert h6 i {
+    margin-right: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.help-alert ul {
+    margin-bottom: 0;
+    padding-left: 1.5rem;
+}
+
+.help-alert li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+    color: #495057;
+}
+
+.help-alert li:last-child {
+    margin-bottom: 0;
+}
+
+/* Elementos kbd mejorados */
+.help-alert kbd {
+    background: linear-gradient(135deg, #343a40, #495057);
+    color: #ffffff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: 1px solid #6c757d;
+}
+
+/* ========================================
+   SECCIÓN DE CÁLCULOS
+   ======================================== */
+
+.calculations-section {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border: 1px solid rgba(40, 167, 69, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.calculations-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #28a745, #20c997);
+}
+
+.calculations-section h6 {
+    color: #28a745;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+}
+
+.calculations-section h6 i {
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.calculation-formula {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    margin: 0.75rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* ========================================
+   ICONOS CONTEXTUALES
+   ======================================== */
+
+.context-icon {
+    margin-right: 0.5rem;
+    width: 16px;
+    text-align: center;
+}
+
+.icon-ecommerce { color: #28a745; }
+.icon-vtex { color: #ffc107; }
+.icon-excluded { color: #dc3545; }
+.icon-security { color: #17a2b8; }
+.icon-calculator { color: #6f42c1; }
+.icon-warning { color: #fd7e14; }
+
+/* ========================================
+   MEJORAS RESPONSIVAS PARA LA TABLA
+   ======================================== */
+
+.stock-table {
+    font-size: 13px;
+}
+
+.stock-table thead th {
+    vertical-align: middle;
+    border-bottom: 2px solid #dee2e6;
+    background-color: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.stock-table tbody td {
+    vertical-align: middle;
+    padding: 8px 4px;
+    font-size: 12px;
+}
+
+/* Responsive para tabletas */
+@media (max-width: 992px) {
+    .stock-table {
+        font-size: 12px;
+    }
+    
+    .stock-table thead th {
+        padding: 6px 3px;
+        font-size: 11px;
+    }
+    
+    .stock-table tbody td {
+        padding: 6px 3px;
+        font-size: 11px;
+    }
+    
+    .compact-header {
+        font-size: 10px !important;
+        line-height: 1.0 !important;
+        padding: 4px 2px !important;
+    }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+    .tooltip-inner {
+        max-width: 250px;
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+    
+    .help-modal .modal-dialog {
+        max-width: 95%;
+        margin: 1rem;
+    }
+    
+    .help-modal .modal-header {
+        padding: 1rem 1.5rem;
+    }
+    
+    .help-modal .modal-header .modal-title {
+        font-size: 1.1rem;
+    }
+    
+    .help-modal .modal-body {
+        padding: 1.5rem;
+        max-height: 65vh;
+    }
+    
+    .help-modal .section-title {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .help-table {
+        font-size: 0.8rem;
+    }
+    
+    .help-table th,
+    .help-table td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .help-button {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .info-header::after {
+        font-size: 9px;
+        width: 14px;
+        height: 14px;
+    }
+    
+    .stock-table {
+        font-size: 10px;
+    }
+    
+    .stock-table thead th {
+        padding: 4px 2px;
+        font-size: 9px;
+        line-height: 1.1;
+    }
+    
+    .stock-table tbody td {
+        padding: 4px 2px;
+        font-size: 10px;
+    }
+    
+    .calculations-section,
+    .help-alert {
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .calculation-formula {
+        padding: 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Ocultar algunas columnas en móviles muy pequeños */
+    .stock-table .d-none-mobile {
+        display: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .help-modal .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .help-table th,
+    .help-table td {
+        padding: 0.5rem 0.25rem;
+    }
+    
+    .calculations-section {
+        padding: 0.75rem;
+        margin: 0.75rem 0;
+    }
+    
+    .stock-table thead th {
+        font-size: 8px;
+        padding: 3px 1px;
+    }
+    
+    .stock-table tbody td {
+        font-size: 9px;
+        padding: 3px 1px;
+    }
+    
+    .compact-header {
+        font-size: 8px !important;
+        padding: 2px 1px !important;
+    }
+    
+    .compact-header::after {
+        font-size: 7px;
+        width: 12px;
+        height: 12px;
+        top: 1px;
+        right: 1px;
+        border-width: 1px;
+    }
+    
+    /* Botones más compactos en móviles pequeños */
+    .dt-buttons .btn {
+        font-size: 0.7rem !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .help-modal .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .help-table th,
+    .help-table td {
+        padding: 0.5rem 0.25rem;
+    }
+    
+    .calculations-section {
+        padding: 0.75rem;
+        margin: 0.75rem 0;
+    }
+}
+
+/* ========================================
+   ESTILOS PARA BOTONES DE DATATABLE
+   ======================================== */
+
+/* Contenedor de botones */
+.dt-buttons {
+    margin-bottom: 1rem;
+}
+
+/* Estilos base para botones de DataTable */
+.dt-buttons .btn {
+    background-color: #ffffff !important;
+    border: 1px solid #dee2e6 !important;
+    color: #495057 !important;
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Estados hover para botones */
+.dt-buttons .btn:hover {
+    background-color: #f8f9fa !important;
+    border-color: #adb5bd !important;
+    color: #212529 !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+/* Estados activos */
+.dt-buttons .btn:active,
+.dt-buttons .btn.active {
+    background-color: #e9ecef !important;
+    border-color: #adb5bd !important;
+    color: #212529 !important;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Estilos específicos por tipo de botón */
+.dt-buttons .btn-outline-secondary {
+    background-color: #ffffff !important;
+    border-color: #6c757d !important;
+    color: #6c757d !important;
+}
+
+.dt-buttons .btn-outline-secondary:hover {
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+    color: #ffffff !important;
+}
+
+.dt-buttons .btn-outline-success {
+    background-color: #ffffff !important;
+    border-color: #28a745 !important;
+    color: #28a745 !important;
+}
+
+.dt-buttons .btn-outline-success:hover {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+.dt-buttons .btn-outline-danger {
+    background-color: #ffffff !important;
+    border-color: #dc3545 !important;
+    color: #dc3545 !important;
+}
+
+.dt-buttons .btn-outline-danger:hover {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+.dt-buttons .btn-outline-info {
+    background-color: #ffffff !important;
+    border-color: #17a2b8 !important;
+    color: #17a2b8 !important;
+}
+
+.dt-buttons .btn-outline-info:hover {
+    background-color: #17a2b8 !important;
+    border-color: #17a2b8 !important;
+    color: #ffffff !important;
+}
+
+.dt-buttons .btn-outline-warning {
+    background-color: #ffffff !important;
+    border-color: #ffc107 !important;
+    color: #856404 !important;
+}
+
+.dt-buttons .btn-outline-warning:hover {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+/* Iconos en botones */
+.dt-buttons .btn i {
+    margin-right: 0.25rem;
+}
+
+/* ========================================
+   TÍTULOS Y TIPOGRAFÍA DEL MODAL
+   ======================================== */
+
+.help-modal .section-title {
+    color: #2c3e50;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.help-modal .section-title:first-child {
+    margin-top: 0;
+}
+
+.help-modal .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 2px;
+}
+
+.help-modal .section-title i {
+    margin-right: 0.75rem;
+    font-size: 1.3rem;
+    color: #667eea;
+}
+
+.help-modal hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+    margin: 2rem 0;
+    border-radius: 1px;
+}
+
+/* Mejoras en párrafos y texto */
+.help-modal .modal-body p {
+    color: #495057;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.help-modal .modal-body strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.help-modal .modal-body ul li strong {
+    color: #667eea;
+}
+
+/* Responsive para botones */
+@media (max-width: 768px) {
+    .dt-buttons .btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        margin-right: 0.125rem;
+        margin-bottom: 0.125rem;
+    }
+    
+    .dt-buttons .btn i {
+        margin-right: 0.125rem;
+    }
+}
+
+/* ========================================
+   ANIMACIONES ADICIONALES
+   ======================================== */
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse-on-hover:hover {
+    animation: pulse 0.6s ease-in-out;
+}
+
+/* ========================================
+   ESTADOS DE ACCESIBILIDAD
+   ======================================== */
+
+.help-button:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+.help-modal .modal-header .close:focus {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+.help-table tbody tr:focus {
+    outline: 2px solid #007bff;
+    outline-offset: -2px;
+}
+
+/* Modo de alto contraste */
+@media (prefers-contrast: high) {
+    .tooltip-inner {
+        background-color: #000;
+        color: #fff;
+        border: 1px solid #fff;
+    }
+    
+    .help-modal .modal-header {
+        background: #000;
+        color: #fff;
+    }
+    
+    .info-header .fa-info-circle {
+        color: #000 !important;
+    }
+}

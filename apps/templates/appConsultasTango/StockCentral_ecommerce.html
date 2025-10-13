@@ -21,6 +21,8 @@
   <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
   <!-- bootstrap4-toggle -->
   <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+  <!-- Sistema de Ayuda para Tablas de Stock -->
+  <link rel="stylesheet" href="/static/assets/css/stock-help-system.css">
 
 {% endblock stylesheets %}
 
@@ -66,6 +68,13 @@
           <div class="col-12">
             <div class="card">
               <div class="card-header">
+                <!-- Botón de ayuda en la esquina superior derecha -->
+                <div class="d-flex justify-content-between align-items-center">
+                  <h3 class="card-title">Información de Stock</h3>
+                  <button type="button" class="btn btn-outline-info btn-sm help-button pulse-on-hover" data-toggle="modal" data-target="#helpModal" title="Presiona Ctrl+H para acceso rápido">
+                    <i class="fas fa-question-circle"></i> Ayuda
+                  </button>
+                </div>
                 <!-- <form method="get">
                   {{articulos.form}}
                   <button type="submit" class="btn btn-primary">Buscar</button>
@@ -73,20 +82,36 @@
               </div> -->
               <!-- /.card-header -->
               <div class="card-body">
-                <table id="example1" class="table table-bordered table-striped">
+                <div class="table-responsive-custom">
+                  <table id="example1" class="table table-bordered table-striped stock-table">
                   <thead>
                     <tr>
-                      <th>ARTICULO</th>
-                      <th>DESCRIPCION</th>
-                      <th class="text-primary">DISPONIBLE</th>
-                      <th>TOTAL</th>
-                      <th>CANTIDAD COMPROMETIDA</th>
-                      <th>RESERVA ECOMMERCE</th>
-                      <th>RESERVA VTEX</th>
-                      <th>STOCK EXCLUIDO</th>
-                      <th>STOCK DE SEGURIDAD</th>
-                      <th>DEPOSITO</th>
-                      <th>RUBRO</th>
+                      <th style="min-width: 80px;">ARTICULO</th>
+                      <th style="min-width: 120px;">DESCRIPCION</th>
+                      <th class="text-primary info-header" data-toggle="tooltip" data-placement="top" title="Stock actualmente disponible para la venta (calculado automáticamente).">
+                        DISPONIBLE
+                      </th>
+                      <th class="info-header" data-toggle="tooltip" data-placement="top" title="Stock total físico en el depósito.">
+                        TOTAL
+                      </th>
+                      <th class="info-header compact-header" data-toggle="tooltip" data-placement="top" title="Stock comprometido para pedidos confirmados pero no despachados.">
+                        CANT.<br>COMPROM.
+                      </th>
+                      <!-- Tooltips implementados en las columnas específicas -->
+                      <th class="info-header compact-header" data-toggle="tooltip" data-placement="top" title="<i class='fas fa-shopping-cart context-icon icon-ecommerce'></i><strong>Stock Exclusivo Ecommerce:</strong><br>Este es el stock físico asignado exclusivamente al canal Ecommerce en el depósito 01.">
+                        RESERVA<br>ECOMMERCE
+                      </th>
+                      <th class="info-header compact-header" data-toggle="tooltip" data-placement="top" title="<i class='fas fa-pause-circle context-icon icon-vtex'></i><strong>Stock Reservado por Pedidos Ecommerce:</strong><br>Stock bloqueado temporalmente en la plataforma VTEX cuando un cliente agrega un producto al carrito o inicia un pedido, pero aún no se confirma. Si el pedido no se concreta, este stock se libera nuevamente al disponible.">
+                        RESERVA<br>VTEX
+                      </th>
+                      <th class="info-header compact-header" data-toggle="tooltip" data-placement="top" title="<i class='fas fa-ban context-icon icon-excluded'></i><strong>Stock Excluido:</strong><br>Stock excluido del cálculo de disponibilidad para la venta (productos dañados, en revisión, etc.).">
+                        STOCK<br>EXCLUIDO
+                      </th>
+                      <th class="info-header compact-header" data-toggle="tooltip" data-placement="top" title="<i class='fas fa-shield-alt context-icon icon-security'></i><strong>Stock de Seguridad:</strong><br>Stock mínimo que debe mantenerse como reserva de seguridad para evitar quiebres.">
+                        STOCK<br>SEGURIDAD
+                      </th>
+                      <th class="d-none d-md-table-cell" style="min-width: 60px;">DEPOSITO</th>
+                      <th class="d-none d-lg-table-cell" style="min-width: 80px;">RUBRO</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -101,14 +126,15 @@
                         <td>{{ articulo.stock_reserva_vtex|floatformat }}</td>
                         <td>{{ articulo.stock_excluido|floatformat }}</td>
                         <td>{{ articulo.stock_seguridad|floatformat }}</td>
-                        <td>{{ articulo.deposito }}</td>
-                        <td>{{ articulo.rubro }}</td>
+                        <td class="d-none d-md-table-cell">{{ articulo.deposito }}</td>
+                        <td class="d-none d-lg-table-cell">{{ articulo.rubro }}</td>
                       </tr>
                     {% endfor %}
                   </tbody>
                   
                   
                 </table>
+                </div>
               </div>
               <!-- /.card-body -->
             </div>
@@ -121,6 +147,131 @@
       <!-- /.container-fluid -->
     </section>
     <!-- /.content -->
+  </div>
+
+  <!-- Modal de Ayuda -->
+  <div class="modal fade help-modal" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title" id="helpModalLabel">
+            <i class="fas fa-info-circle"></i> Información de la Tabla de Stock Ecommerce
+          </h5>
+          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-12">
+              <h6 class="section-title"><i class="fas fa-table"></i> Descripción de Columnas</h6>
+              <div class="table-responsive">
+                <table class="table table-sm help-table">
+                  <thead class="thead-light">
+                    <tr>
+                      <th>Columna</th>
+                      <th>Descripción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="column-name">ARTICULO</td>
+                      <td class="column-description">Código único del artículo en el sistema.</td>
+                    </tr>
+                    <tr>
+                      <td class="column-name">DESCRIPCION</td>
+                      <td class="column-description">Descripción detallada del producto.</td>
+                    </tr>
+                    <tr>
+                      <td class="column-name">DISPONIBLE</td>
+                      <td class="column-description">Stock actualmente disponible para la venta (calculado automáticamente).</td>
+                    </tr>
+                    <tr>
+                      <td class="column-name">TOTAL</td>
+                      <td class="column-description">Stock total físico en el depósito.</td>
+                    </tr>
+                    <tr>
+                      <td class="column-name">CANTIDAD COMPROMETIDA</td>
+                      <td class="column-description">Stock comprometido para pedidos confirmados pero no despachados.</td>
+                    </tr>
+                    <tr class="table-warning">
+                      <td class="column-name">RESERVA ECOMMERCE</td>
+                      <td class="column-description">
+                        <i class="fas fa-shopping-cart context-icon icon-ecommerce"></i> 
+                        <strong>Stock Exclusivo Ecommerce:</strong> Stock físico asignado exclusivamente al canal Ecommerce en el depósito 01. Este stock está destinado únicamente para ventas online.
+                      </td>
+                    </tr>
+                    <tr class="table-info">
+                      <td class="column-name">RESERVA VTEX</td>
+                      <td class="column-description">
+                        <i class="fas fa-pause-circle context-icon icon-vtex"></i> 
+                        <strong>Stock Reservado por Pedidos Ecommerce:</strong> Stock bloqueado temporalmente en la plataforma VTEX cuando un cliente agrega un producto al carrito o inicia un pedido, pero aún no se confirma. Si el pedido no se concreta, este stock se libera nuevamente al disponible.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="column-name">STOCK EXCLUIDO</td>
+                      <td class="column-description">
+                        <i class="fas fa-ban context-icon icon-excluded"></i> 
+                        Stock excluido del cálculo de disponibilidad para la venta (productos dañados, en revisión, etc.).
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="column-name">STOCK DE SEGURIDAD</td>
+                      <td class="column-description">
+                        <i class="fas fa-shield-alt context-icon icon-security"></i> 
+                        Stock mínimo que debe mantenerse como reserva de seguridad para evitar quiebres.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="column-name">DEPOSITO</td>
+                      <td class="column-description">Código del depósito donde se encuentra el stock.</td>
+                    </tr>
+                    <tr>
+                      <td class="column-name">RUBRO</td>
+                      <td class="column-description">Categoría o rubro al que pertenece el producto.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <hr>
+              
+              <div class="calculations-section">
+                <h6><i class="fas fa-calculator"></i>Cálculos Importantes</h6>
+                <div class="calculation-formula">
+                  <strong>Stock Disponible</strong> = Total - Cantidad Comprometida - Reserva Ecommerce - Reserva VTEX - Stock Excluido
+                </div>
+                <ul>
+                  <li><strong>Stock Total</strong> incluye todo el inventario físico del depósito</li>
+                  <li>El <strong>Stock de Seguridad</strong> no se descuenta del disponible, pero sirve como referencia mínima</li>
+                </ul>
+              </div>
+              
+              <div class="help-alert help-alert-warning">
+                <h6><i class="fas fa-exclamation-triangle"></i>Consideraciones Importantes</h6>
+                <ul>
+                  <li>La <strong>Reserva VTEX</strong> es temporal y se libera automáticamente si el pedido no se confirma</li>
+                  <li>La <strong>Reserva Ecommerce</strong> es permanente hasta que se venda o se reasigne</li>
+                  <li>Monitear que el stock disponible no baje del stock de seguridad establecido</li>
+                  <li>Los datos se actualizan en tiempo real desde el sistema Tango</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="d-flex align-items-center justify-content-between w-100">
+            <small class="text-muted d-flex align-items-center">
+              <i class="fas fa-sync-alt mr-2"></i>
+              Los datos se sincronizan automáticamente con Tango
+            </small>
+            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
+              <i class="fas fa-times mr-1"></i> Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
 {% endblock content %}
@@ -151,18 +302,26 @@
   <script src="/static/assets/js/adminlte.min.js"></script>
   <!-- AdminLTE for demo purposes -->
   <script src="/static/assets/js/demo.js"></script>
+  <!-- Sistema de Ayuda para Tablas de Stock -->
+  <script src="/static/assets/js/stock-help-config.js"></script>
+  <script src="/static/assets/js/stock-help-system.js"></script>
   <!-- page script -->
   <script>
+    // Variables globales
+    var suma = 0;
+    var stockHelpSystem;
+
+    // Funciones de carga y spinner
     window.onload = function(){
       var loading = document.getElementById('spiner');
       loading.style.visibility = 'hidden';
-      // loading.style.opacity = '0';
     }
+    
     $('#botonBuscar').click(function(){
       var loading = document.getElementById('spiner');
       loading.style.visibility = 'visible';
-      // loading.style.opacity = '0';
     })
+    
     $('#modelo_seleccionado').change(function(){
       if(this.checked) {
         window.location.href = '/../Reportes/Ecommerce/stockUY_ecommerce';
@@ -171,20 +330,191 @@
       loading.style.visibility = 'visible';
     })
 
-    var suma = 0;
     $(document).ready(function(){
+      // Detectar dispositivo móvil
+      var isMobile = window.innerWidth <= 768;
+      
+      // Inicializar sistema de ayuda con configuración personalizada
+      stockHelpSystem = new StockHelpSystem({
+        tooltipContainer: 'body',
+        tooltipTrigger: isMobile ? 'click' : 'hover focus',
+        modalId: '#helpModal',
+        tableId: '#example1',
+        enableKeyboardShortcuts: !isMobile,
+        enableRowHighlighting: true
+      });
+      
+      // Configurar tooltips mejorados
+      $('[data-toggle="tooltip"]').tooltip({
+        container: 'body',
+        trigger: isMobile ? 'click' : 'hover focus',
+        html: true,
+        placement: function(context, source) {
+          // Determinar posicionamiento basado en la posición del elemento
+          var $source = $(source);
+          var position = $source.offset();
+          var windowHeight = $(window).height();
+          var windowWidth = $(window).width();
+          
+          // Si está en la parte superior de la pantalla, mostrar debajo
+          if (position.top < windowHeight / 3) {
+            return 'bottom';
+          }
+          // Si está en la parte derecha, mostrar a la izquierda
+          else if (position.left > windowWidth * 2/3) {
+            return 'left';
+          }
+          // Por defecto, mostrar arriba
+          else {
+            return 'top';
+          }
+        },
+        delay: { show: 200, hide: 100 },
+        animation: false, // Desactivar animación para evitar reposicionamiento
+        boundary: 'viewport'
+      });
+      
+      if (isMobile) {
+        // Cerrar tooltip al hacer click fuera
+        $(document).on('click', function (e) {
+          if (!$(e.target).closest('[data-toggle="tooltip"]').length) {
+            $('[data-toggle="tooltip"]').tooltip('hide');
+          }
+        });
+      }
+
+      // Calcular total disponible
       $("#example1 tbody tr").each(function(){
         var cant = $(this).find("td:eq(2)").text();
         suma += parseFloat(cant);
       });
-      $("#Total").text(suma);
+      $("#Total").text(suma.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }));
     });
+
     $(function () {
-      $("#example1").DataTable({
-        "responsive": true, "lengthChange": true, "autoWidth": false,
-        "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
-      }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+      // Configuración de DataTable con mejoras responsivas
+      var dataTable = $("#example1").DataTable({
+        "responsive": {
+          "details": {
+            "type": 'column',
+            "target": 'tr'
+          }
+        }, 
+        "lengthChange": true, 
+        "autoWidth": false,
+        "pageLength": 25,
+        "scrollX": true,
+        "scrollCollapse": true,
+        "buttons": [
+          {
+            extend: "copy",
+            text: '<i class="fas fa-copy"></i> Copiar',
+            className: 'btn btn-sm btn-outline-secondary'
+          },
+          {
+            extend: "csv",
+            text: '<i class="fas fa-file-csv"></i> CSV',
+            className: 'btn btn-sm btn-outline-success'
+          },
+          {
+            extend: "excel",
+            text: '<i class="fas fa-file-excel"></i> Excel',
+            className: 'btn btn-sm btn-outline-success'
+          },
+          {
+            extend: "pdf",
+            text: '<i class="fas fa-file-pdf"></i> PDF',
+            className: 'btn btn-sm btn-outline-danger'
+          },
+          {
+            extend: "print",
+            text: '<i class="fas fa-print"></i> Imprimir',
+            className: 'btn btn-sm btn-outline-info'
+          },
+          {
+            extend: "colvis",
+            text: '<i class="fas fa-columns"></i> Columnas',
+            className: 'btn btn-sm btn-outline-warning'
+          }
+        ],
+        "language": {
+          "search": "Buscar:",
+          "lengthMenu": "Mostrar _MENU_ registros por página",
+          "zeroRecords": "No se encontraron registros que coincidan con la búsqueda",
+          "info": "Mostrando página _PAGE_ de _PAGES_ (_TOTAL_ registros en total)",
+          "infoEmpty": "No hay registros disponibles",
+          "infoFiltered": "(filtrado de _MAX_ registros totales)",
+          "paginate": {
+            "first": "Primero",
+            "last": "Último",
+            "next": "Siguiente",
+            "previous": "Anterior"
+          },
+          "loadingRecords": "Cargando...",
+          "processing": "Procesando...",
+          "emptyTable": "No hay datos disponibles en la tabla"
+        },
+        // Resaltar filas según niveles de stock
+        "createdRow": function(row, data, dataIndex) {
+          var disponible = parseFloat(data[2]) || 0;
+          var stockSeguridad = parseFloat(data[8]) || 0;
+          var reservaEcommerce = parseFloat(data[5]) || 0;
+          var reservaVtex = parseFloat(data[6]) || 0;
+          
+          // Lógica de colores mejorada
+          if (disponible <= 0) {
+            $(row).addClass('table-secondary');
+            $(row).attr('title', 'Sin stock disponible - Revisar reposición');
+          } else if (disponible > 0 && disponible <= stockSeguridad) {
+            $(row).addClass('table-warning');
+            $(row).attr('title', 'Alerta: Stock por debajo del nivel de seguridad (' + stockSeguridad + ')');
+          } else if (reservaEcommerce > 0 || reservaVtex > 0) {
+            $(row).addClass('table-info');
+            $(row).attr('title', 'Producto con reservas activas');
+          }
+          
+          // Agregar cursor help para filas con título
+          if ($(row).attr('title')) {
+            $(row).css('cursor', 'help');
+          }
+        },
+        // Callback después de dibujar la tabla
+        "drawCallback": function(settings) {
+          // Recalcular el total cuando cambie la paginación o filtros
+          var suma = 0;
+          var api = this.api();
+          
+          // Solo contar las filas visibles (después del filtro)
+          api.column(2, { page: 'current' }).data().each(function(value, index) {
+            suma += parseFloat(value) || 0;
+          });
+          
+          $("#Total").text(suma.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }));
+          
+          // Actualizar tooltips en las nuevas filas
+          $('[title]').tooltip({
+            container: 'body',
+            trigger: 'hover',
+            placement: 'top'
+          });
+        }
+      });
+
+      // Agregar los botones al contenedor
+      dataTable.buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+      
+      // Mejorar el estilo de los botones de DataTable
+      $('#example1_wrapper .dt-buttons .btn').addClass('mr-1 mb-1');
     });
+
+    // Función global para mostrar ayuda (accesible desde cualquier lugar)
+    function mostrarAyuda() {
+      if (stockHelpSystem) {
+        stockHelpSystem.showHelp();
+      } else {
+        $('#helpModal').modal('show');
+      }
+    }
   </script>
 
 {% endblock javascripts %}
