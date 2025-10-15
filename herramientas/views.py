@@ -1711,3 +1711,35 @@ def test_plantilla_simplificada(request):
         import traceback
         traceback.print_exc()
         return HttpResponse(f"Error en plantilla simplificada: {str(e)}", content_type="text/plain")
+
+@login_required(login_url="/login/")
+def gestion_sucursales_ecommerce(request):
+    """Vista para gestionar las sucursales de ecommerce"""
+    try:
+        if request.method == 'POST':
+            nro_sucursal = request.POST.get('nro_sucursal')
+            if nro_sucursal:
+                # Activar la sucursal seleccionada
+                activar_sucursal_ecommerce(nro_sucursal)
+                messages.success(request, f'Sucursal {nro_sucursal} activada exitosamente')
+                return redirect('herramientas:gestion_sucursales_ecommerce')
+        
+        # Obtener todas las sucursales
+        sucursales = obtener_sucursales_ecommerce()
+        sucursal_activa = obtener_sucursal_activa()
+        
+        context = {
+            'sucursales': sucursales,
+            'sucursal_activa': sucursal_activa,
+            'titulo': 'Gestión de Sucursales E-commerce'
+        }
+        
+        return render(request, 'herramientas/gestion_sucursales_ecommerce.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Error al cargar las sucursales: {str(e)}')
+        return render(request, 'herramientas/gestion_sucursales_ecommerce.html', {
+            'sucursales': [],
+            'sucursal_activa': None,
+            'titulo': 'Gestión de Sucursales E-commerce'
+        })
