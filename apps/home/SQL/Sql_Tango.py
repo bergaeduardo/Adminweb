@@ -236,3 +236,36 @@ def eliminar_relacion(id_categoria_tango, id_subcategoria):
     with connections['mi_db_2'].cursor() as cursor:
           sql = "DELETE FROM EB_relacionCat_VtxAr WHERE id_categoria_Tango = %s AND id_subCat_VtxAr = %s"
           cursor.execute(sql, [id_categoria_tango,id_subcategoria])
+
+def obtener_sucursales_ecommerce():
+    """Obtener todas las sucursales de ecommerce desde la tabla RO_T_DEPOSITOS_ECOMMERCE_TIENDAS"""
+    with connections['mi_db_2'].cursor() as cursor:
+        sql = """SELECT NRO_SUCURSAL, SUCURSAL, COD_DEPOSI_PRINC, COD_DEPOSI_ECOMM, 
+                        ACTIVO, FECHA_MODIF 
+                 FROM RO_T_DEPOSITOS_ECOMMERCE_TIENDAS 
+                 ORDER BY NRO_SUCURSAL"""
+        cursor.execute(sql)
+        return cursor.fetchall()
+
+def activar_sucursal_ecommerce(nro_sucursal):
+    """Activar una sucursal específica y desactivar todas las demás"""
+    with connections['mi_db_2'].cursor() as cursor:
+        # Primero desactivar todas las sucursales
+        sql_desactivar = "UPDATE RO_T_DEPOSITOS_ECOMMERCE_TIENDAS SET ACTIVO = 0"
+        cursor.execute(sql_desactivar)
+        
+        # Luego activar la sucursal específica y actualizar fecha
+        sql_activar = """UPDATE RO_T_DEPOSITOS_ECOMMERCE_TIENDAS 
+                        SET ACTIVO = 1, FECHA_MODIF = GETDATE() 
+                        WHERE NRO_SUCURSAL = %s"""
+        cursor.execute(sql_activar, [nro_sucursal])
+
+def obtener_sucursal_activa():
+    """Obtener la sucursal que está actualmente activa"""
+    with connections['mi_db_2'].cursor() as cursor:
+        sql = """SELECT NRO_SUCURSAL, SUCURSAL, COD_DEPOSI_PRINC, COD_DEPOSI_ECOMM, 
+                        ACTIVO, FECHA_MODIF 
+                 FROM RO_T_DEPOSITOS_ECOMMERCE_TIENDAS 
+                 WHERE ACTIVO = 1"""
+        cursor.execute(sql)
+        return cursor.fetchone()

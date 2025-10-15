@@ -1,0 +1,349 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Gestión de Sucursales E-commerce {% endblock %}
+
+{% block stylesheets %}
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+  <!-- DataTables -->
+  <link rel="stylesheet" href="/static/assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="/static/assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="/static/assets/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
+  
+  <style>
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      -webkit-transition: .4s;
+      transition: .4s;
+      border-radius: 20px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      -webkit-transition: .4s;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #28a745;
+    }
+
+    input:focus + .slider {
+      box-shadow: 0 0 1px #28a745;
+    }
+
+    input:checked + .slider:before {
+      -webkit-transform: translateX(20px);
+      -ms-transform: translateX(20px);
+      transform: translateX(20px);
+    }
+
+    .sucursal-activa {
+      background-color: #d4edda !important;
+      border-left: 4px solid #28a745;
+    }
+
+    .info-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    /* Reducir el alto de los registros */
+    #tablaSucursales tbody tr {
+      height: 30px;
+    }
+
+    /* Corregir los caracteres en los selectores de orden */
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
+  </style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+<!-- Content Wrapper -->
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1><i class="fas fa-store"></i> {{ titulo }}</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="#">Herramientas</a></li>
+            <li class="breadcrumb-item active">Gestión Sucursales E-commerce</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      
+      <!-- Información del Sistema -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="info-section">
+            <div class="row align-items-center">
+              <div class="col-md-1">
+                <i class="fas fa-info-circle fa-3x"></i>
+              </div>
+              <div class="col-md-11">
+                <h4><i class="fas fa-cog"></i> Propósito de esta herramienta</h4>
+                <p class="mb-0">
+                  Permite la recepción de pedidos provenientes de Mercado Libre en casa central. 
+                  Los identifica por sucursal mediante el depósito y realiza una ejecución automática 
+                  de una transferencia de stock desde un depósito origen hacia el depósito de 
+                  facturación de la sucursal.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado Actual -->
+      {% if sucursal_activa %}
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card card-success">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-check-circle"></i>
+                Sucursal Activa Actual
+              </h3>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <p><strong>Número de Sucursal:</strong> {{ sucursal_activa.0 }}</p>
+                  <p><strong>Nombre:</strong> {{ sucursal_activa.1 }}</p>
+                </div>
+                <div class="col-md-6">
+                  <p><strong>Depósito Principal:</strong> {{ sucursal_activa.2 }}</p>
+                  <p><strong>Depósito E-commerce:</strong> {{ sucursal_activa.3 }}</p>
+                  {% if sucursal_activa.5 %}
+                  <p><strong>Activada el:</strong> {{ sucursal_activa.5|date:"d/m H:i" }}</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Atención:</strong> No hay ninguna sucursal activa actualmente.
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Gestión de Sucursales -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-list"></i>
+                Listado de Sucursales E-commerce
+              </h3>
+            </div>
+            <div class="card-body">
+              
+              {% if sucursales %}
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="tablaSucursales">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th style="width: 15%;">Nº Sucursal</th>
+                      <th style="width: 30%;">Nombre Sucursal</th>
+                      <th style="width: 15%;">Dep. Principal</th>
+                      <th style="width: 15%;">Dep. E-commerce</th>
+                      <th style="width: 15%;">Estado</th>
+                      <th style="width: 15%;">Fecha Activación</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for sucursal in sucursales %}
+                    <tr {% if sucursal.4 == 1 %}class="sucursal-activa"{% endif %}>
+                      <td>
+                        <strong>{{ sucursal.0|default_if_none:"-" }}</strong>
+                      </td>
+                      <td>{{ sucursal.1|default_if_none:"-" }}</td>
+                      <td>{{ sucursal.2|default_if_none:"-" }}</td>
+                      <td>{{ sucursal.3|default_if_none:"-" }}</td>
+                      <td>
+                        <form method="post" style="display: inline;">
+                          {% csrf_token %}
+                          <input type="hidden" name="nro_sucursal" value="{{ sucursal.0 }}">
+                          <label class="switch">
+                            <input type="checkbox" 
+                                   {% if sucursal.4 == 1 %}checked{% endif %}
+                                   onchange="confirmarCambio(this, '{{ sucursal.0 }}', '{{ sucursal.1 }}')">
+                            <span class="slider"></span>
+                          </label>
+                        </form>
+                      </td>
+                      <td>
+                        {% if sucursal.4 == 1 and sucursal.5 %}
+                          <small class="text-success">
+                            <i class="fas fa-calendar-check"></i>
+                            {{ sucursal.5|date:"d/m H:i" }}
+                          </small>
+                        {% else %}
+                          <small class="text-muted">-</small>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% else %}
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                No se encontraron sucursales configuradas en el sistema.
+              </div>
+              {% endif %}
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+  <!-- jQuery -->
+  <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap 4 -->
+  <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- DataTables -->
+  <script src="/static/assets/plugins/datatables/jquery.dataTables.min.js"></script>
+  <script src="/static/assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+  <script src="/static/assets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+  <script src="/static/assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="/static/assets/plugins/sweetalert2/sweetalert2.min.js"></script>
+  <!-- AdminLTE App -->
+  <script src="/static/assets/js/adminlte.min.js"></script>
+
+  <script>
+    $(document).ready(function() {
+      // Inicializar DataTable
+      $('#tablaSucursales').DataTable({
+        responsive: true,
+        lengthChange: false,
+        searching: true,
+        pageLength: 10,
+        language: {
+          url: '/static/assets/plugins/datatables/lang/Spanish.json'
+        },
+        order: [[0, 'asc']]
+      });
+    });
+
+    function confirmarCambio(checkbox, nroSucursal, nombreSucursal) {
+      // Si se está desmarcando el checkbox activo, no hacer nada
+      if (!checkbox.checked) {
+        checkbox.checked = true;
+        Swal.fire({
+          title: 'Información',
+          text: 'Para cambiar de sucursal activa, seleccione otra sucursal.',
+          icon: 'info',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#007bff'
+        });
+        return;
+      }
+
+      // Confirmar el cambio
+      Swal.fire({
+        title: '¿Confirmar cambio de sucursal activa?',
+        html: `
+          <p>Está a punto de activar la sucursal:</p>
+          <div class="alert alert-info">
+            <strong>Nº ${nroSucursal}</strong> - ${nombreSucursal}
+          </div>
+          <p class="text-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            Esto desactivará automáticamente todas las demás sucursales.
+          </p>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#dc3545',
+        confirmButtonText: 'Sí, activar',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Enviar el formulario
+          checkbox.closest('form').submit();
+        } else {
+          // Restaurar estado anterior
+          checkbox.checked = false;
+        }
+      });
+    }
+
+    {% if messages %}
+      {% for message in messages %}
+        Swal.fire({
+          title: {% if message.tags == 'success' %}'¡Éxito!'{% else %}'Atención'{% endif %},
+          text: '{{ message|escapejs }}',
+          icon: '{{ message.tags }}',
+          confirmButtonText: 'Entendido'
+        });
+      {% endfor %}
+    {% endif %}
+  </script>
+{% endblock javascripts %}

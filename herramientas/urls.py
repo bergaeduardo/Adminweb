@@ -141,6 +141,9 @@ urlpatterns = [
     # URL alternativa para plantilla
     path('plantilla-download/', views.eb_sinc_art_volumen_descargar_plantilla, name='plantilla_download_alt'),
 
+    # Gestión de Sucursales E-commerce
+    path('gestion-sucursales-ecommerce/', views.gestion_sucursales_ecommerce, name='gestion_sucursales_ecommerce'),
+
 ]
 
 if settings.DEBUG:
