@@ -250,8 +250,6 @@
                 </div>
               </form>
             </div>
-            {% if mensaje_error %}<div class="panel-footer toastrDefaultError"></div>{% endif %}
-            {% if mensaje_Success %}<div class="panel-footer toastrDefaultSuccess"></div>{% endif %}
           </div>
         </div>
         <!-- Resultados de la carga -->
@@ -333,9 +331,9 @@
             <li class="mb-2">
               <strong>Completa la información:</strong> Abre el archivo con Excel y completa los siguientes campos:
               <ul class="mt-2">
-                <li><code>ARTICULO</code>: Código del artículo (debe existir en SJ_ETIQUETAS_FINAL)</li>
-                <li><code>DESCRIPCION</code>: Descripción del artículo <strong>(obligatorio, no se completa automáticamente)</strong></li>
-                <li><code>OTROS</code>: Información adicional (opcional)</li>
+                <li><code>Codigo</code>: Código del artículo (debe existir en SJ_ETIQUETAS_FINAL)</li>
+                <li><code>Descripcion</code>: Descripción del artículo <strong>(obligatorio)</strong></li>
+                <li><code>DescripcionMetaTag</code>: Descripción para metaetiquetas SEO (opcional)</li>
                 <li><strong>⚠️ Elimina las filas de ejemplo antes de agregar tus datos</strong></li>
               </ul>
             </li>
@@ -381,18 +379,18 @@
               </thead>
               <tbody>
                 <tr>
-                  <td><code>ARTICULO</code></td>
+                  <td><code>Codigo</code></td>
                   <td>Código del artículo en el sistema</td>
                   <td><span class="badge badge-danger">Sí</span></td>
                 </tr>
                 <tr>
-                  <td><code>DESCRIPCION</code></td>
+                  <td><code>Descripcion</code></td>
                   <td>Descripción detallada del artículo</td>
                   <td><span class="badge badge-danger">Sí</span></td>
                 </tr>
                 <tr>
-                  <td><code>OTROS</code></td>
-                  <td>Información adicional (opcional)</td>
+                  <td><code>DescripcionMetaTag</code></td>
+                  <td>Descripción para metaetiquetas SEO</td>
                   <td><span class="badge badge-secondary">No</span></td>
                 </tr>
               </tbody>
@@ -472,23 +470,7 @@
     {% endif %}
   });
 
-  // Mostrar mensajes de error
-  $('.toastrDefaultError').each(function () {
-    toastr.error("{{ mensaje_error }}", "Error", {
-      "closeButton": true,
-      "progressBar": true,
-      "timeOut": "10000"
-    });
-  });
 
-  // Mostrar mensajes de éxito
-  $('.toastrDefaultSuccess').each(function() {
-    toastr.success("{{ mensaje_Success }}", "Éxito", {
-      "closeButton": true,
-      "progressBar": true,
-      "timeOut": "5000"
-    });
-  });
   
   // Resaltar filas con errores (artículos no encontrados)
   $(document).ready(function(){
