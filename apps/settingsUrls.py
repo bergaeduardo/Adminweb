@@ -76,6 +76,7 @@ DIR_REPORTES = {
     # RRHH
     'AsistenciasSuc':SERVIDOR['production'] + 'sistemas/fichaje/reporteDeAsistencias.php',
     'ReporteAnticipos':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/reporteAnticipos.php',
+    'gestionClientes':SERVIDOR['production'] + 'recursosHumanos/clientes/index.php',
     # Supervisores
     'Proyectos':SERVIDOR['production'] + 'projects/adminProyectos/index.php',
 

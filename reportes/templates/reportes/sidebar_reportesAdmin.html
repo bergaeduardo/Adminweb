@@ -472,6 +472,13 @@
           <a href="/Reportes/RRHH/reporteAnticipos" class="nav-link {% if 'reporteAnticipos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Reporte de Anticipos</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          {# RRHH/gestionClientes Link - Apply active if 'gestionClientes' is in request.path #}
+          <a href="/Reportes/RRHH/gestionClientes" class="nav-link {% if 'gestionClientes' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Gestión Clientes</p>
             <span class="badge badge-info right">New</span>
           </a>
         </li>

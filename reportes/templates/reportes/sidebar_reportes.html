@@ -15,18 +15,25 @@
           <a href="/Reportes/RRHH/reporteAnticipos" class="nav-link {% if 'reporteAnticipos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Reporte de Anticipos</p>
-            <span class="badge badge-info right">New</span>
           </a>
         </li>
-        <li class="nav-item">
-          {# Updated href for Contratos Alquiler Fr (assuming Administracion section) #}
-          <a href="/Reportes/Administracion/controlVentasSucursales"
-            class="nav-link {% if 'controlVentasSucursales' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Ctrl Ventas Sucursales</p>
-            <span class="badge badge-info right">New</span>
-          </a>
-        </li>
+          <li class="nav-item">
+            {# Updated href for Contratos Alquiler Fr (assuming Administracion section) #}
+            <a href="/Reportes/Administracion/controlVentasSucursales"
+              class="nav-link {% if 'controlVentasSucursales' in request.path %} active {% endif %}">
+              <i class="far fa-circle nav-icon"></i>
+              <p>Ctrl Ventas Sucursales</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            {# Updated href for Gestion Clientes Fr (assuming RRHH section) #}
+            <a href="/Reportes/RRHH/gestionClientes"
+              class="nav-link {% if 'gestionClientes' in request.path %} active {% endif %}">
+              <i class="far fa-circle nav-icon"></i>
+              <p>Gestión Clientes</p>
+              <span class="badge badge-info right">New</span>
+            </a>
+          </li>
         {% endif %}
         <!-- RRHH compartido -->
         {% if request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"RRHH" %}

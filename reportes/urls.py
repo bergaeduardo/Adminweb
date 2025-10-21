@@ -9,6 +9,7 @@ urlpatterns = [
     # RRHH
     path('RRHH/AsistenciasSuc', views.AsistenciasSuc, name='reportes_rrhh_asistencias_suc'),
     path('RRHH/reporteAnticipos', views.reporteAnticipos, name='reportes_rrhh_anticipos'),
+    path('RRHH/gestionClientes', views.gestionClientes, name='reportes_rrhh_gestion_clientes'),
 
     # Logistica
     path('Logistica/stockcentral', views.stockcentral, name='reportes_logistica_stockcentral'),
