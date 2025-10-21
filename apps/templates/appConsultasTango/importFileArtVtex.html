@@ -99,6 +99,108 @@
   #botonCargar:disabled {
     animation: pulse 2s infinite;
   }
+  
+  /* Animación para notificación de éxito */
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .alert-success {
+    animation: slideDown 0.5s ease-out;
+  }
+  
+  .alert-success .btn {
+    transition: all 0.3s ease;
+  }
+  
+  .alert-success .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  
+  /* Efecto de llamada de atención para el botón de descarga */
+  @keyframes pulseGlow {
+    0% {
+      box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+    }
+    50% {
+      box-shadow: 0 0 15px 5px rgba(40, 167, 69, 0.3);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+    }
+  }
+  
+  .btn-success.btn-lg {
+    animation: pulseGlow 2s infinite;
+  }
+  
+  .btn-success.btn-lg:hover {
+    animation: none;
+  }
+  
+  /* Responsive para móviles */
+  @media (max-width: 768px) {
+    .alert .btn-lg {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    
+    .alert h4 {
+      font-size: 1.2rem;
+    }
+    
+    .alert .d-flex .mr-3 {
+      font-size: 2rem !important;
+    }
+  }
+  
+  /* Estilos para modales flotantes */
+  .modal-content {
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+  
+  .modal.fade .modal-dialog {
+    transform: scale(0.8);
+    opacity: 0;
+    transition: all 0.3s ease-out;
+  }
+  
+  .modal.show .modal-dialog {
+    transform: scale(1);
+    opacity: 1;
+  }
+  
+  /* Animación del botón de descarga en modal */
+  @keyframes pulseScale {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+  
+  .btn-success.btn-block {
+    animation: pulseScale 2s infinite;
+  }
+  
+  .btn-success.btn-block:hover {
+    animation: none;
+    transform: scale(1.08) !important;
+  }
+  
+  /* Efecto backdrop */
+  .modal-backdrop.show {
+    opacity: 0.7;
+  }
 </style>
 
 {% endblock stylesheets %}
@@ -193,6 +295,8 @@
             </div>
           </div>
         </div>
+
+
 
         <!-- Formulario de carga -->
         <div class="row justify-content-center">
@@ -293,10 +397,10 @@
                       </div>
                     </div>
                     <div class="card-footer">
-                      <a href="/media/AltaArtVtex.xlsx" download="AltaArtVtex.xlsx" class="btn btn-success">
+                      <a href="/media/AltaArtVtex.xls" download="AltaArtVtex.xls" class="btn btn-success">
                         <i class="fas fa-download"></i> Descargar archivo procesado
                       </a>
-                      <button type="button" class="btn btn-secondary" onclick="location.reload();">
+                      <button type="button" class="btn btn-secondary" onclick="reloadPage();">
                         <i class="fas fa-redo"></i> Cargar otro archivo
                       </button>
                     </div>
@@ -308,6 +412,116 @@
       </div><!-- /.container-fluid -->
     </section>
     <!-- /.content -->
+  </div>
+
+  <!-- Modal de notificación de éxito -->
+  <div class="modal fade" id="successModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+      <div class="modal-content" style="border: none; border-radius: 15px; overflow: hidden;">
+        <div class="modal-header" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; padding: 2rem;">
+          <div class="d-flex align-items-center w-100">
+            <div class="mr-3" style="font-size: 4rem; color: white;">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="flex-grow-1">
+              <h3 class="modal-title text-white mb-0" style="font-weight: bold;">
+                ¡Procesamiento Exitoso!
+              </h3>
+              <p class="text-white mb-0 mt-1" style="opacity: 0.9;">{{ mensaje_Success }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+          <div class="text-center mb-4">
+            <div class="alert alert-info" style="background-color: #e7f3ff; border: none; border-radius: 10px;">
+              <i class="fas fa-info-circle"></i> 
+              <strong>El archivo procesado contiene la información validada y está listo para descargar.</strong>
+            </div>
+          </div>
+          
+          <h5 class="mb-3"><i class="fas fa-question-circle text-primary"></i> ¿Qué deseas hacer ahora?</h5>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <a href="/media/AltaArtVtex.xls" download="AltaArtVtex.xls" class="btn btn-success btn-block btn-lg" style="height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 10px; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);" onclick="closeSuccessModal();">
+                <i class="fas fa-download" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                <strong>Descargar Archivo Procesado</strong>
+              </a>
+            </div>
+            <div class="col-md-6 mb-3">
+              <button type="button" class="btn btn-outline-secondary btn-block btn-lg" style="height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 10px;" onclick="reloadPage();">
+                <i class="fas fa-redo" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                <strong>Procesar Otro Archivo</strong>
+              </button>
+            </div>
+          </div>
+          
+          <div class="text-center mt-3">
+            <small class="text-muted">
+              <i class="fas fa-lightbulb"></i> Puedes cerrar esta ventana y descargar el archivo más tarde desde la tabla de resultados
+            </small>
+          </div>
+        </div>
+        <div class="modal-footer" style="border: none; background-color: #f8f9fa;">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            <i class="fas fa-times"></i> Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de notificación de error -->
+  <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+      <div class="modal-content" style="border: none; border-radius: 15px; overflow: hidden;">
+        <div class="modal-header" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); border: none; padding: 2rem;">
+          <div class="d-flex align-items-center w-100">
+            <div class="mr-3" style="font-size: 4rem; color: white;">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="flex-grow-1">
+              <h3 class="modal-title text-white mb-0" style="font-weight: bold;">
+                Error en el Procesamiento
+              </h3>
+              <p class="text-white mb-0 mt-1" style="opacity: 0.9;">{{ mensaje_error }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+          <div class="alert alert-warning" style="background-color: #fff3cd; border: none; border-radius: 10px; border-left: 4px solid #ffc107;">
+            <h5 class="mb-3"><i class="fas fa-tools"></i> ¿Qué hacer?</h5>
+            <ul class="mb-0">
+              <li>Verifica que los códigos de artículos existan en la base de datos <strong>SJ_ETIQUETAS_FINAL</strong></li>
+              <li>Revisa la tabla de resultados para identificar los artículos marcados con <span style="background-color:#F1948A; padding: 2px 8px; border-radius: 3px; color: white; font-weight: bold;">asteriscos (*)</span></li>
+              <li>Corrige los datos en tu archivo Excel y vuelve a subirlo</li>
+            </ul>
+          </div>
+          
+          <h5 class="mb-3 mt-4"><i class="fas fa-question-circle text-primary"></i> Acciones disponibles:</h5>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <button type="button" class="btn btn-warning btn-block btn-lg" style="height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 10px; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);" onclick="reloadPage();">
+                <i class="fas fa-redo" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                <strong>Intentar Nuevamente</strong>
+              </button>
+            </div>
+            <div class="col-md-6 mb-3">
+              <a href="/media/AltaArtVtex.xlsx" download="AltaArtVtex.xlsx" class="btn btn-outline-success btn-block btn-lg" style="height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 10px;" data-dismiss="modal">
+                <i class="fas fa-download" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                <strong>Descargar Plantilla</strong>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="border: none; background-color: #f8f9fa;">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            <i class="fas fa-times"></i> Cerrar y revisar resultados
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Modal de Ayuda -->
@@ -474,6 +688,16 @@
   
   // Resaltar filas con errores (artículos no encontrados)
   $(document).ready(function(){
+    // Mostrar modal de éxito si hay mensaje de éxito
+    {% if mensaje_Success %}
+      $('#successModal').modal('show');
+    {% endif %}
+    
+    // Mostrar modal de error si hay mensaje de error
+    {% if mensaje_error %}
+      $('#errorModal').modal('show');
+    {% endif %}
+    
     // Marcar en rojo las filas con artículos inválidos (que contienen *)
     $("td:nth-of-type(1):contains('*')").parent().css({
       "background-color": "#F1948A",
@@ -526,6 +750,34 @@
       $(this).next('.custom-file-label').html('<i class="fas fa-file-excel text-success"></i> ' + fileName);
     });
   });
+  
+  // Función para cerrar el modal de éxito después de descargar
+  function closeSuccessModal() {
+    setTimeout(function() {
+      $('#successModal').modal('hide');
+    }, 1000);
+  }
+  
+  // Función para recargar la página completamente
+  function reloadPage() {
+    // Mostrar indicador de carga
+    $('body').append('<div id="loadingOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; justify-content: center; align-items: center;"><div style="text-align: center; color: white;"><i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 1rem;"></i><h4>Preparando nueva carga...</h4></div></div>');
+    
+    // Cerrar todos los modales abiertos
+    $('.modal').modal('hide');
+    
+    // Esperar a que los modales se cierren
+    setTimeout(function() {
+      // Limpiar el formulario
+      if(document.getElementById('exampleInputFile')) {
+        document.getElementById('exampleInputFile').value = '';
+      }
+      $('.custom-file-label').html('Elija el archivo Excel');
+      
+      // Recargar la página forzando desde el servidor (evita caché)
+      window.location.href = window.location.pathname + '?reload=' + new Date().getTime();
+    }, 500);
+  }
    </script>
   
 
