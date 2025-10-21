@@ -95,6 +95,7 @@ urlpatterns = [
     path('EgresosCajaTesoreria', views.EgresosCajaTesoreria, name='herramientas_egresos_caja_tesoreria'),
     path('GestionDeProveedores',views.GestionDeProveedores, name='herramientas_gestion_proveedores'),
     path('MedidasLocales', views.MedidasLocales, name='herramientas_medidas_locales'),
+    path('VentasLocatarios', views.VentasLocatarios, name='herramientas_ventas_locatarios'),
 
     # Administracion_CE             ***Comercio Exterior***
     path('Cargarcontenedor', views.Cargarcontenedor, name='herramientas_cargar_contenedor'),

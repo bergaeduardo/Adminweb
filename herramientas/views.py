@@ -914,6 +914,12 @@ def EditarContenedor(request):
     dir_iframe = DIR_HERAMIENTAS['mostrarOrden'] #+ UserName
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
 
+@login_required(login_url="/login/")
+def VentasLocatarios(request):
+    Nombre = 'Ventas Locatarios'
+    dir_iframe = DIR_HERAMIENTAS['VentasLocatarios'] #+ UserName
+    return redirect(dir_iframe)
+
 # RRHH
 
 @login_required(login_url="/login/")
