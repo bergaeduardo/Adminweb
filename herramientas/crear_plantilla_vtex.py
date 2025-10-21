@@ -1,56 +1,37 @@
-﻿import xlwt
+﻿import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 import os
 
-libro = xlwt.Workbook()
-hoja = libro.add_sheet('Articulos VTEX')
+# Crear un nuevo libro de trabajo
+libro = openpyxl.Workbook()
+hoja = libro.active
+hoja.title = 'Articulos VTEX'
 
-estilo_encabezado = xlwt.XFStyle()
-font = xlwt.Font()
-font.bold = True
-font.name = 'Arial'
-font.height = 220
-estilo_encabezado.font = font
+# Estilos
+header_font = Font(name='Arial', size=11, bold=True, color='000000')
+header_fill = PatternFill(start_color='B4C7E7', end_color='B4C7E7', fill_type='solid')
+header_alignment = Alignment(horizontal='center', vertical='center')
 
-pattern = xlwt.Pattern()
-pattern.pattern = xlwt.Pattern.SOLID_PATTERN
-pattern.pattern_fore_colour = xlwt.Style.colour_map['ice_blue']
-estilo_encabezado.pattern = pattern
+example_fill = PatternFill(start_color='E7E6E6', end_color='E7E6E6', fill_type='solid')
+example_font = Font(name='Arial', size=10)
 
-borders = xlwt.Borders()
-borders.left = xlwt.Borders.THIN
-borders.right = xlwt.Borders.THIN
-borders.top = xlwt.Borders.THIN
-borders.bottom = xlwt.Borders.THIN
-estilo_encabezado.borders = borders
+thin_border = Border(
+    left=Side(style='thin'),
+    right=Side(style='thin'),
+    top=Side(style='thin'),
+    bottom=Side(style='thin')
+)
 
-alignment = xlwt.Alignment()
-alignment.horz = xlwt.Alignment.HORZ_CENTER
-alignment.vert = xlwt.Alignment.VERT_CENTER
-estilo_encabezado.alignment = alignment
-
-estilo_ejemplo = xlwt.XFStyle()
-font_ejemplo = xlwt.Font()
-font_ejemplo.name = 'Arial'
-font_ejemplo.height = 200
-estilo_ejemplo.font = font_ejemplo
-
-pattern_ejemplo = xlwt.Pattern()
-pattern_ejemplo.pattern = xlwt.Pattern.SOLID_PATTERN
-pattern_ejemplo.pattern_fore_colour = xlwt.Style.colour_map['pale_blue']
-estilo_ejemplo.pattern = pattern_ejemplo
-
-borders_ejemplo = xlwt.Borders()
-borders_ejemplo.left = xlwt.Borders.THIN
-borders_ejemplo.right = xlwt.Borders.THIN
-borders_ejemplo.top = xlwt.Borders.THIN
-borders_ejemplo.bottom = xlwt.Borders.THIN
-estilo_ejemplo.borders = borders_ejemplo
-
+# Encabezados
 encabezados = ['Codigo', 'Descripcion', 'DescripcionMetaTag']
+for col_idx, encabezado in enumerate(encabezados, start=1):
+    celda = hoja.cell(row=1, column=col_idx, value=encabezado)
+    celda.font = header_font
+    celda.fill = header_fill
+    celda.alignment = header_alignment
+    celda.border = thin_border
 
-for col, encabezado in enumerate(encabezados):
-    hoja.write(0, col, encabezado, estilo_encabezado)
-
+# Datos de ejemplo
 ejemplos = [
     ['XV4SLL20A0101', 'CHELSEA PORTACOSMETICO', 'de la coleccion primavera-verano 2024/25 en cuotas sin interes en productos nacionales y envios a todo el pais.'],
     ['XV4SLL20A0109', 'CHELSEA PORTACOSMETICO', 'de la coleccion primavera-verano 2024/25 en cuotas sin interes en productos nacionales y envios a todo el pais.'],
@@ -59,14 +40,19 @@ ejemplos = [
     ['XV4SLL22B0301', 'CLARA FICH C SOLAPA Y CIERRE', 'de la coleccion primavera-verano 2024/25 en cuotas sin interes en productos nacionales y envios a todo el pais.']
 ]
 
-for fila_idx, ejemplo in enumerate(ejemplos, start=1):
-    for col_idx, valor in enumerate(ejemplo):
-        hoja.write(fila_idx, col_idx, valor, estilo_ejemplo)
+for fila_idx, ejemplo in enumerate(ejemplos, start=2):
+    for col_idx, valor in enumerate(ejemplo, start=1):
+        celda = hoja.cell(row=fila_idx, column=col_idx, value=valor)
+        celda.fill = example_fill
+        celda.font = example_font
+        celda.border = thin_border
 
-hoja.col(0).width = 4500
-hoja.col(1).width = 9000
-hoja.col(2).width = 20000
+# Ajustar ancho de columnas
+hoja.column_dimensions['A'].width = 15
+hoja.column_dimensions['B'].width = 30
+hoja.column_dimensions['C'].width = 80
 
+# Guardar archivo
 script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)
 media_dir = os.path.join(project_root, 'media')
@@ -74,9 +60,9 @@ media_dir = os.path.join(project_root, 'media')
 if not os.path.exists(media_dir):
     os.makedirs(media_dir)
 
-ruta_archivo = os.path.join(media_dir, 'AltaArtVtex.xls')
+ruta_archivo = os.path.join(media_dir, 'AltaArtVtex.xlsx')
 libro.save(ruta_archivo)
 
-print('Plantilla creada exitosamente en:', ruta_archivo)
+print('Plantilla .xlsx creada exitosamente en:', ruta_archivo)
 print('Columnas: Codigo, Descripcion, DescripcionMetaTag')
 print('5 filas de ejemplo incluidas')
