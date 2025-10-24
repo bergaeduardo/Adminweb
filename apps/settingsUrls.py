@@ -111,6 +111,7 @@ DIR_HERAMIENTAS = {
     'AltaNuevosLocales':SERVIDOR['production']  + 'app/usuarios',
     'UsuariosFranquicias':SERVIDOR['production']  + 'usuariosFranquicias/',
     'ObjetivosVentaFranquicias':SERVIDOR['production']  + 'comercial/franquicias/objetivosVenta/',
+    'gestionKits':SERVIDOR['production']  + 'comercial/producto/gestionKits.php',
     # Mayoristas
     'Adm_Pedido':SERVIDOR['production']  + 'sistemas/despachoMayorista/index.php',
     # Ecommerce

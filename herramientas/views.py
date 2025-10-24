@@ -463,6 +463,12 @@ def ObjetivosVentaFranquicias(request):
     dir_iframe = DIR_HERAMIENTAS['ObjetivosVentaFranquicias'] #+ UserName
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
 
+@login_required(login_url="/login/")
+def gestionKits(request):
+    Nombre = 'Gestión de Kits'
+    dir_iframe = DIR_HERAMIENTAS['gestionKits'] #+ UserName
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+
 # Mayoristas
 @login_required(login_url="/login/")
 def Adm_Pedido(request):

@@ -50,6 +50,7 @@ urlpatterns = [
     path('AltaNuevosLocales', views.AltaNuevosLocales, name='herramientas_alta_nuevos_locales'),
     path('UsuariosFranquicias', views.UsuariosFranquicias, name='herramientas_usuarios_franquicias'),
     path('ObjetivosVentaFranquicias', views.ObjetivosVentaFranquicias, name='herramientas_objetivos_venta_franquicias'),
+    path('gestionKits', views.gestionKits, name='herramientas_gestion_kits'),
     # Mayoristas
     path('Adm_Pedido', views.Adm_Pedido, name='herramientas_adm_pedido'),
     # Ecommerce
