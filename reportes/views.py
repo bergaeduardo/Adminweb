@@ -236,11 +236,6 @@ def Controlcajasmensual(request):
     dir_iframe = DIR_REPORTES['Controlcajasmensual']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
-@login_required(login_url="/login/")
-def ResumenMensualAlquileres(request):
-    Nombre='Resumen Mensual de Alquileres'
-    dir_iframe = DIR_REPORTES['ResumenMensualAlquileres']
-    return redirect(dir_iframe)
 
 @login_required(login_url="/login/")
 def CargaGastosTesoreria(request):

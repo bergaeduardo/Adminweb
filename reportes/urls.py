@@ -62,7 +62,6 @@ urlpatterns = [
     path('Administracion/Consultagastos', views.Consultagastos, name='reportes_administracion_consulta_gastos'),
     path('Administracion/VentaVscobranza', views.VentaVscobranza, name='reportes_administracion_venta_vs_cobranza'),
     path('Administracion/Controlcajasmensual', views.Controlcajasmensual, name='reportes_administracion_control_cajas_mensual'),
-    path('Administracion/ResumenMensualAlquileres', views.ResumenMensualAlquileres, name='reportes_administracion_resumen_mensual_alquileres'),
     path('Administracion/CargaGastosTesoreria', views.CargaGastosTesoreria, name='reportes_administracion_carga_gastos_tesoreria'),
     path('Administracion/DetalleContratosDeAlquiler', views.DetalleContratosDeAlquiler, name='reportes_administracion_detalle_contratos_alquiler'),
     path('Administracion/FacturaManualLista', viewsApp.facturas_por_fecha, name='reportes_administracion_factura_manual_lista'), # View not found in source

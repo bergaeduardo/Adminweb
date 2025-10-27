@@ -61,14 +61,13 @@ DIR_REPORTES = {
     'consultaGastos':SERVIDOR['production'] + 'administracion/contabilidad/consultaGastos.php',
     'ventaVsCobranza':SERVIDOR['production'] + 'administracion/controlSucursales/ventaVsCobranza.php',
     'Controlcajasmensual':SERVIDOR['production'] + 'administracion/controlSucursales/controlMensualCajaSucursales.php',
-    'ResumenMensualAlquileres':SERVIDOR['production'] + 'administracion/impuestos/alquileres/consultaAlquileres.php',
     'CargaGastosTesoreria':SERVIDOR['production'] + 'administracion/controlSucursales/cargaGastosTesoreria.php',
     'DetalleContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/detalleContratosAlquiler.php',
     'ContratosFranquicias':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias/detalleContratosAlquiler.php',
     'GastosSupervision':SERVIDOR['production'] + 'comercial/supervision/presupuesto/dashboard.php',
     'controlVentasSucursales':SERVIDOR['production'] + 'administracion/controlSucursales/controlVentasSucursales.php',
     'saldoCaja':SERVIDOR['production'] + 'administracion/tesoreria/saldoCaja.php',
-    'costoOcupacion':SERVIDOR['production'] + 'administracion/impuestos/alquileres/costoOcupacion.php',
+    'costoOcupacion':SERVIDOR['production'] + 'administracion/impuestos/alquileres/costoOcupacion/index.php',
 
     # Gerencia
     'DetalleRemitos599':SERVIDOR['production']  + 'sistemas/599/consultaderemitos.php?userName=',
