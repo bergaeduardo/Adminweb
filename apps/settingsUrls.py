@@ -46,6 +46,7 @@ DIR_REPORTES = {
     'compararStock':SERVIDOR['production']  + 'controlGestion/compararStock/',
     'compararVentas':SERVIDOR['production']  + 'controlGestion/compararVentas/',
     'PresupuestoComercial':'https://192.168.0.13:3000/home/',
+    'auditoriaDiferenciaPrecio':SERVIDOR['production']  + 'comercial/auditoria/ingreso_asistente.php',
     # Mayoristas
     'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'comercial/mayoristas/despacho/tracking.php',
     # Ecommerce

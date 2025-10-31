@@ -407,6 +407,14 @@
             <span class="badge badge-danger right">New</span>
           </a>
         </li>
+        <li class="nav-item">
+          {# Updated href for Auditoria Diferencia Precio (assuming Comercial section) #}
+          <a href="/Reportes/Comercial/auditoriaDiferenciaPrecio/" class="nav-link {% if 'auditoriaDiferenciaPrecio' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Auditoría Dif. Precio</p>
+            <span class="badge badge-danger right">New</span>
+          </a>
+        </li>
 
         {% endif %}
         {% if request.user|has_group:"Comercial_may" or request.user|has_group:"e-commerce" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Abastecimiento"  or request.user|has_group:"Produccion" %}

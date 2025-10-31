@@ -148,6 +148,12 @@ def PresupuestoComercial(request):
     dir_iframe = DIR_REPORTES['PresupuestoComercial']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
+@login_required(login_url="/login/")
+def auditoriaDiferenciaPrecio(request):
+    Nombre='Auditoría Diferencia de Precio'
+    dir_iframe = DIR_REPORTES['auditoriaDiferenciaPrecio']
+    return redirect(dir_iframe)
+
 
 # Mayoristas
 
