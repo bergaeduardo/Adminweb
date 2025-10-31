@@ -106,7 +106,7 @@ DIR_HERAMIENTAS = {
     'Gestion_categoria_productos':SERVIDOR['production']  + 'comercial/producto/gestionCategoriaProductos.php',
     'AdministrarCuotas':SERVIDOR['production']  + 'promociones/Cuotas/gestionar.php',
     'AdministrarInternos':SERVIDOR['production']  + 'comercial/recepcion/listado.php',
-    'PromoBancos':SERVIDOR['production']  + 'promoBancos/',
+    'PromoBancos':SERVIDOR['production']  + 'promociones/promoBancos/',
     'AltaNuevosLocales':SERVIDOR['production']  + 'app/usuarios',
     'UsuariosFranquicias':SERVIDOR['production']  + 'usuariosFranquicias/',
     'ObjetivosVentaFranquicias':SERVIDOR['production']  + 'comercial/franquicias/objetivosVenta/',
