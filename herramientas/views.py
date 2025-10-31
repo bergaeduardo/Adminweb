@@ -388,23 +388,6 @@ def Desactivar_orden(request):
     dir_iframe = DIR_HERAMIENTAS['Desactivar_orden']
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
 
-@login_required(login_url="/login/")
-def AltaPromoBancaria(request):
-    Nombre = 'AltaPromoBancaria'
-    dir_iframe = DIR_HERAMIENTAS['AltaPromoBancaria']
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
-
-@login_required(login_url="/login/")
-def CrearGrupoPromo(request):
-    Nombre = 'CrearGrupoPromo'
-    dir_iframe = DIR_HERAMIENTAS['CrearGrupoPromo']
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
-
-@login_required(login_url="/login/")
-def EditarGrupoPromo(request):
-    Nombre = 'EditarGrupoPromo'
-    dir_iframe = DIR_HERAMIENTAS['EditarGrupoPromo']
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
 
 @login_required(login_url="/login/")
 def MaestroDestinos(request):
