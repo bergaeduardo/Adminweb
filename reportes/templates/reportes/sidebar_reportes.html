@@ -399,14 +399,16 @@
             <span class="badge badge-info right">New</span>
           </a>
         </li>
+        {% if request.user.id == 40 %}
         <li class="nav-item">
-          {# Updated href for Comparar Ventas (assuming Comercial section) #}
+          {# Updated href for Presupuesto Comercial (assuming Comercial section) #}
           <a href="/Reportes/Comercial/PresupuestoComercial/" class="nav-link {% if 'PresupuestoComercial' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Presupuesto Comercial</p>
             <span class="badge badge-danger right">New</span>
           </a>
         </li>
+        {% endif %}
         <li class="nav-item">
           {# Updated href for Auditoria Diferencia Precio (assuming Comercial section) #}
           <a href="/Reportes/Comercial/auditoriaDiferenciaPrecio/" class="nav-link {% if 'auditoriaDiferenciaPrecio' in request.path %} active {% endif %}">
