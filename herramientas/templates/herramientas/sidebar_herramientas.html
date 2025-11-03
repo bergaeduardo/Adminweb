@@ -497,7 +497,9 @@
         <p>Gestion Cat.Productos</p>
       </a>
     </li>
-        <li class="nav-item">
+    {% endif %}
+    {% if request.user.id == 4 or request.user.id == 21 or request.user.id == 40 or request.user|has_group:"admin" %}
+    <li class="nav-item">
       <a href="/../Herramientas/ObjetivosVentaFranquicias" class="nav-link {% if 'ObjetivosVentaFranquicias' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Objetivos Ventas Franquicias</p>
