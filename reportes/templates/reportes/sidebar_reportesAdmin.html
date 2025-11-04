@@ -437,7 +437,6 @@
             <span class="badge badge-info right">New</span>
           </a>
         </li>
-        {% if request.user.id == 40 %}
         <li class="nav-item">
           {# Updated href for Presupuesto Comercial - Solo usuario ID 40 #}
           <a href="/Reportes/Comercial/PresupuestoComercial/" class="nav-link {% if 'PresupuestoComercial' in request.path %} active {% endif %}">
@@ -446,7 +445,6 @@
             <span class="badge badge-danger right">New</span>
           </a>
         </li>
-        {% endif %}
         <li class="nav-item">
           {# Comercial/auditoria Link - Apply active if 'auditoria' is in request.path #}
           <a href="/Reportes/Comercial/auditoriaDiferenciaPrecio/" class="nav-link {% if 'auditoriaDiferenciaPrecio' in request.path %} active {% endif %}">
