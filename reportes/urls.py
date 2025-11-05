@@ -71,6 +71,7 @@ urlpatterns = [
     path('Administracion/controlVentasSucursales', views.controlVentasSucursales, name='reportes_administracion_control_ventas_sucursales'),
     path('Administracion/saldoCaja', views.saldoCaja, name='saldo_caja_tesoreria'),
     path('Administracion/costoOcupacion', views.costoOcupacion, name='costo_ocupacion'),
+    path('Administracion/cuentasParticulares', views.cuentasParticulares, name='cuentas_particulares'),
 
     # Supervisores
     path('Supervisores/Proyectos', views.Proyectos, name='reportes_supervisores_proyectos'),

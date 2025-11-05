@@ -909,6 +909,12 @@ def VentasLocatarios(request):
     dir_iframe = DIR_HERAMIENTAS['VentasLocatarios'] #+ UserName
     return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def FacturasDirectores(request):
+    Nombre = 'Facturas Directores'
+    dir_iframe = DIR_HERAMIENTAS['FacturasDirectores'] #+ UserName
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+
 # RRHH
 
 @login_required(login_url="/login/")
@@ -952,6 +958,13 @@ def ControlDeEfectivo(request):
     dir_iframe = DIR_HERAMIENTAS['ControlDeEfectivo'] #+ UserName
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
     # return redirect(dir_iframe)
+
+@login_required(login_url="/login/")
+def PagosDirectores(request):
+    Nombre = 'Pagos a Directores'
+    dir_iframe = DIR_HERAMIENTAS['PagosDirectores'] #+ UserName
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+    # return redirect(dir_iframe)    
 
 # Supervisores
 

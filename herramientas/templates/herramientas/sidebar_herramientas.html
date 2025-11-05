@@ -347,6 +347,18 @@
       </a>
     </li>
     {% endif %}
+
+    {% if request.user.id == 42 or request.user.id == 67 or request.user.id == 92 or request.user|has_any_group:"admin" %}
+    <li class="nav-item">
+      <a href="/../Herramientas/FacturasDirectores"
+        class="nav-link {% if 'Facturas Directores' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Facturas Directores</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>
+    {% endif %}
+
     <!-- Fin 	Administracion -->
 
     <!-- inicio 	e-commerce -->
@@ -542,6 +554,14 @@
         <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
+    <li class="nav-item">
+      <a href="/../Herramientas/PagosDirectores" class="nav-link {% if 'PagosDirectores' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Pagos a Directores</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>
+
     {% endif %}
 
     <!-- Fin 	Tesoreria -->

@@ -94,6 +94,8 @@ urlpatterns = [
     path('GestionDeProveedores',views.GestionDeProveedores, name='herramientas_gestion_proveedores'),
     path('MedidasLocales', views.MedidasLocales, name='herramientas_medidas_locales'),
     path('VentasLocatarios', views.VentasLocatarios, name='herramientas_ventas_locatarios'),
+    path('FacturasDirectores', views.FacturasDirectores, name='herramientas_facturas_directores'),
+
 
     # Administracion_CE             ***Comercio Exterior***
     path('Cargarcontenedor', views.Cargarcontenedor, name='herramientas_cargar_contenedor'),
@@ -108,6 +110,7 @@ urlpatterns = [
 
     # Tesoreria
     path('ControlDeEfectivo', views.ControlDeEfectivo, name='herramientas_control_efectivo'),
+    path('PagosDirectores', views.PagosDirectores, name='herramientas_pagos_directores'),
 
     # Supervisores
      path('CargaProyecto', views.CargaProyecto, name='carga_proyecto'),

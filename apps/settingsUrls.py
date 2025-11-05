@@ -69,6 +69,8 @@ DIR_REPORTES = {
     'controlVentasSucursales':SERVIDOR['production'] + 'administracion/controlSucursales/controlVentasSucursales.php',
     'saldoCaja':SERVIDOR['production'] + 'administracion/tesoreria/saldoCaja.php',
     'costoOcupacion':SERVIDOR['production'] + 'administracion/impuestos/alquileres/costoOcupacion/index.php',
+    'FacturasDirectores':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/proveedores.php',
+    'cuentasParticulares':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/contabilidad.php',
 
     # Gerencia
     'DetalleRemitos599':SERVIDOR['production']  + 'sistemas/599/consultaderemitos.php?userName=',
@@ -138,6 +140,7 @@ DIR_HERAMIENTAS = {
     'EgresosCajaTesoreria':SERVIDOR['production'] + 'administracion/tesoreria/cargaGastos.php',
     'GestionDeProveedores':'https://proveedores.xl.com.ar/administracion/dashboard/',
     'VentasLocatarios':SERVIDOR['production'] + 'administracion/impuestos/alquileres/locatarios/',
+    'FacturasDirectores':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/proveedores.php',
     # RRHH
     # 'adminEmpleados':SERVIDOR['production'] + 'administracion/recursosHumanos/controlHorarios/controlHorario.php',
     'altaVendedores':SERVIDOR['production'] + 'administracion/recursoshumanos/altaVendedores/altaVendedores.php',
@@ -148,6 +151,7 @@ DIR_HERAMIENTAS = {
     
     # Tesoreria
     'ControlDeEfectivo':SERVIDOR['production'] + 'administracion/controlSucursales/controlRecepcionEfectivo.php',
+    'PagosDirectores':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/tesoreria.php',
     
     #Supervisores
     'CargaProyecto':SERVIDOR['production'] + 'projects/adminProyectos/cargarProyecto.php',
