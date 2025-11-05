@@ -1,0 +1,524 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Editar Sucursal Completa {% endblock %}
+
+{% block body_class %} sidebar-mini {% endblock body_class %}
+
+{% block stylesheets %}
+<!-- Google Font: Source Sans Pro -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+
+<style>
+    .section-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        margin: 20px 0 15px 0;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .form-section {
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .form-group label {
+        font-weight: 600;
+        color: #344767;
+        margin-bottom: 8px;
+    }
+    .form-control, .form-check-input {
+        border-radius: 6px;
+    }
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 6px;
+        padding: 12px 30px;
+        font-weight: 600;
+    }
+    .btn-secondary {
+        border-radius: 6px;
+        padding: 12px 30px;
+        font-weight: 600;
+    }
+    .form-check {
+        padding-left: 0;
+    }
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+    }
+    .alert {
+        border-radius: 8px;
+    }
+    .page-title {
+        color: #344767;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    .page-subtitle {
+        color: #7b809a;
+        font-size: 0.95rem;
+    }
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-12">
+                    <h1 class="page-title">
+                        <i class="fas fa-store mr-2"></i>Edición Completa de Sucursal
+                    </h1>
+                    <p class="page-subtitle">
+                        Sucursal: {{ nro_sucursal }} - {{ sucursal.desc_sucursal }}
+                        <span class="badge badge-warning ml-2">
+                            <i class="fas fa-shield-alt"></i> Solo Admin/Sistemas
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} mr-2"></i>
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if formulario.errors %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <h5><i class="icon fas fa-ban"></i> Errores en el formulario:</h5>
+                <ul class="mb-0">
+                {% for field in formulario %}
+                    {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in formulario.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" autocomplete="off">
+                {% csrf_token %}
+
+                <!-- Información Básica -->
+                <h4 class="section-header">
+                    <i class="fas fa-info-circle mr-2"></i>Información Básica
+                </h4>
+                <div class="form-section">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="required-field">{{ formulario.nro_sucursal.label }}</label>
+                                {{ formulario.nro_sucursal }}
+                                {% if formulario.nro_sucursal.help_text %}
+                                <small class="form-text text-muted">{{ formulario.nro_sucursal.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="required-field">{{ formulario.cod_client.label }}</label>
+                                {{ formulario.cod_client }}
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="required-field">{{ formulario.desc_sucursal.label }}</label>
+                                {{ formulario.desc_sucursal }}
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="required-field">{{ formulario.direccion.label }}</label>
+                                {{ formulario.direccion }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="required-field">{{ formulario.localidad.label }}</label>
+                                {{ formulario.localidad }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="required-field">{{ formulario.provincia.label }}</label>
+                                {{ formulario.provincia }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="required-field">{{ formulario.telefono.label }}</label>
+                                {{ formulario.telefono }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ formulario.mail.label }}</label>
+                                {{ formulario.mail }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ formulario.horario.label }}</label>
+                                {{ formulario.horario }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuración Operativa -->
+                <h4 class="section-header">
+                    <i class="fas fa-cogs mr-2"></i>Configuración Operativa
+                </h4>
+                <div class="form-section">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>{{ formulario.canal.label }}</label>
+                                {{ formulario.canal }}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>{{ formulario.tipo_local.label }}</label>
+                                {{ formulario.tipo_local }}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>{{ formulario.cod_deposi.label }}</label>
+                                {{ formulario.cod_deposi }}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>{{ formulario.nro_suc_madre.label }}</label>
+                                {{ formulario.nro_suc_madre }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ formulario.fecha_cierre.label }}</label>
+                                {{ formulario.fecha_cierre }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ formulario.habilitado }}
+                                <label class="form-check-label" for="{{ formulario.habilitado.id_for_label }}">
+                                    {{ formulario.habilitado.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ formulario.dashboard_bi }}
+                                <label class="form-check-label" for="{{ formulario.dashboard_bi.id_for_label }}">
+                                    {{ formulario.dashboard_bi.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ formulario.tango }}
+                                <label class="form-check-label" for="{{ formulario.tango.id_for_label }}">
+                                    {{ formulario.tango.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ formulario.suc_madre }}
+                                <label class="form-check-label" for="{{ formulario.suc_madre.id_for_label }}">
+                                    {{ formulario.suc_madre.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ formulario.empresa_ferreteria }}
+                                <label class="form-check-label" for="{{ formulario.empresa_ferreteria.id_for_label }}">
+                                    {{ formulario.empresa_ferreteria.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ formulario.factura_elect }}
+                                <label class="form-check-label" for="{{ formulario.factura_elect.id_for_label }}">
+                                    {{ formulario.factura_elect.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ formulario.integra_vtex }}
+                                <label class="form-check-label" for="{{ formulario.integra_vtex.id_for_label }}">
+                                    {{ formulario.integra_vtex.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                {{ formulario.retiro_expres }}
+                                <label class="form-check-label" for="{{ formulario.retiro_expres.id_for_label }}">
+                                    {{ formulario.retiro_expres.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Integraciones MercadoPago -->
+                <h4 class="section-header">
+                    <i class="fas fa-credit-card mr-2"></i>Integraciones MercadoPago
+                </h4>
+                <div class="form-section">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ formulario.integracion_mercadopago_madre }}
+                                <label class="form-check-label" for="{{ formulario.integracion_mercadopago_madre.id_for_label }}">
+                                    {{ formulario.integracion_mercadopago_madre.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ formulario.integracion_mercadopago_hija }}
+                                <label class="form-check-label" for="{{ formulario.integracion_mercadopago_hija.id_for_label }}">
+                                    {{ formulario.integracion_mercadopago_hija.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuración LAPOS -->
+                <h4 class="section-header">
+                    <i class="fas fa-cash-register mr-2"></i>Configuración LAPOS
+                </h4>
+                <div class="form-section">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-check mb-3">
+                                {{ formulario.lapos_integrado }}
+                                <label class="form-check-label" for="{{ formulario.lapos_integrado.id_for_label }}">
+                                    {{ formulario.lapos_integrado.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>{{ formulario.lapos_modelo.label }}</label>
+                                {{ formulario.lapos_modelo }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>{{ formulario.version_soft_lapos.label }}</label>
+                                {{ formulario.version_soft_lapos }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>{{ formulario.cable_lapos_integrado.label }}</label>
+                                {{ formulario.cable_lapos_integrado }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ formulario.link_pedido.label }}</label>
+                                {{ formulario.link_pedido }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ formulario.link_sales.label }}</label>
+                                {{ formulario.link_sales }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuración Técnica -->
+                <h4 class="section-header">
+                    <i class="fas fa-server mr-2"></i>Configuración Técnica
+                </h4>
+                <div class="form-section">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ formulario.base_nombre.label }}</label>
+                                {{ formulario.base_nombre }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ formulario.n_llave_tango.label }}</label>
+                                {{ formulario.n_llave_tango }}
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>{{ formulario.conexion_dns.label }}</label>
+                                {{ formulario.conexion_dns }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ formulario.usuario_dns.label }}</label>
+                                {{ formulario.usuario_dns }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ formulario.clave_dns.label }}</label>
+                                {{ formulario.clave_dns }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuración TeamViewer -->
+                <h4 class="section-header">
+                    <i class="fas fa-desktop mr-2"></i>Configuración TeamViewer y PC
+                </h4>
+                <div class="form-section">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ formulario.conexion_teamviewer_madre.label }}</label>
+                                {{ formulario.conexion_teamviewer_madre }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ formulario.conexion_teamviewer_hija.label }}</label>
+                                {{ formulario.conexion_teamviewer_hija }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ formulario.clave_teamviewer.label }}</label>
+                                {{ formulario.clave_teamviewer }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>{{ formulario.usuario_pc_madre.label }}</label>
+                                {{ formulario.usuario_pc_madre }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Correos Electrónicos -->
+                <h4 class="section-header">
+                    <i class="fas fa-envelope mr-2"></i>Configuración de Correos
+                </h4>
+                <div class="form-section">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>{{ formulario.mail_grupo_emp.label }}</label>
+                                {{ formulario.mail_grupo_emp }}
+                                <small class="form-text text-muted">
+                                    Puede ingresar múltiples correos separados por comas
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="row mt-4 mb-5">
+                    <div class="col-md-12 text-center">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save mr-2"></i>Guardar Cambios
+                        </button>
+                        <a href="{% url 'extras:extras_direccionario' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times mr-2"></i>Cancelar
+                        </a>
+                    </div>
+                </div>
+
+            </form>
+
+        </div>
+    </section>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<!-- jQuery -->
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/assets/js/adminlte.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Auto-dismiss alerts after 5 seconds
+    setTimeout(function() {
+        $('.alert').fadeOut('slow');
+    }, 5000);
+
+    // Confirm before submit
+    $('form').on('submit', function(e) {
+        if (!confirm('¿Está seguro de guardar los cambios en esta sucursal?')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // Transform text to uppercase for specific fields
+    $('#{{ formulario.cod_client.id_for_label }}, #{{ formulario.desc_sucursal.id_for_label }}, #{{ formulario.direccion.id_for_label }}, #{{ formulario.localidad.id_for_label }}').on('input', function() {
+        this.value = this.value.toUpperCase();
+    });
+});
+</script>
+{% endblock javascripts %}

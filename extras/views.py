@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 import pprint
 from tkinter.tix import CELL, COLUMN
 from django import template
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 # Removed numpy imports as they were only used by moved import functions
 # from numpy import int64, isnan
 from consultasTango.models import StockCentral,SjStockDisponibleEcommerce
@@ -32,10 +32,15 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from consultasLakersBis.forms import sucursalesform
+from consultasLakersBis.forms import sucursalesform, SucursalesLakersCompletaForm
 import os
 import subprocess
 from django.templatetags.static import static
+
+
+def usuario_es_admin_o_sistemas(user):
+    """Verifica si el usuario pertenece a los grupos 'admin' o 'Sistemas'"""
+    return user.groups.filter(name__in=['admin', 'Sistemas']).exists() or user.is_superuser
 
 @login_required(login_url="/login/")
 def runscript(request):
@@ -83,6 +88,34 @@ def editarSucursal(request,id):
         return redirect('extras:extras_direccionario')
 
     return  render(request,'appConsultasTango/editarSucursal.html',{'formulario':sucForm,'Disabled':Disabled})
+
+@login_required(login_url="/login/")
+@user_passes_test(usuario_es_admin_o_sistemas, login_url="/login/")
+def editarSucursalCompleta(request, id):
+    """
+    Vista para editar TODOS los campos de una sucursal.
+    Solo accesible para usuarios de grupos 'admin' y 'Sistemas'.
+    """
+    sucursal = get_object_or_404(SucursalesLakers, nro_sucursal=id)
+    
+    if request.method == 'POST':
+        formulario = SucursalesLakersCompletaForm(request.POST, request.FILES, instance=sucursal)
+        if formulario.is_valid():
+            formulario.save()
+            messages.success(request, f'Sucursal {sucursal.nro_sucursal} - {sucursal.desc_sucursal} actualizada exitosamente.')
+            return redirect('extras:extras_direccionario')
+        else:
+            messages.error(request, 'Por favor corrija los errores en el formulario.')
+    else:
+        formulario = SucursalesLakersCompletaForm(instance=sucursal)
+    
+    context = {
+        'formulario': formulario,
+        'sucursal': sucursal,
+        'nro_sucursal': id,
+    }
+    
+    return render(request, 'consultasLakersBis/editarSucursalCompleta.html', context)
 
 @login_required(login_url="/login/")
 def registraSucursal(request):

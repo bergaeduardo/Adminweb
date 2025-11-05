@@ -170,8 +170,11 @@
                   </div>
                   <!-- /.user-block -->
                   <div class="card-tools">
-                    {% if request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_may" %}
+                    {% if request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_may" %}
                     <a title="Editar" name="" id="" class="fas fa-pencil-alt btn-tool" href="/../Extras/direccionario/editarSucursal/{{ dato.nro_sucursal }}" role="button"></a>
+                    {% endif %}
+                    {% if request.user|has_group:"admin" or request.user|has_group:"Sistemas" or request.user.is_superuser %}
+                    <a title="Editar" name="" id="" class="fas fa-pencil-alt btn-tool" href="/../Extras/direccionario/editarSucursalCompleta/{{ dato.nro_sucursal }}" role="button"></a>
                     {% endif %}
                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
                       <i class="fas fa-plus"></i>
