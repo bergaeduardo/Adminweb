@@ -14,11 +14,46 @@ class sucursalesform(forms.ModelForm):
 
 class SucursalesLakersCompletaForm(forms.ModelForm):
     """Formulario completo para edición de todos los campos de SucursalesLakers"""
+    
+    PROVINCIAS_CHOICES = [
+        ('', '- - -'),
+        ('BUENOS AIRES', 'BUENOS AIRES'),
+        ('CAPITAL FEDERAL', 'CAPITAL FEDERAL'),
+        ('CATAMARCA', 'CATAMARCA'),
+        ('CHACO', 'CHACO'),
+        ('CHUBUT', 'CHUBUT'),
+        ('CORDOBA', 'CORDOBA'),
+        ('CORRIENTES', 'CORRIENTES'),
+        ('ENTRE RIOS', 'ENTRE RIOS'),
+        ('FORMOSA', 'FORMOSA'),
+        ('JUJUY', 'JUJUY'),
+        ('LA PAMPA', 'LA PAMPA'),
+        ('LA RIOJA', 'LA RIOJA'),
+        ('MENDOZA', 'MENDOZA'),
+        ('MISIONES', 'MISIONES'),
+        ('NEUQUEN', 'NEUQUEN'),
+        ('RIO NEGRO', 'RIO NEGRO'),
+        ('SALTA', 'SALTA'),
+        ('SAN JUAN', 'SAN JUAN'),
+        ('SAN LUIS', 'SAN LUIS'),
+        ('SANTA CRUZ', 'SANTA CRUZ'),
+        ('SANTA FE', 'SANTA FE'),
+        ('SANTIAGO DEL ESTERO', 'SANTIAGO DEL ESTERO'),
+        ('TIERRA DEL FUEGO', 'TIERRA DEL FUEGO'),
+        ('TUCUMAN', 'TUCUMAN'),
+        ('URUGUAY', 'URUGUAY'),
+    ]
+    
     mail = forms.EmailField(required=False, widget=forms.EmailInput(attrs={'class': 'form-control'}))
     mail_grupo_emp = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}))
     fecha_cierre = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    provincia = forms.ChoiceField(
+        choices=PROVINCIAS_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
     
     class Meta:
@@ -31,7 +66,6 @@ class SucursalesLakersCompletaForm(forms.ModelForm):
             'direccion': forms.TextInput(attrs={'class': 'form-control', 'style': 'text-transform:uppercase'}),
             'telefono': forms.TextInput(attrs={'class': 'form-control'}),
             'localidad': forms.TextInput(attrs={'class': 'form-control', 'style': 'text-transform:uppercase'}),
-            'provincia': forms.Select(attrs={'class': 'form-control'}),
             'canal': forms.TextInput(attrs={'class': 'form-control'}),
             'habilitado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'dashboard_bi': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
