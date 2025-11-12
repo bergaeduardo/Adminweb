@@ -1,0 +1,287 @@
+/* Custom Sidebar Styles - Lakers Labs */
+/* Sidebar más ancho: de 250px a 320px */
+
+/* ========== SIDEBAR EXPANDIDO ========== */
+
+/* Ancho del sidebar cuando está expandido */
+.main-sidebar {
+    width: 320px !important;
+    will-change: width;
+}
+
+/* Ancho del sidebar al hacer hover cuando está colapsado */
+.sidebar-mini.sidebar-collapse .main-sidebar:hover {
+    width: 320px !important;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.12);
+    transition-delay: 0.1s;
+}
+
+/* ========== BRAND LINK ========== */
+
+/* Brand link expandido - Layout normal */
+.layout-navbar-fixed .wrapper .brand-link {
+    width: 320px !important;
+}
+
+/* Brand link al hacer hover cuando sidebar está colapsado */
+.layout-navbar-fixed .wrapper.sidebar-collapse .main-sidebar:hover .brand-link {
+    width: 320px !important;
+}
+
+/* ========== CONTENT WRAPPER ========== */
+
+/* Ajuste del contenido principal cuando sidebar está expandido */
+body:not(.sidebar-mini-md):not(.sidebar-mini-xs):not(.layout-top-nav) .content-wrapper,
+body:not(.sidebar-mini-md):not(.sidebar-mini-xs):not(.layout-top-nav) .main-footer,
+body:not(.sidebar-mini-md):not(.sidebar-mini-xs):not(.layout-top-nav) .main-header {
+    transition: margin-left 0.3s ease-in-out;
+    margin-left: 320px;
+}
+
+/* Cuando el sidebar está colapsado - mantener ancho estándar */
+.sidebar-collapse .content-wrapper,
+.sidebar-collapse .main-footer,
+.sidebar-collapse .main-header {
+    margin-left: 4.6rem !important;
+}
+
+/* ========== TRANSICIONES ========== */
+
+/* Transición suave del sidebar con curva de animación más natural */
+.main-sidebar {
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+/* Transición suave para el brand link */
+.brand-link {
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* Transición suave para el contenido principal */
+.content-wrapper,
+.main-footer,
+.main-header {
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Transición para los textos del sidebar - SIEMPRE activa */
+.main-sidebar .nav-link p,
+.main-sidebar .brand-text,
+.main-sidebar .user-panel .info,
+.main-sidebar .nav-link .right {
+    transition: opacity 0.2s ease-in-out, 
+                visibility 0.2s ease-in-out,
+                width 0.2s ease-in-out;
+}
+
+/* Fade out suave al colapsar */
+.sidebar-mini.sidebar-collapse .main-sidebar .nav-sidebar .nav-link p,
+.sidebar-mini.sidebar-collapse .main-sidebar .brand-text,
+.sidebar-mini.sidebar-collapse .main-sidebar .user-panel .info {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease-in, 
+                visibility 0.15s ease-in;
+}
+
+/* Fade in suave al expandir con hover */
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-sidebar .nav-link p,
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .brand-text,
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .user-panel .info {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.25s ease-out 0.1s, 
+                visibility 0.25s ease-out 0.1s;
+}
+
+/* Transición suave para los iconos - SIEMPRE */
+.main-sidebar .nav-icon {
+    transition: margin-right 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Transición para el alineamiento del texto - SIEMPRE */
+.main-sidebar .nav-link {
+    transition: padding 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                text-align 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Transición para el formulario de búsqueda */
+.main-sidebar .form-inline {
+    transition: opacity 0.2s ease-in-out,
+                visibility 0.2s ease-in-out,
+                max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Transición suave al cambiar entre estados (expandido/colapsado) */
+body.sidebar-mini {
+    transition: none;
+}
+
+body.sidebar-mini .main-sidebar,
+body.sidebar-mini .content-wrapper,
+body.sidebar-mini .main-header,
+body.sidebar-mini .main-footer,
+body.sidebar-mini .brand-link {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Prevenir FOUC (Flash of Unstyled Content) al cargar página */
+body.sidebar-mini:not(.sidebar-loaded) .main-sidebar {
+    transition: none !important;
+}
+
+body.sidebar-mini:not(.sidebar-loaded) .content-wrapper,
+body.sidebar-mini:not(.sidebar-loaded) .main-header,
+body.sidebar-mini:not(.sidebar-loaded) .main-footer {
+    transition: none !important;
+}
+
+/* Después de cargar, habilitar transiciones */
+body.sidebar-mini.sidebar-loaded .main-sidebar,
+body.sidebar-mini.sidebar-loaded .content-wrapper,
+body.sidebar-mini.sidebar-loaded .main-header,
+body.sidebar-mini.sidebar-loaded .main-footer {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* ========== SIDEBAR COLAPSADO ========== */
+
+/* Ajuste del brand-link cuando está colapsado */
+.sidebar-collapse .brand-link {
+    width: 4.6rem !important;
+}
+
+/* Ajuste de ancho del sidebar colapsado */
+.sidebar-mini.sidebar-collapse .main-sidebar {
+    width: 4.6rem !important;
+}
+
+/* Ocultar texto cuando el sidebar está colapsado - solo mostrar iconos */
+.sidebar-mini.sidebar-collapse .main-sidebar .nav-sidebar .nav-link p,
+.sidebar-mini.sidebar-collapse .main-sidebar .brand-text,
+.sidebar-mini.sidebar-collapse .main-sidebar .user-panel .info {
+    opacity: 0;
+    visibility: hidden;
+    width: 0;
+    overflow: hidden;
+}
+
+/* Mostrar solo el icono centrado cuando está colapsado */
+.sidebar-mini.sidebar-collapse .main-sidebar .nav-link {
+    text-align: center;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Centrar iconos en sidebar colapsado */
+.sidebar-mini.sidebar-collapse .main-sidebar .nav-icon {
+    margin-right: 0 !important;
+}
+
+/* Ocultar las flechas de los menús desplegables cuando está colapsado */
+.sidebar-mini.sidebar-collapse .main-sidebar .nav-link .right {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Al hacer hover, mostrar todo el contenido con fade in suave */
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-sidebar .nav-link p,
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .brand-text,
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .user-panel .info {
+    opacity: 1;
+    visibility: visible;
+    width: auto;
+    overflow: visible;
+}
+
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-link .right {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Restaurar alineación al hacer hover */
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-link {
+    text-align: left;
+    padding-left: 0.5rem;
+    padding-right: 1rem;
+}
+
+/* Restaurar margen del icono al hacer hover */
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-icon {
+    margin-right: 0.5rem !important;
+}
+
+/* ========== NAV LINKS ========== */
+
+/* Asegurar que los links del sidebar no se corten al expandir */
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-sidebar .nav-link {
+    width: calc(320px - 0.5rem);
+}
+
+/* Espaciado adicional para los items del sidebar */
+.nav-sidebar .nav-link {
+    padding-right: 1rem;
+}
+
+/* Asegurar que el logo se muestre correctamente al hacer hover */
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .brand-link {
+    overflow: visible;
+}
+
+/* Tooltip para items del sidebar cuando está colapsado */
+.sidebar-mini.sidebar-collapse .main-sidebar .nav-link {
+    position: relative;
+}
+
+/* Ocultar el search form cuando está colapsado con fade out */
+.sidebar-mini.sidebar-collapse .main-sidebar .form-inline {
+    opacity: 0;
+    visibility: hidden;
+    max-height: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+/* Mostrar el search form al hacer hover con fade in */
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .form-inline {
+    opacity: 1;
+    visibility: visible;
+    max-height: 100px;
+    overflow: visible;
+    margin: inherit;
+    padding: inherit;
+}
+
+/* ========== RESPONSIVE ========== */
+
+/* En tablets y móviles, mantener el ancho estándar para mejor usabilidad */
+@media (max-width: 991.98px) {
+    .main-sidebar,
+    .sidebar-mini.sidebar-collapse .main-sidebar:hover {
+        width: 250px !important;
+    }
+    
+    .layout-navbar-fixed .wrapper .brand-link,
+    .layout-navbar-fixed .wrapper.sidebar-collapse .main-sidebar:hover .brand-link {
+        width: 250px !important;
+    }
+    
+    body:not(.sidebar-mini-md):not(.sidebar-mini-xs):not(.layout-top-nav) .content-wrapper,
+    body:not(.sidebar-mini-md):not(.sidebar-mini-xs):not(.layout-top-nav) .main-footer,
+    body:not(.sidebar-mini-md):not(.sidebar-mini-xs):not(.layout-top-nav) .main-header {
+        margin-left: 250px;
+    }
+}
+
+/* Para pantallas muy pequeñas */
+@media (max-width: 767.98px) {
+    /* El sidebar será overlay, no necesita ajustes de ancho */
+    .main-sidebar {
+        width: 250px !important;
+    }
+}
