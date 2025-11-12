@@ -63,7 +63,7 @@ DIR_REPORTES = {
     'ventaVsCobranza':SERVIDOR['production'] + 'administracion/controlSucursales/ventaVsCobranza.php',
     'Controlcajasmensual':SERVIDOR['production'] + 'administracion/controlSucursales/controlMensualCajaSucursales.php',
     'CargaGastosTesoreria':SERVIDOR['production'] + 'administracion/controlSucursales/cargaGastosTesoreria.php',
-    'DetalleContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/detalleContratosAlquiler.php',
+    'DetalleContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/contratos/detalleContratosAlquiler.php',
     'ContratosFranquicias':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias/detalleContratosAlquiler.php',
     'GastosSupervision':SERVIDOR['production'] + 'comercial/supervision/presupuesto/dashboard.php',
     'controlVentasSucursales':SERVIDOR['production'] + 'administracion/controlSucursales/controlVentasSucursales.php',
