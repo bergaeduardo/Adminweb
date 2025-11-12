@@ -314,6 +314,7 @@ body.sidebar-mini.sidebar-loaded .main-footer {
     background: linear-gradient(90deg, rgba(0, 123, 255, 0.15) 0%, rgba(0, 123, 255, 0.05) 100%) !important;
     border-left: 4px solid #007bff;
     padding-left: 11px;
+    font-weight: 600;
 }
 
 /* Barra indicadora para página activa */
@@ -322,6 +323,7 @@ body.sidebar-mini.sidebar-loaded .main-footer {
     position: relative;
 }
 
+/* Solo mostrar el indicador en items realmente activos (no en padres) */
 .main-sidebar .nav-link.active::before {
     content: '';
     position: absolute;
@@ -333,6 +335,34 @@ body.sidebar-mini.sidebar-loaded .main-footer {
     background: linear-gradient(180deg, #007bff 0%, #0056b3 100%);
     border-radius: 0 4px 4px 0;
     box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+}
+
+/* Menú padre abierto pero NO activo - estilo diferente */
+.main-sidebar .nav-item.menu-open > .nav-link:not(.active) {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-left: none;
+    padding-left: 15px;
+}
+
+/* Remover el indicador del menú padre cuando solo está abierto */
+.main-sidebar .nav-item.menu-open > .nav-link:not(.active)::before {
+    display: none;
+}
+
+/* Mejorar visibilidad de items activos en submenús */
+.main-sidebar .nav-treeview .nav-link.active {
+    background: linear-gradient(90deg, rgba(0, 123, 255, 0.25) 0%, rgba(0, 123, 255, 0.1) 100%) !important;
+    border-left: 3px solid #007bff;
+    padding-left: 47px;
+    font-weight: 600;
+    color: #c2d0ff !important;
+}
+
+/* Indicador más pequeño para subitems */
+.main-sidebar .nav-treeview .nav-link.active::before {
+    width: 3px;
+    height: 50%;
+    left: 0;
 }
 
 /* Iconos con animación al hover */

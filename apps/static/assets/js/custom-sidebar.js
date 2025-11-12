@@ -48,6 +48,9 @@
                     }
                 });
                 
+                // Mejorar la detección de items activos (evitar marcado múltiple)
+                fixActiveMenuItems();
+                
                 // Manejar el click en el botón de toggle
                 $('[data-widget="pushmenu"]').on('click', function(e) {
                     e.preventDefault();
@@ -117,5 +120,62 @@
             }
         });
     });
+    
+    /**
+     * Función para corregir items activos múltiples en el sidebar
+     * Evita que el menú padre y el hijo estén marcados como activos simultáneamente
+     */
+    function fixActiveMenuItems() {
+        var currentPath = window.location.pathname;
+        
+        // Encontrar todos los links activos
+        var $activeLinks = $('.main-sidebar .nav-link.active');
+        
+        if ($activeLinks.length > 1) {
+            // Si hay múltiples activos, mantener solo el más específico
+            var mostSpecificLink = null;
+            var longestMatch = 0;
+            
+            $activeLinks.each(function() {
+                var $link = $(this);
+                var href = $link.attr('href');
+                
+                if (href && href !== '#') {
+                    // Obtener la longitud de la coincidencia
+                    if (currentPath.includes(href) && href.length > longestMatch) {
+                        longestMatch = href.length;
+                        mostSpecificLink = $link;
+                    }
+                }
+            });
+            
+            // Remover clase active de todos
+            $activeLinks.removeClass('active');
+            
+            // Agregar solo al más específico
+            if (mostSpecificLink) {
+                mostSpecificLink.addClass('active');
+                
+                // Si es un subitem, marcar el padre como abierto pero no activo
+                var $parentItem = mostSpecificLink.closest('.nav-treeview').siblings('.nav-link');
+                if ($parentItem.length) {
+                    $parentItem.removeClass('active'); // NO marcar como activo
+                    $parentItem.closest('.nav-item').addClass('menu-open'); // Solo abierto
+                }
+            }
+        }
+        
+        // Mejorar la visualización de items activos en submenús
+        $('.main-sidebar .nav-treeview .nav-link.active').each(function() {
+            var $this = $(this);
+            var $parentNavItem = $this.closest('.nav-item').parent().closest('.nav-item');
+            
+            // Asegurar que el menú padre esté abierto
+            $parentNavItem.addClass('menu-open');
+            
+            // Remover active del link padre si existe
+            $parentNavItem.children('.nav-link').removeClass('active');
+        });
+    }
     
 })(jQuery);
