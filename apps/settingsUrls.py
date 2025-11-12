@@ -22,6 +22,7 @@ DIR_PBI = {
     'Ventas_Ecommerce':'https://app.powerbi.com/view?r=eyJrIjoiNmUyZDQyNjctZWJlOC00YWFkLWEwMDYtZjYwODRiZmIyMDNmIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     'Kpis_Ecommerce':'https://app.powerbi.com/view?r=eyJrIjoiMWQyMDA5ZDMtNjRjMi00NWU4LTlhZDgtYzZhY2E0ZTE0YTE3IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     'PromocionesEcommerce':'https://app.powerbi.com/view?r=eyJrIjoiN2VlNWMyMzgtMWMyMC00NmJhLThiMDUtZDA1YjI2MzBjZjg5IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
+    'Ventas_EcommerceUY':'https://app.powerbi.com/view?r=eyJrIjoiMzZhYWEwZDctNjM3YS00MjI4LTlhNGYtYjgyNjhkMjZiNGFjIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     # Gerencia
     'PremiosComercial':'https://app.powerbi.com/view?r=eyJrIjoiOTI3NmI1MzMtNTU3MC00NDc0LThhMjktMzA2ZTA1OTA3NThlIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
 

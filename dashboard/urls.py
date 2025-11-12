@@ -23,6 +23,7 @@ urlpatterns = [
     path('Ventas_Ecommerce', views.Ventas_Ecommerce, name='dashboard_ventas_ecommerce'),
     path('Kpis_Ecommerce', views.Kpis_Ecommerce, name='dashboard_kpis_ecommerce'),
     path('PromocionesEcommerce', views.PromocionesEcommerce, name='dashboard_promociones_ecommerce'),
+    path('Ventas_EcommerceUY', views.Ventas_EcommerceUY, name='dashboard_ventas_ecommerce_uy'),
     # Gerencia
     path('PremiosComercial', views.PremiosComercial, name='dashboard_premios_comercial'),
 ]
