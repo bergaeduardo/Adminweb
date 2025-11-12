@@ -39,6 +39,15 @@
                     body.addClass('sidebar-loaded');
                 }, 50);
                 
+                // Agregar data-title a los links para tooltips
+                $('.main-sidebar .nav-link').each(function() {
+                    var $link = $(this);
+                    var title = $link.find('p').first().text().trim();
+                    if (title && !$link.attr('data-title')) {
+                        $link.attr('data-title', title);
+                    }
+                });
+                
                 // Manejar el click en el botón de toggle
                 $('[data-widget="pushmenu"]').on('click', function(e) {
                     e.preventDefault();
