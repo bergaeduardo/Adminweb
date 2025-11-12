@@ -133,7 +133,7 @@ DIR_HERAMIENTAS = {
     'GestionDeAlquileres':SERVIDOR['production'] + 'administracion/impuestos/alquileres/porcGastosAlquileres.php',
     'ControlEgresosDeCaja':SERVIDOR['production'] + 'administracion/controlSucursales/controlEgresosCajaSucursales.php?userName=',
     'ControlMasivoCobranza':SERVIDOR['production'] + 'administracion/controlSucursales/controlMasivoCaja.php',
-    'CargarContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/cargaContratoAlquileres.php',
+    'CargarContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/contratos/cargaContratoAlquileres.php',
     'RelacionesCtaCont':SERVIDOR['production'] + 'administracion/contabilidad/gestionRelacionesCuenta.php',
     'CargaContratosFr':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias/cargaContratosAlquileres.php',
     'CargaFacturasSuc':SERVIDOR['production'] + 'administracion/controlSucursales/cargaFacturaSucursales.php',
