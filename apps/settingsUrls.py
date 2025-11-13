@@ -22,6 +22,7 @@ DIR_PBI = {
     'Ventas_Ecommerce':'https://app.powerbi.com/view?r=eyJrIjoiNmUyZDQyNjctZWJlOC00YWFkLWEwMDYtZjYwODRiZmIyMDNmIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     'Kpis_Ecommerce':'https://app.powerbi.com/view?r=eyJrIjoiMWQyMDA5ZDMtNjRjMi00NWU4LTlhZDgtYzZhY2E0ZTE0YTE3IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     'PromocionesEcommerce':'https://app.powerbi.com/view?r=eyJrIjoiN2VlNWMyMzgtMWMyMC00NmJhLThiMDUtZDA1YjI2MzBjZjg5IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
+    'Ventas_EcommerceUY':'https://app.powerbi.com/view?r=eyJrIjoiMzZhYWEwZDctNjM3YS00MjI4LTlhNGYtYjgyNjhkMjZiNGFjIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     # Gerencia
     'PremiosComercial':'https://app.powerbi.com/view?r=eyJrIjoiOTI3NmI1MzMtNTU3MC00NDc0LThhMjktMzA2ZTA1OTA3NThlIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
 
@@ -63,7 +64,7 @@ DIR_REPORTES = {
     'ventaVsCobranza':SERVIDOR['production'] + 'administracion/controlSucursales/ventaVsCobranza.php',
     'Controlcajasmensual':SERVIDOR['production'] + 'administracion/controlSucursales/controlMensualCajaSucursales.php',
     'CargaGastosTesoreria':SERVIDOR['production'] + 'administracion/controlSucursales/cargaGastosTesoreria.php',
-    'DetalleContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/detalleContratosAlquiler.php',
+    'DetalleContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/contratos/detalleContratosAlquiler.php',
     'ContratosFranquicias':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias/detalleContratosAlquiler.php',
     'GastosSupervision':SERVIDOR['production'] + 'comercial/supervision/presupuesto/dashboard.php',
     'controlVentasSucursales':SERVIDOR['production'] + 'administracion/controlSucursales/controlVentasSucursales.php',
@@ -133,7 +134,7 @@ DIR_HERAMIENTAS = {
     'GestionDeAlquileres':SERVIDOR['production'] + 'administracion/impuestos/alquileres/porcGastosAlquileres.php',
     'ControlEgresosDeCaja':SERVIDOR['production'] + 'administracion/controlSucursales/controlEgresosCajaSucursales.php?userName=',
     'ControlMasivoCobranza':SERVIDOR['production'] + 'administracion/controlSucursales/controlMasivoCaja.php',
-    'CargarContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/cargaContratoAlquileres.php',
+    'CargarContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/contratos/cargaContratoAlquileres.php',
     'RelacionesCtaCont':SERVIDOR['production'] + 'administracion/contabilidad/gestionRelacionesCuenta.php',
     'CargaContratosFr':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias/cargaContratosAlquileres.php',
     'CargaFacturasSuc':SERVIDOR['production'] + 'administracion/controlSucursales/cargaFacturaSucursales.php',

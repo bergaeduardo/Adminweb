@@ -14,7 +14,9 @@
   </title> 
   
   {% block stylesheets %}{% endblock stylesheets %}
-
+  
+  <!-- Custom Sidebar Styles -->
+  <link rel="stylesheet" href="{% static 'assets/css/custom-sidebar.css' %}">
 
 </head>
 <body class="hold-transition sidebar-mini sidebar-collapse layout-fixed">
@@ -42,6 +44,10 @@
 
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}{% endblock javascripts %}
+
+<!-- Custom Sidebar Behavior Script -->
+<script src="{% static 'assets/js/custom-sidebar.js' %}"></script>
+
 <script>
   $(document).ready(function() {
     $('.nav-treeview').each(function() {
