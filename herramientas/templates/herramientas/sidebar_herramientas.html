@@ -323,6 +323,14 @@
         <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
+    <li class="nav-item">
+      <a href="/../Herramientas/RegistroPagoServicios"
+        class="nav-link {% if 'RegistroPagoServicios' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Registro Pago Servicios</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>
     {% endif %}
     <!-- Administracion_CE   ***Comercio Exterior*** -->
     {% if request.user|has_any_group:"admin,AdministracionSup,Administracion_CE" %}

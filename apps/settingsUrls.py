@@ -141,6 +141,7 @@ DIR_HERAMIENTAS = {
     'GestionDeProveedores':'https://proveedores.xl.com.ar/administracion/dashboard/',
     'VentasLocatarios':SERVIDOR['production'] + 'administracion/impuestos/alquileres/locatarios/',
     'FacturasDirectores':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/proveedores.php',
+    'RegistroPagoServicios':SERVIDOR['production'] + 'administracion/tesoreria/cajaDirectores/formPagoServicios.php',
     # RRHH
     # 'adminEmpleados':SERVIDOR['production'] + 'administracion/recursosHumanos/controlHorarios/controlHorario.php',
     'altaVendedores':SERVIDOR['production'] + 'administracion/recursoshumanos/altaVendedores/altaVendedores.php',

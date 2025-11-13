@@ -95,6 +95,7 @@ urlpatterns = [
     path('MedidasLocales', views.MedidasLocales, name='herramientas_medidas_locales'),
     path('VentasLocatarios', views.VentasLocatarios, name='herramientas_ventas_locatarios'),
     path('FacturasDirectores', views.FacturasDirectores, name='herramientas_facturas_directores'),
+    path('RegistroPagoServicios', views.RegistroPagoServicios, name='herramientas_registro_pago_servicios'),
 
 
     # Administracion_CE             ***Comercio Exterior***

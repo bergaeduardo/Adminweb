@@ -890,6 +890,12 @@ def GestionDeProveedores(request):
     dir_iframe = DIR_HERAMIENTAS['GestionDeProveedores'] #+ UserName
     return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def RegistroPagoServicios(request):
+    Nombre = ''
+    dir_iframe = DIR_HERAMIENTAS['RegistroPagoServicios'] #+ UserName
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+
 # Administracion_CE             ***Comercio Exterior***
 @login_required(login_url="/login/")
 def Cargarcontenedor(request):
