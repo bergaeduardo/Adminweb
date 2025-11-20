@@ -24,7 +24,7 @@
         <div class="col-sm-6">
           <ol class="breadcrumb float-sm-right">
             <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'lista_codigos_error' %}">Códigos de Error</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'herramientas:herramientas_lista_codigos_error' %}">Códigos de Error</a></li>
             <li class="breadcrumb-item active">{% if accion == 'Crear' %}Crear{% else %}Editar{% endif %} Código de Error</li>
           </ol>
         </div>
@@ -56,7 +56,7 @@
                 <button type="submit" class="btn btn-primary">
                   {% if accion == 'Crear' %}Crear{% else %}Guardar Cambios{% endif %}
                 </button>
-                <a href="{% url 'lista_codigos_error' %}" class="btn btn-secondary">Cancelar</a>
+                <a href="{% url 'herramientas:herramientas_lista_codigos_error' %}" class="btn btn-secondary">Cancelar</a>
               </div>
             </form>
           </div>

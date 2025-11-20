@@ -22,7 +22,7 @@
 
 {% block content %}
     <h2>Lista de Categorías</h2>
-    <a href="{% url 'Herramientas:categoria_create' %}">Nueva Categoría</a>
+    <a href="{% url 'herramientas:herramientas_categoria_create' %}">Nueva Categoría</a>
     <table class="table">
         <thead>
             <tr>
@@ -41,8 +41,8 @@
                     <td>{{ categoria.2 }}</td>
                     <td>{{ categoria.3 }}</td>
                     <td>
-                        <a href="{% url 'Herramientas:categoria_update' id_categoria=categoria.0 %}">Editar</a> |
-                        <a href="{% url 'Herramientas:categoria_delete' id_categoria=categoria.0 %}">Eliminar</a>
+                        <a href="{% url 'herramientas:herramientas_categoria_update' id_categoria=categoria.0 %}">Editar</a> |
+                        <a href="{% url 'herramientas:herramientas_categoria_delete' id_categoria=categoria.0 %}">Eliminar</a>
                     </td>
                 </tr>
             {% endfor %}

@@ -138,7 +138,7 @@
                             </dl>
                         </div>
                         <div class="card-footer">
-                            <a href="{% url 'listado_turnos' %}" class="btn btn-secondary">
+                            <a href="{% url 'herramientas:herramientas_listado_turnos' %}" class="btn btn-secondary">
                               <i class="fas fa-arrow-left"></i> Volver
                             </a>
                           </div>
@@ -219,7 +219,7 @@
         console.log(codigo); // Mostrando el valor en consola
         
         $.ajax({
-            url: '{% url "get_nombre_proveedor" %}',
+            url: '{% url "herramientas:herramientas_get_nombre_proveedor" %}',
             data: {
                 'codigo': codigo
             },

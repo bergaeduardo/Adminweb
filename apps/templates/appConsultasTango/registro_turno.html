@@ -109,7 +109,7 @@
                 <button type="submit" class="btn btn-primary">
                   <i class="fas fa-save"></i> Registrar Turno
                 </button>
-                <a href="{% url 'listado_turnos' %}" class="btn btn-secondary">
+                <a href="{% url 'herramientas:herramientas_listado_turnos' %}" class="btn btn-secondary">
                   <i class="fas fa-ban"></i> Cancelar
                 </a>
               </div>
@@ -160,7 +160,7 @@
         $('#codigoProveedor').on('change', function() {
             var codigo = $(this).val();
             $.ajax({
-                url: '{% url "get_nombre_proveedor" %}',
+                url: '{% url "herramientas:herramientas_get_nombre_proveedor" %}',
                 data: {
                     'codigo': codigo
                 },

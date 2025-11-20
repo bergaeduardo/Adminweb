@@ -11,7 +11,7 @@ urlpatterns = [
 
     path("Calendario/TurnoListView", views.Listar_turno, name="herramientas_listar_turno"),
     path('Calendario/NuevoTurnoProveedor', views.Crear_turno, name='herramientas_crear_turno'),
-    path('Calendario/EditarTurnoProveedor/<int:IdTurno>', views.Editar_Turno, name='herramientas_editar_turno'),
+    path('Calendario/EditarTurnoProveedor/<int:IdTurno>', views.Editar_Turno, name='herramientas_editar_turno_calendario'),
     path('Gestion_cronograma', views.Gestion_cronograma, name='herramientas_gestion_cronograma'),
     path('Gestion_guias_mayoristas', views.Gestion_guias_mayoristas, name='herramientas_gestion_guias_mayoristas'),
     path('registro', views.registro_turno, name='herramientas_registro_turno'),
