@@ -14,7 +14,7 @@ urlpatterns = [
     path("Dashboard/", include("dashboard.urls")),
     # Updated includes for the new apps
     path("Reportes/", include("reportes.urls")),
-    path("Herramientas/", include("herramientas.urls")),
+    path("Herramientas/", include("herramientas.urls", namespace="herramientas")),
     path("Extras/", include("extras.urls")),
     path("Mob/", include("apps.home.direcciones.urls_Mob")),
     path("Api/", include("apps.home.direcciones.urls_Api")),
