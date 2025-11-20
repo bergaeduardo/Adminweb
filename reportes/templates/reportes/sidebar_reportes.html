@@ -25,26 +25,19 @@
               <p>Ctrl Ventas Sucursales</p>
             </a>
           </li>
+        {% endif %}
+        {% if request.user|has_any_group:"RRHH,admin" or request.user.id == 20 %}
           <li class="nav-item">
             {# Updated href for Gestion Clientes Fr (assuming RRHH section) #}
             <a href="/Reportes/RRHH/gestionClientes"
               class="nav-link {% if 'gestionClientes' in request.path %} active {% endif %}">
               <i class="far fa-circle nav-icon"></i>
               <p>Gestión Clientes</p>
-              <span class="badge badge-info right">New</span>
+              <!-- <span class="badge badge-info right">New</span> -->
             </a>
           </li>
         {% endif %}
         <!-- RRHH compartido -->
-        {% if request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"RRHH" %}
-        <li class="nav-item">
-          {# Updated href for Reporte De Asistencias #}
-          <a href="/Reportes/RRHH/AsistenciasSuc" class="nav-link {% if 'AsistenciasSuc' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Reporte De Asistencias</p>
-          </a>
-        </li>
-        {% endif %}
         {% if not request.user|has_group:"Gerencia" %}
         <li class="nav-item">
           {# Updated href for Stock Central (assuming Logistica section) #}
@@ -73,7 +66,7 @@
             class="nav-link {% if 'Eficiencia_pedidos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Eficiencia de pedidos</p>
-            <span class="badge badge-info right">New</span>
+            <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         <li class="nav-item">
@@ -114,7 +107,7 @@
           <a href="/Reportes/Abastecimiento/stockSupply" class="nav-link {% if 'stockSupply' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Stock Supply</p>
-            <span class="badge badge-info right">New</span>
+            <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         <li class="nav-item">
@@ -159,7 +152,7 @@
           <a href="/Reportes/Abastecimiento/AnalisisProductos" class="nav-link {% if 'AnalisisProductos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Analisis de Productos</p>
-            <span class="badge badge-info right">New</span>
+            <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         {% endif %}
@@ -185,24 +178,25 @@
           </a>
         </li>
         <li class="nav-item">
-          {# Updated href for Dash Gastos Supervision (assuming Administracion section) #}
-          <a href="/Reportes/Administracion/GastosSupervision"
-            class="nav-link {% if 'GastosSupervision' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Dash Gastos Supervision</p>
-            <span class="badge badge-info right">New</span>
-          </a>
-        </li>
-        <li class="nav-item">
           {# Updated href for Costo de Ocupacion (assuming Administracion section) #}
           <a href="/Reportes/Administracion/costoOcupacion"
             class="nav-link {% if 'costoOcupacion' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Costo de Ocupación</p>
-            <span class="badge badge-info right">New</span>
+            <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
-
+        {% endif %}
+        {% if request.user|has_group:"AdministracionSup" or request.user|has_group:"admin" or request.user.id == 68 %}
+        <li class="nav-item">
+          {# Updated href for Dash Gastos Supervision (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/GastosSupervision"
+            class="nav-link {% if 'GastosSupervision' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Dash Gastos Supervision</p>
+            <!-- <span class="badge badge-info right">New</span> -->
+          </a>
+        </li>
         {% endif %}
         {% if request.user|has_group:"Administracion" or request.user|has_group:"AdministracionSup" or request.user|has_group:"admin" %}
         <li class="nav-item">
@@ -241,7 +235,7 @@
             class="nav-link {% if 'saldoCaja' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Saldo Caja Tesoreria</p>
-            <span class="badge badge-info right">New</span>
+            <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         <li class="nav-item">
@@ -268,7 +262,7 @@
             class="nav-link {% if 'controlVentasSucursales' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Ctrl Ventas Sucursales</p>
-            <span class="badge badge-info right">New</span>
+            <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         {% endif %}
@@ -280,7 +274,7 @@
             class="nav-link {% if 'cuentasParticulares' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Cuentas Particulares</p>
-            <span class="badge badge-info right">New</span>
+            <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         {% endif %}
@@ -400,7 +394,7 @@
           <a href="/Reportes/Comercial/compararStock/" class="nav-link {% if 'compararStock' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Comparar Stock</p>
-            <span class="badge badge-info right">New</span>
+            <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         <li class="nav-item">
@@ -408,7 +402,7 @@
           <a href="/Reportes/Comercial/compararVentas/" class="nav-link {% if 'compararVentas' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Comparar Ventas</p>
-            <span class="badge badge-info right">New</span>
+            <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         
@@ -418,7 +412,7 @@
           <a href="/Reportes/Comercial/PresupuestoComercial/" class="nav-link {% if 'PresupuestoComercial' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Presupuesto Comercial</p>
-            <span class="badge badge-danger right">New</span>
+            <!-- <span class="badge badge-danger right">New</span> -->
           </a>
         </li>
         {% endif %}
@@ -428,7 +422,7 @@
           <a href="/Reportes/Comercial/auditoriaDiferenciaPrecio/" class="nav-link {% if 'auditoriaDiferenciaPrecio' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Auditoría Dif. Precio</p>
-            <span class="badge badge-danger right">New</span>
+            <!-- <span class="badge badge-danger right">New</span> -->
           </a>
         </li>
 
@@ -485,7 +479,7 @@
           <a href="/Reportes/Supervisores/Proyectos" class="nav-link {% if 'Proyectos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Proyectos</p>
-            <span class="badge badge-info right">New</span>
+            <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
         {% endif %}

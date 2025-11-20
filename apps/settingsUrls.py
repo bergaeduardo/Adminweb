@@ -74,10 +74,9 @@ DIR_REPORTES = {
     'cuentasParticulares':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/contabilidad.php',
 
     # Gerencia
-    'DetalleRemitos599':SERVIDOR['production']  + 'sistemas/599/consultaderemitos.php?userName=',
-    'ChequesRecibidos':SERVIDOR['production']  + 'sistemas/599/reportedecheques.php?userName=',
+    'DetalleRemitos599':SERVIDOR['production']  + 'finanzas/599/consultaderemitos.php?userName=',
+    'ChequesRecibidos':SERVIDOR['production']  + 'finanzas/599/reportedecheques.php?userName=',
     # RRHH
-    'AsistenciasSuc':SERVIDOR['production'] + 'sistemas/fichaje/reporteDeAsistencias.php',
     'ReporteAnticipos':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/reporteAnticipos.php',
     'gestionClientes':SERVIDOR['production'] + 'recursosHumanos/clientes/index.php',
     # Supervisores
@@ -119,8 +118,8 @@ DIR_HERAMIENTAS = {
     'StockSegVtex': SERVIDOR['production'] + 'ecommerce/stockSeguridad/stockSeguridad.php',
     'novICBC':'http://192.168.0.233:8080/',
     # Gerencia
-    'rendircobranzas': SERVIDOR['production']  + 'sistemas/599/valoresrendir.php?userName=',
-    'gestionarCobro':SERVIDOR['production']  + 'sistemas/599/composicionDeRemitos.php?userName=',
+    'rendircobranzas': SERVIDOR['production']  + 'finanzas/599/valoresrendir.php?userName=',
+    'gestionarCobro':SERVIDOR['production']  + 'finanzas/599/composicionDeRemitos.php?userName=',
     'registrarEfectivo':SERVIDOR['production']  + 'administracion/controlSucursales/controlRecepcionEfectivo.php?userName=',
     'gestionPremiosComercial':SERVIDOR['production']  + 'comercial/supervision/gestionarPremios.php',
     # Administracion
