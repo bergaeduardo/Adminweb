@@ -77,7 +77,6 @@ DIR_REPORTES = {
     'DetalleRemitos599':SERVIDOR['production']  + 'finanzas/599/consultaderemitos.php?userName=',
     'ChequesRecibidos':SERVIDOR['production']  + 'finanzas/599/reportedecheques.php?userName=',
     # RRHH
-    'AsistenciasSuc':SERVIDOR['production'] + 'sistemas/fichaje/reporteDeAsistencias.php',
     'ReporteAnticipos':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/reporteAnticipos.php',
     'gestionClientes':SERVIDOR['production'] + 'recursosHumanos/clientes/index.php',
     # Supervisores
