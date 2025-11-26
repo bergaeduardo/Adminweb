@@ -71,6 +71,126 @@ class CodigosError(models.Model):
     CodigoError = models.IntegerField(primary_key=True)
     DescripcionError = models.CharField(max_length=100)
 
+class EstadoTurno(models.Model):
+    """
+    Modelo para gestionar estados dinámicos de turnos
+    Solo usuarios Admin y Logistica_Sup pueden gestionarlos
+    """
+    id_estado = models.AutoField(primary_key=True, db_column='id_estado')
+    nombre = models.CharField(max_length=50, unique=True, verbose_name="Nombre del Estado")
+    descripcion = models.CharField(max_length=200, null=True, blank=True, verbose_name="Descripción")
+    orden_ejecucion = models.IntegerField(unique=True, verbose_name="Orden de Ejecución")
+    es_requerido = models.BooleanField(default=True, verbose_name="¿Es Requerido?")
+    permite_editar = models.BooleanField(default=True, verbose_name="¿Permite Editar Turno?")
+    color = models.CharField(max_length=7, default='#17a2b8', verbose_name="Color (Hex)")
+    activo = models.BooleanField(default=True, verbose_name="Estado Activo")
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    fecha_modificacion = models.DateTimeField(auto_now=True, verbose_name="Fecha de Modificación")
+    
+    class Meta:
+        db_table = 'EstadoTurno'
+        ordering = ['orden_ejecucion']
+        verbose_name = 'Estado de Turno'
+        verbose_name_plural = 'Estados de Turnos'
+    
+    def __str__(self):
+        return f'{self.orden_ejecucion}. {self.nombre}'
+
+class TurnoReserva(models.Model):
+    """
+    Modelo para gestionar reservas de turnos para proveedores
+    Usa bloques de 30 minutos y valida límites para usuarios no-admin
+    """
+    id_turno_reserva = models.AutoField(primary_key=True, db_column='id_turno_reserva')
+    codigo_proveedor = models.CharField(max_length=6, null=False, blank=False, verbose_name="Código Proveedor")
+    nombre_proveedor = models.CharField(max_length=200, null=True, blank=True, verbose_name="Nombre Proveedor")
+    fecha = models.DateField(verbose_name="Fecha del Turno")
+    hora_inicio = models.TimeField(verbose_name="Hora Inicio")
+    hora_fin = models.TimeField(verbose_name="Hora Fin")
+    orden_compra = models.CharField(max_length=14, null=False, blank=False, verbose_name="Orden de Compra")
+    remitos = models.CharField(max_length=100, null=False, blank=False, verbose_name="Remitos")
+    cantidad_unidades = models.IntegerField(null=False, blank=False, verbose_name="Cantidad de Unidades")
+    cantidad_bultos = models.IntegerField(null=True, blank=True, verbose_name="Cantidad de Bultos")
+    observaciones = models.TextField(max_length=300, null=True, blank=True, verbose_name="Observaciones")
+    usuario_creador = models.CharField(max_length=150, verbose_name="Usuario que Creó el Turno")
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    fecha_modificacion = models.DateTimeField(auto_now=True, verbose_name="Fecha de Modificación")
+    estado = models.ForeignKey(
+        EstadoTurno,
+        on_delete=models.PROTECT,
+        related_name='turnos',
+        db_column='id_estado',
+        verbose_name="Estado del Turno"
+    )
+    usuario_ultima_modificacion_estado = models.CharField(
+        max_length=150, 
+        null=True, 
+        blank=True, 
+        verbose_name="Usuario Última Modificación Estado"
+    )
+    estado_actual_desde = models.DateTimeField(null=True, blank=True, verbose_name="Estado Actual Desde")
+
+    class Meta:
+        db_table = 'TurnoReserva'
+        ordering = ['fecha', 'hora_inicio']
+        verbose_name = 'Turno Reserva'
+        verbose_name_plural = 'Turnos Reservas'
+        # Evitar superposición de turnos
+        unique_together = [['fecha', 'hora_inicio']]
+
+    def __str__(self):
+        return f'{self.codigo_proveedor} - {self.fecha} {self.hora_inicio}-{self.hora_fin}'
+
+    def get_duracion_minutos(self):
+        """Calcula la duración del turno en minutos"""
+        from datetime import datetime, timedelta
+        inicio = datetime.combine(self.fecha, self.hora_inicio)
+        fin = datetime.combine(self.fecha, self.hora_fin)
+        return int((fin - inicio).total_seconds() / 60)
+
+class HistorialEstadoTurno(models.Model):
+    """
+    Modelo para registrar historial de cambios de estado de turnos
+    Auditoría completa de quién y cuándo cambió cada estado
+    """
+    id_historial = models.AutoField(primary_key=True, db_column='id_historial')
+    turno = models.ForeignKey(
+        TurnoReserva,
+        on_delete=models.CASCADE,
+        related_name='historial_estados',
+        db_column='id_turno_reserva',
+        verbose_name="Turno Reserva"
+    )
+    estado_anterior = models.ForeignKey(
+        EstadoTurno,
+        on_delete=models.PROTECT,
+        related_name='historiales_como_anterior',
+        db_column='id_estado_anterior',
+        null=True,
+        blank=True,
+        verbose_name="Estado Anterior"
+    )
+    estado_nuevo = models.ForeignKey(
+        EstadoTurno,
+        on_delete=models.PROTECT,
+        related_name='historiales_como_nuevo',
+        db_column='id_estado_nuevo',
+        verbose_name="Estado Nuevo"
+    )
+    usuario = models.CharField(max_length=150, verbose_name="Usuario que Realizó el Cambio")
+    fecha_cambio = models.DateTimeField(auto_now_add=True, verbose_name="Fecha y Hora del Cambio")
+    observaciones = models.TextField(max_length=500, null=True, blank=True, verbose_name="Observaciones")
+    
+    class Meta:
+        db_table = 'HistorialEstadoTurno'
+        ordering = ['-fecha_cambio']
+        verbose_name = 'Historial de Estado'
+        verbose_name_plural = 'Historiales de Estados'
+    
+    def __str__(self):
+        anterior = self.estado_anterior.nombre if self.estado_anterior else "Inicial"
+        return f'{self.turno} - {anterior} → {self.estado_nuevo.nombre}'
+
 class EB_facturaManual(models.Model):
     fechaRegistro = models.DateTimeField(auto_now_add=True)
     numeroSucursal = models.IntegerField()

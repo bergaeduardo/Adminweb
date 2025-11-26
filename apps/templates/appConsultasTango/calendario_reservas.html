@@ -1,0 +1,461 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block body_class %}sidebar-mini sidebar-collapse{% endblock body_class %}
+
+{% block stylesheets %}
+<!-- Google Font: Source Sans Pro -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+<!-- FullCalendar -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+<style>
+    #calendar {
+        max-width: 1200px;
+        margin: 20px auto;
+    }
+    .fc-event {
+        cursor: pointer;
+    }
+    .fc-timegrid-slot {
+        height: 2.5em !important;
+    }
+    .legend {
+        background-color: #f8f9fa;
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        border: 1px solid #dee2e6;
+    }
+    .legend-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #495057;
+        margin-right: 15px;
+        display: inline-block;
+        margin-bottom: 5px;
+    }
+    .legend-items {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+    }
+    .legend-item {
+        display: inline-flex;
+        align-items: center;
+        background-color: white;
+        padding: 4px 10px;
+        border-radius: 4px;
+        border: 1px solid #e3e6ea;
+        font-size: 0.8125rem;
+    }
+    .legend-color {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        margin-right: 6px;
+        border-radius: 3px;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+    .legend-text {
+        color: #495057;
+        font-weight: 500;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>{{ Nombre }}</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'herramientas:herramientas_listado_turnos' %}">Turnos</a></li>
+                        <li class="breadcrumb-item active">{{ Nombre }}</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Mensajes de alerta -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle"></i>
+                    {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                    {% elif message.tags == 'info' %}
+                        <i class="fas fa-info-circle"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Calendario de Reservas de Turnos</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'herramientas:herramientas_listado_reservas' %}" class="btn btn-info btn-sm">
+                            <i class="fas fa-list"></i> Ver Listado
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="legend">
+                        <span class="legend-title">Estados:</span>
+                        <div class="legend-items">
+                            {% for estado in estados %}
+                            <div class="legend-item">
+                                <span class="legend-color" style="background-color: {{ estado.color }};"></span>
+                                <span class="legend-text">{{ estado.nombre }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Modal para nueva reserva -->
+<div class="modal fade" id="modalNuevaReserva" tabindex="-1" role="dialog" aria-labelledby="modalNuevaReservaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalNuevaReservaLabel">Nueva Reserva de Turno</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modalNuevaReservaBody">
+                <!-- Contenido del formulario cargado dinámicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver detalles -->
+<div class="modal fade" id="modalDetalleReserva" tabindex="-1" role="dialog" aria-labelledby="modalDetalleReservaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDetalleReservaLabel">Detalle de Reserva</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modalDetalleReservaBody">
+                <!-- Detalles del turno -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" id="btnEditarReserva" data-permite-editar="true">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnVerReserva" data-permite-editar="false" style="display: none;">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+                <button type="button" class="btn btn-danger" id="btnCancelarReserva">
+                    <i class="fas fa-times"></i> Cancelar Reserva
+                </button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<!-- jQuery -->
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/assets/js/adminlte.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- FullCalendar -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/es.global.min.js'></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var currentTurnoId = null;
+
+    // Función para mostrar errores del formulario de forma amigable
+    function mostrarErroresFormulario(errors) {
+        let mensajesHTML = '<ul style="text-align: left; margin: 0; padding-left: 20px;">';
+        
+        // Procesar errores no asociados a campos específicos
+        if (errors.__all__) {
+            errors.__all__.forEach(function(error) {
+                mensajesHTML += '<li><strong>' + error + '</strong></li>';
+            });
+        }
+        
+        // Procesar errores de campos específicos
+        for (let field in errors) {
+            if (field !== '__all__') {
+                let fieldName = {
+                    'codigo_proveedor': 'Código Proveedor',
+                    'nombre_proveedor': 'Nombre Proveedor',
+                    'fecha': 'Fecha',
+                    'hora_inicio': 'Hora de Inicio',
+                    'hora_fin': 'Hora de Fin',
+                    'orden_compra': 'Orden de Compra',
+                    'remitos': 'Remitos',
+                    'cantidad_unidades': 'Cantidad de Unidades',
+                    'cantidad_bultos': 'Cantidad de Bultos',
+                    'observaciones': 'Observaciones'
+                }[field] || field;
+                
+                errors[field].forEach(function(error) {
+                    mensajesHTML += '<li><strong>' + fieldName + ':</strong> ' + error + '</li>';
+                });
+            }
+        }
+        mensajesHTML += '</ul>';
+        
+        Swal.fire({
+            icon: 'warning',
+            title: 'No se puede completar la reserva',
+            html: mensajesHTML,
+            confirmButtonColor: '#ffc107',
+            confirmButtonText: 'Entendido',
+            width: '600px'
+        });
+    }
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'es',
+        initialView: 'timeGridWeek',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        slotMinTime: '08:00:00',
+        slotMaxTime: '18:00:00',
+        slotDuration: '00:30:00',  // Bloques de 30 minutos
+        slotLabelInterval: '01:00', // Etiquetas cada hora
+        slotLabelFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        },
+        allDaySlot: false,
+        editable: false,
+        selectable: true,
+        selectMirror: true,
+        nowIndicator: true,
+        weekends: true,
+        businessHours: {
+            daysOfWeek: [1, 2, 3, 4, 5], // Lunes a viernes
+            startTime: '08:00',
+            endTime: '18:00',
+        },
+        
+        // Cargar eventos desde el servidor
+        events: function(info, successCallback, failureCallback) {
+            $.ajax({
+                url: '{% url "herramientas:herramientas_obtener_turnos_calendario" %}',
+                data: {
+                    start: info.startStr,
+                    end: info.endStr
+                },
+                success: function(data) {
+                    successCallback(data);
+                },
+                error: function() {
+                    failureCallback();
+                    alert('Error al cargar los turnos');
+                }
+            });
+        },
+
+        // Al seleccionar un slot de tiempo
+        select: function(info) {
+            // Formatear fechas
+            var fecha = info.startStr.split('T')[0];
+            var horaInicio = info.start.toTimeString().substring(0, 5);
+            var horaFin = info.end.toTimeString().substring(0, 5);
+
+            // Cargar formulario en modal
+            $('#modalNuevaReservaBody').html('<div class="text-center"><i class="fas fa-spinner fa-spin fa-3x"></i></div>');
+            $('#modalNuevaReserva').modal('show');
+
+            $.get('{% url "herramientas:herramientas_nueva_reserva_turno" %}', {
+                fecha: fecha,
+                hora_inicio: horaInicio,
+                hora_fin: horaFin
+            }, function(data) {
+                $('#modalNuevaReservaBody').html(data);
+                
+                // Configurar submit del formulario
+                $('#formNuevaReserva').on('submit', function(e) {
+                    e.preventDefault();
+                    
+                    $.ajax({
+                        url: '{% url "herramientas:herramientas_nueva_reserva_turno" %}',
+                        method: 'POST',
+                        data: $(this).serialize(),
+                        success: function(response) {
+                            if (response.success) {
+                                $('#modalNuevaReserva').modal('hide');
+                                calendar.refetchEvents();
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Reserva Exitosa!',
+                                    text: 'El turno ha sido reservado correctamente.',
+                                    confirmButtonColor: '#28a745'
+                                });
+                            } else {
+                                // Mostrar errores
+                                mostrarErroresFormulario(response.errors);
+                            }
+                        },
+                        error: function(xhr) {
+                            if (xhr.status === 400 && xhr.responseJSON && xhr.responseJSON.errors) {
+                                mostrarErroresFormulario(xhr.responseJSON.errors);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error al Guardar',
+                                    text: 'Ocurrió un error inesperado al intentar guardar la reserva. Por favor, intente nuevamente.',
+                                    confirmButtonColor: '#dc3545'
+                                });
+                            }
+                        }
+                    });
+                });
+            });
+
+            calendar.unselect();
+        },
+
+        // Al hacer clic en un evento
+        eventClick: function(info) {
+            currentTurnoId = info.event.id;
+            var props = info.event.extendedProps;
+            var permiteEditar = props.permite_editar !== false; // Asume true si no está definido
+
+            var estadoColor = props.estado_color || '#6c757d';
+            var detalleHTML = `
+                <table class="table table-bordered">
+                    <tr><th>Código Proveedor:</th><td>${props.codigo_proveedor}</td></tr>
+                    <tr><th>Nombre Proveedor:</th><td>${props.nombre_proveedor}</td></tr>
+                    <tr><th>Fecha:</th><td>${info.event.start.toLocaleDateString('es-AR')}</td></tr>
+                    <tr><th>Horario:</th><td>${info.event.start.toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit'})} - ${info.event.end.toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit'})}</td></tr>
+                    <tr><th>Orden de Compra:</th><td>${props.orden_compra}</td></tr>
+                    <tr><th>Remitos:</th><td>${props.remitos}</td></tr>
+                    <tr><th>Cantidad Unidades:</th><td>${props.cantidad_unidades}</td></tr>
+                    <tr><th>Cantidad Bultos:</th><td>${props.cantidad_bultos}</td></tr>
+                    <tr><th>Estado:</th><td><span class="badge" style="background-color: ${estadoColor}; color: white; padding: 6px 12px; font-size: 0.9em;">${props.estado}</span></td></tr>
+                    <tr><th>Creado por:</th><td>${props.usuario_creador}</td></tr>
+                    ${props.observaciones ? `<tr><th>Observaciones:</th><td>${props.observaciones}</td></tr>` : ''}
+                </table>
+            `;
+
+            $('#modalDetalleReservaBody').html(detalleHTML);
+            
+            // Mostrar botón Ver o Editar según permite_editar
+            if (permiteEditar) {
+                $('#btnEditarReserva').show();
+                $('#btnVerReserva').hide();
+            } else {
+                $('#btnEditarReserva').hide();
+                $('#btnVerReserva').show();
+            }
+            
+            // Mostrar botón Cancelar solo si el estado es "RESERVADO"
+            if (props.estado === 'RESERVADO') {
+                $('#btnCancelarReserva').show();
+            } else {
+                $('#btnCancelarReserva').hide();
+            }
+            
+            $('#modalDetalleReserva').modal('show');
+        },
+
+        eventContent: function(arg) {
+            return {
+                html: `<div style="padding: 2px; font-size: 11px; overflow: hidden;">
+                    <b>${arg.event.extendedProps.codigo_proveedor}</b><br/>
+                    OC: ${arg.event.extendedProps.orden_compra}
+                </div>`
+            };
+        }
+    });
+
+    calendar.render();
+
+    // Editar reserva
+    $('#btnEditarReserva').click(function() {
+        if (currentTurnoId) {
+            window.location.href = '{% url "herramientas:herramientas_editar_reserva_turno" 0 %}'.replace('0', currentTurnoId);
+        }
+    });
+    
+    // Ver reserva (modo solo lectura)
+    $('#btnVerReserva').click(function() {
+        if (currentTurnoId) {
+            window.location.href = '{% url "herramientas:herramientas_editar_reserva_turno" 0 %}'.replace('0', currentTurnoId);
+        }
+    });
+
+    // Cancelar reserva
+    $('#btnCancelarReserva').click(function() {
+        if (currentTurnoId && confirm('¿Está seguro de cancelar esta reserva?')) {
+            $.ajax({
+                url: '{% url "herramientas:herramientas_eliminar_reserva_turno" 0 %}'.replace('0', currentTurnoId),
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#modalDetalleReserva').modal('hide');
+                        calendar.refetchEvents();
+                        alert('Reserva cancelada exitosamente');
+                    }
+                },
+                error: function() {
+                    alert('Error al cancelar la reserva');
+                }
+            });
+        }
+    });
+
+    // Auto-completar nombre proveedor
+    $(document).on('blur', '#codigoProveedor', function() {
+        var codigo = $(this).val();
+        if (codigo) {
+            $.get('{% url "herramientas:herramientas_get_nombre_proveedor" %}', {codigo: codigo}, function(data) {
+                $('#nombreProveedor').val(data.nombre);
+            });
+        }
+    });
+});
+</script>
+{% endblock javascripts %}

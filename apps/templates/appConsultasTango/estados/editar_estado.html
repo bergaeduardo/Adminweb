@@ -1,0 +1,169 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %} Editar Estado de Turno {% endblock %}
+
+{% block stylesheets %}
+<!-- Google Font: Source Sans Pro -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1><i class="fas fa-edit"></i> Editar Estado: {{ estado.nombre }}</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'herramientas:herramientas_listado_estados_turno' %}">Estados</a></li>
+                        <li class="breadcrumb-item active">Editar</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Mensajes de Django -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle"></i>
+                    {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                    {% elif message.tags == 'info' %}
+                        <i class="fas fa-info-circle"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="row">
+                <div class="col-md-8 offset-md-2">
+                    <div class="card card-warning">
+                        <div class="card-header">
+                            <h3 class="card-title">Editar Estado</h3>
+                        </div>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                {% if form.non_field_errors %}
+                                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                                {% endif %}
+
+                                <div class="form-group">
+                                    <label>{{ form.nombre.label }} <span class="text-danger">*</span></label>
+                                    {{ form.nombre }}
+                                    {% if form.nombre.errors %}<div class="text-danger small">{{ form.nombre.errors }}</div>{% endif %}
+                                </div>
+
+                                <div class="form-group">
+                                    <label>{{ form.descripcion.label }}</label>
+                                    {{ form.descripcion }}
+                                    {% if form.descripcion.errors %}<div class="text-danger small">{{ form.descripcion.errors }}</div>{% endif %}
+                                </div>
+
+                                <div class="form-group">
+                                    <label>{{ form.orden_ejecucion.label }} <span class="text-danger">*</span></label>
+                                    {{ form.orden_ejecucion }}
+                                    {% if form.orden_ejecucion.errors %}<div class="text-danger small">{{ form.orden_ejecucion.errors }}</div>{% endif %}
+                                </div>
+
+                                <div class="form-group">
+                                    <label>{{ form.color.label }} <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        {{ form.color }}
+                                        <div class="input-group-append">
+                                            <span class="input-group-text" id="color-preview" style="width: 50px;"></span>
+                                        </div>
+                                    </div>
+                                    {% if form.color.errors %}<div class="text-danger small">{{ form.color.errors }}</div>{% endif %}
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <div class="form-check">
+                                                {{ form.es_requerido }}
+                                                <label class="form-check-label" for="{{ form.es_requerido.id_for_label }}">
+                                                    {{ form.es_requerido.label }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <div class="form-check">
+                                                {{ form.permite_editar }}
+                                                <label class="form-check-label" for="{{ form.permite_editar.id_for_label }}">
+                                                    {{ form.permite_editar.label }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <div class="form-check">
+                                                {{ form.activo }}
+                                                <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                                                    {{ form.activo.label }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-save"></i> Actualizar
+                                </button>
+                                <a href="{% url 'herramientas:herramientas_listado_estados_turno' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<!-- jQuery -->
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/assets/js/adminlte.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        function updateColorPreview() {
+            var color = $('#id_color').val();
+            $('#color-preview').css('background-color', color);
+        }
+        $('#id_color').on('input change', updateColorPreview);
+        updateColorPreview();
+    });
+</script>
+{% endblock javascripts %}

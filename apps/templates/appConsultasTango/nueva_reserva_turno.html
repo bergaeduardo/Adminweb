@@ -1,0 +1,138 @@
+{% load static %}
+
+<form id="formNuevaReserva" method="post">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.codigo_proveedor.id_for_label }}">Código Proveedor *</label>
+                {{ form.codigo_proveedor }}
+                {% if form.codigo_proveedor.errors %}
+                    <div class="text-danger">{{ form.codigo_proveedor.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.nombre_proveedor.id_for_label }}">Nombre Proveedor</label>
+                {{ form.nombre_proveedor }}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="{{ form.fecha.id_for_label }}">Fecha *</label>
+                {{ form.fecha }}
+                {% if form.fecha.errors %}
+                    <div class="text-danger">{{ form.fecha.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="{{ form.hora_inicio.id_for_label }}">Hora Inicio *</label>
+                {{ form.hora_inicio }}
+                {% if form.hora_inicio.errors %}
+                    <div class="text-danger">{{ form.hora_inicio.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="{{ form.hora_fin.id_for_label }}">Hora Fin *</label>
+                {{ form.hora_fin }}
+                {% if form.hora_fin.errors %}
+                    <div class="text-danger">{{ form.hora_fin.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.orden_compra.id_for_label }}">Orden de Compra *</label>
+                {{ form.orden_compra }}
+                {% if form.orden_compra.errors %}
+                    <div class="text-danger">{{ form.orden_compra.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.remitos.id_for_label }}">Remitos *</label>
+                {{ form.remitos }}
+                {% if form.remitos.errors %}
+                    <div class="text-danger">{{ form.remitos.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.cantidad_unidades.id_for_label }}">Cantidad Unidades *</label>
+                {{ form.cantidad_unidades }}
+                {% if form.cantidad_unidades.errors %}
+                    <div class="text-danger">{{ form.cantidad_unidades.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.cantidad_bultos.id_for_label }}">Cantidad Bultos</label>
+                {{ form.cantidad_bultos }}
+                {% if form.cantidad_bultos.errors %}
+                    <div class="text-danger">{{ form.cantidad_bultos.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="{{ form.observaciones.id_for_label }}">Observaciones</label>
+                {{ form.observaciones }}
+                {% if form.observaciones.errors %}
+                    <div class="text-danger">{{ form.observaciones.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> 
+        <strong>Nota:</strong> Los turnos deben ser en bloques de 30 minutos. 
+        Usuarios sin permisos Admin/Logística solo pueden reservar hasta 2 bloques consecutivos (1 hora).
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Guardar Reserva
+        </button>
+    </div>
+</form>
+
+<script>
+$(document).ready(function() {
+    // Auto-completar nombre proveedor al perder foco
+    $('#codigoProveedor').on('blur', function() {
+        var codigo = $(this).val();
+        if (codigo) {
+            $.ajax({
+                url: '{% url "herramientas:herramientas_get_nombre_proveedor" %}',
+                data: { codigo: codigo },
+                success: function(data) {
+                    $('#nombreProveedor').val(data.nombre);
+                }
+            });
+        }
+    });
+});
+</script>

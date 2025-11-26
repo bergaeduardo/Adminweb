@@ -43,10 +43,12 @@
             <form method="post">
               {% csrf_token %}
               <div class="card-body">
+                {% if accion == 'Editar' %}
                 <div class="form-group">
-                  <label for="{{ form.CodigoError.id_for_label }}">Código de Error</label>
-                  {{ form.CodigoError }}
+                  <label>Código de Error (No editable)</label>
+                  <input type="text" class="form-control" value="{{ codigo.CodigoError }}" readonly>
                 </div>
+                {% endif %}
                 <div class="form-group">
                   <label for="{{ form.DescripcionError.id_for_label }}">Descripción del Error</label>
                   {{ form.DescripcionError }}

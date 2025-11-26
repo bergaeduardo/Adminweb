@@ -14,13 +14,14 @@ from django.shortcuts import render, redirect,get_object_or_404
 from django.views import View
 from django.views.generic.list import ListView
 from apps.settingsUrls import *
-from consultasTango.forms import TurnoForm,TurnoEditForm,CodigoErrorForm,CategoriaForm, SubcategoriaForm, RelacionForm
-from consultasTango.models import Turno,CodigosError
+from consultasTango.forms import TurnoForm,TurnoEditForm,CodigoErrorForm,CategoriaForm, SubcategoriaForm, RelacionForm, TurnoReservaForm, EstadoTurnoForm
+from consultasTango.models import Turno,CodigosError, TurnoReserva, EstadoTurno, HistorialEstadoTurno
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import user_passes_test
 import openpyxl
 import pandas as pd
 import json
@@ -29,6 +30,7 @@ from apps.home.SQL.Sql_WMS import * # Keep SQL imports
 import xlwt # Keep excel writing imports
 import xlrd # Keep excel reading imports
 from numpy import int64, isnan # Keep numpy imports
+from datetime import datetime, timedelta, date, time as dt_time
 
 
 # @login_required(login_url="/login/")
@@ -64,7 +66,7 @@ def registro_turno(request):
         form = TurnoForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('herramientas:listado_turnos') # Updated redirect
+            return redirect('herramientas:herramientas_listado_turnos') # Updated redirect
     else:
         form = TurnoForm()
 
@@ -161,7 +163,7 @@ def editar_turno(request, turno_id):
                 turno.PosicionadoFechaHora = timezone.now()
 
             turno.save()
-            return redirect('herramientas:ver_turno', turno_id=turno.IdTurno) # Updated redirect
+            return redirect('herramientas:herramientas_ver_turno', turno_id=turno.IdTurno) # Updated redirect
     else:
         form = TurnoEditForm(instance=turno)
 
@@ -178,31 +180,567 @@ def crear_codigo_error(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Código de error creado exitosamente.')
-            return redirect('herramientas:lista_codigos_error') # Updated redirect
+            return redirect('herramientas:herramientas_lista_codigos_error') # Updated redirect
     else:
         form = CodigoErrorForm()
     return render(request, 'appConsultasTango/crear_editar_codigo_error.html', {'form': form, 'accion': 'Crear', 'Nombre': 'Crear Código de Error'})
 
 def editar_codigo_error(request, codigo_id):
-    codigo = get_object_or_404(CodigosError, pk=codigo_id)
+    codigo = get_object_or_404(CodigosError, CodigoError=codigo_id)
     if request.method == 'POST':
         form = CodigoErrorForm(request.POST, instance=codigo)
         if form.is_valid():
             form.save()
             messages.success(request, 'Código de error actualizado exitosamente.')
-            return redirect('herramientas:lista_codigos_error') # Updated redirect
+            return redirect('herramientas:herramientas_lista_codigos_error') # Updated redirect
     else:
         form = CodigoErrorForm(instance=codigo)
-    return render(request, 'appConsultasTango/crear_editar_codigo_error.html', {'form': form, 'accion': 'Editar', 'Nombre': 'Editar Código de Error'})
+    return render(request, 'appConsultasTango/crear_editar_codigo_error.html', {'form': form, 'codigo': codigo, 'accion': 'Editar', 'Nombre': 'Editar Código de Error'})
 
 def eliminar_codigo_error(request, codigo_id):
-    codigo = get_object_or_404(CodigosError, pk=codigo_id)
+    try:
+        codigo = CodigosError.objects.get(CodigoError=codigo_id)
+    except CodigosError.DoesNotExist:
+        messages.error(request, f'Código de error con ID {codigo_id} no encontrado.')
+        return redirect('herramientas:herramientas_lista_codigos_error')
+    except Exception as e:
+        messages.error(request, f'Error al buscar el código: {e}')
+        return redirect('herramientas:herramientas_lista_codigos_error')
+    
     if request.method == 'POST':
-        codigo.delete()
-        messages.success(request, 'Código de error eliminado exitosamente.')
-        return redirect('herramientas:lista_codigos_error') # Updated redirect
-    nombre_template = 'Eliminar Código de Error'
-    return render(request, 'appConsultasTango/confirmar_eliminar_codigo_error.html', {'codigo': codigo, 'Nombre': nombre_template})
+        try:
+            codigo.delete()
+            messages.success(request, 'Código de error eliminado exitosamente.')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar el código: {e}')
+        return redirect('herramientas:herramientas_lista_codigos_error')
+    
+    context = {
+        'codigo': codigo, 
+        'Nombre': 'Eliminar Código de Error'
+    }
+    
+
+# ============================================================================
+# NUEVAS VISTAS PARA CALENDARIO DE RESERVAS DE TURNOS
+# ============================================================================
+
+@login_required(login_url="/login/")
+def calendario_reservas(request):
+    """
+    Vista principal del calendario de reservas de turnos
+    Muestra calendario interactivo con FullCalendar
+    """
+    # Obtener todos los estados activos para la leyenda
+    estados = EstadoTurno.objects.filter(activo=True).order_by('orden_ejecucion')
+    
+    nombre_template = 'Calendario de Reservas'
+    return render(request, 'appConsultasTango/calendario_reservas.html', {
+        'Nombre': nombre_template,
+        'estados': estados
+    })
+
+
+@login_required(login_url="/login/")
+def obtener_turnos_calendario(request):
+    """
+    API endpoint para obtener turnos en formato FullCalendar
+    """
+    # Obtener parámetros de fecha del calendario
+    start = request.GET.get('start')
+    end = request.GET.get('end')
+    
+    try:
+        # Convertir strings a objetos date
+        if start:
+            start_date = datetime.fromisoformat(start.replace('Z', '')).date()
+        else:
+            start_date = date.today()
+            
+        if end:
+            end_date = datetime.fromisoformat(end.replace('Z', '')).date()
+        else:
+            end_date = start_date + timedelta(days=30)
+        
+        # Obtener turnos en el rango de fechas
+        # Solo mostrar turnos con estados activos (no cancelados)
+        turnos = TurnoReserva.objects.filter(
+            fecha__gte=start_date,
+            fecha__lte=end_date,
+            estado__activo=True  # Solo estados activos
+        ).select_related('estado')
+        
+        # Formatear para FullCalendar
+        eventos = []
+        for turno in turnos:
+            # Combinar fecha y hora para crear datetime
+            inicio = datetime.combine(turno.fecha, turno.hora_inicio)
+            fin = datetime.combine(turno.fecha, turno.hora_fin)
+            
+            # Usar color del estado
+            color = turno.estado.color if turno.estado else '#17a2b8'
+            
+            eventos.append({
+                'id': turno.id_turno_reserva,
+                'title': f'{turno.codigo_proveedor} - OC: {turno.orden_compra}',
+                'start': inicio.isoformat(),
+                'end': fin.isoformat(),
+                'backgroundColor': color,
+                'borderColor': color,
+                'extendedProps': {
+                    'codigo_proveedor': turno.codigo_proveedor,
+                    'nombre_proveedor': turno.nombre_proveedor or '',
+                    'orden_compra': turno.orden_compra,
+                    'remitos': turno.remitos,
+                    'cantidad_unidades': turno.cantidad_unidades,
+                    'cantidad_bultos': turno.cantidad_bultos or 0,
+                    'observaciones': turno.observaciones or '',
+                    'estado': turno.estado.nombre if turno.estado else 'Sin Estado',
+                    'estado_id': turno.estado.id_estado if turno.estado else None,
+                    'estado_color': turno.estado.color if turno.estado else '#6c757d',
+                    'permite_editar': turno.estado.permite_editar if turno.estado else True,
+                    'usuario_creador': turno.usuario_creador
+                }
+            })
+        
+        return JsonResponse(eventos, safe=False)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required(login_url="/login/")
+def obtener_slots_disponibles(request):
+    """
+    API endpoint para obtener slots de tiempo disponibles en una fecha específica
+    Retorna bloques de 30 minutos disponibles
+    """
+    fecha_str = request.GET.get('fecha')
+    
+    if not fecha_str:
+        return JsonResponse({'error': 'Fecha requerida'}, status=400)
+    
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        
+        # Definir horario laboral (ejemplo: 8:00 a 18:00)
+        hora_inicio = dt_time(8, 0)
+        hora_fin = dt_time(18, 0)
+        
+        # Generar todos los slots de 30 minutos
+        slots_disponibles = []
+        current_time = datetime.combine(fecha, hora_inicio)
+        end_time = datetime.combine(fecha, hora_fin)
+        
+        while current_time < end_time:
+            slot_inicio = current_time.time()
+            slot_fin = (current_time + timedelta(minutes=30)).time()
+            
+            # Verificar si el slot está ocupado
+            # Solo considerar turnos con estados activos
+            turnos_existentes = TurnoReserva.objects.filter(
+                fecha=fecha,
+                estado__activo=True
+            )
+            
+            ocupado = False
+            for turno in turnos_existentes:
+                # Verificar superposición
+                if not (slot_fin <= turno.hora_inicio or slot_inicio >= turno.hora_fin):
+                    ocupado = True
+                    break
+            
+            if not ocupado:
+                slots_disponibles.append({
+                    'inicio': slot_inicio.strftime('%H:%M'),
+                    'fin': slot_fin.strftime('%H:%M'),
+                    'display': f"{slot_inicio.strftime('%H:%M')} - {slot_fin.strftime('%H:%M')}"
+                })
+            
+            current_time += timedelta(minutes=30)
+        
+        return JsonResponse({'slots': slots_disponibles})
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required(login_url="/login/")
+def nueva_reserva_turno(request):
+    """
+    Vista para crear una nueva reserva de turno
+    Crea registro en historial de estados al crear
+    """
+    if request.method == 'POST':
+        # Obtener el primer estado antes de crear el formulario
+        primer_estado = EstadoTurno.objects.filter(activo=True).order_by('orden_ejecucion').first()
+        
+        # Crear una copia mutable de POST data
+        post_data = request.POST.copy()
+        
+        # Si no viene estado en POST, agregar el primer estado
+        if not post_data.get('estado') and primer_estado:
+            post_data['estado'] = primer_estado.id_estado
+        
+        form = TurnoReservaForm(post_data, user=request.user)
+        if form.is_valid():
+            turno = form.save(commit=False)
+            turno.usuario_creador = request.user.username
+            
+            # Asegurar que tiene estado (doble verificación)
+            if not turno.estado and primer_estado:
+                turno.estado = primer_estado
+            
+            # Registrar datos de estado
+            turno.usuario_ultima_modificacion_estado = request.user.username
+            turno.estado_actual_desde = timezone.now()
+            
+            turno.save()
+            
+            # Crear registro en historial de estados
+            HistorialEstadoTurno.objects.create(
+                turno=turno,
+                estado_anterior=None,  # Es el primer estado
+                estado_nuevo=turno.estado,
+                usuario=request.user.username,
+                observaciones="Creación de turno"
+            )
+            
+            messages.success(request, 'Turno reservado exitosamente.')
+            return JsonResponse({
+                'success': True, 
+                'message': 'Turno reservado exitosamente',
+                'turno_id': turno.id_turno_reserva
+            })
+        else:
+            # Retornar errores del formulario
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            }, status=400)
+    else:
+        # GET request - mostrar formulario
+        form = TurnoReservaForm(user=request.user)
+        
+        # Si viene fecha y hora por parámetro, pre-llenar
+        fecha = request.GET.get('fecha')
+        hora_inicio = request.GET.get('hora_inicio')
+        hora_fin = request.GET.get('hora_fin')
+        
+        if fecha:
+            form.fields['fecha'].initial = fecha
+        if hora_inicio:
+            form.fields['hora_inicio'].initial = hora_inicio
+        if hora_fin:
+            form.fields['hora_fin'].initial = hora_fin
+    
+    return render(request, 'appConsultasTango/nueva_reserva_turno.html', {
+        'form': form,
+        'Nombre': 'Nueva Reserva de Turno'
+    })
+
+
+@login_required(login_url="/login/")
+def editar_reserva_turno(request, turno_id):
+    """
+    Vista para editar una reserva de turno existente
+    Registra cambios de estado en historial
+    Valida que no se puedan editar turnos de hoy o fechas pasadas
+    Muestra en modo solo lectura si el estado no permite editar
+    """
+    turno = get_object_or_404(TurnoReserva, pk=turno_id)
+    
+    # Verificar si el estado actual permite editar el turno
+    solo_lectura = turno.estado and not turno.estado.permite_editar
+    
+    # Verificar si la fecha del turno ya pasó
+    hoy = date.today()
+    turno_es_pasado = turno.fecha <= hoy
+    
+    if request.method == 'POST':
+        # Rechazar POST si está en modo solo lectura
+        if solo_lectura:
+            messages.error(request, 'No se pueden realizar modificaciones en este turno.')
+            return redirect('herramientas:herramientas_calendario_reservas')
+        
+        # Guardar estado anterior antes de aplicar cambios
+        estado_anterior = turno.estado
+        
+        form = TurnoReservaForm(request.POST, instance=turno, user=request.user)
+        if form.is_valid():
+            turno_actualizado = form.save(commit=False)
+            
+            # Verificar si hubo cambio de estado
+            if estado_anterior != turno_actualizado.estado:
+                # Validar que el usuario tenga permisos para cambiar estado
+                user_groups = [g.name for g in request.user.groups.all()]
+                puede_cambiar_estado = (
+                    request.user.is_superuser or 
+                    'Admin' in user_groups or 
+                    'Logistica_Sup' in user_groups or
+                    'Logistica' in user_groups
+                )
+                
+                if puede_cambiar_estado:
+                    # Registrar cambio de estado
+                    turno_actualizado.usuario_ultima_modificacion_estado = request.user.username
+                    turno_actualizado.estado_actual_desde = timezone.now()
+                    
+                    # Crear registro en historial
+                    HistorialEstadoTurno.objects.create(
+                        turno=turno_actualizado,
+                        estado_anterior=estado_anterior,
+                        estado_nuevo=turno_actualizado.estado,
+                        usuario=request.user.username,
+                        observaciones=f"Cambio de estado: {estado_anterior.nombre if estado_anterior else 'N/A'} → {turno_actualizado.estado.nombre}"
+                    )
+                else:
+                    # Si no tiene permisos, revertir el cambio de estado
+                    turno_actualizado.estado = estado_anterior
+                    messages.warning(request, 'No tiene permisos para cambiar el estado del turno.')
+            
+            turno_actualizado.save()
+            messages.success(request, 'Turno actualizado exitosamente.')
+            return redirect('herramientas:herramientas_calendario_reservas')
+        # Si hay errores, no agregar mensaje adicional ya que form.errors ya los muestra
+    else:
+        form = TurnoReservaForm(instance=turno, user=request.user)
+    
+    # Obtener historial de estados para mostrar en el template
+    historial_estados = HistorialEstadoTurno.objects.filter(turno=turno).order_by('-fecha_cambio')
+    
+    return render(request, 'appConsultasTango/editar_reserva_turno.html', {
+        'form': form,
+        'turno': turno,
+        'turno_es_pasado': turno_es_pasado,
+        'historial_estados': historial_estados,
+        'solo_lectura': solo_lectura,
+        'Nombre': f"{'Ver' if solo_lectura else 'Editar'} Turno #{turno.id_turno_reserva}"
+    })
+
+
+@login_required(login_url="/login/")
+def eliminar_reserva_turno(request, turno_id):
+    """
+    Vista para eliminar/cancelar una reserva de turno
+    """
+    turno = get_object_or_404(TurnoReserva, pk=turno_id)
+    
+    if request.method == 'POST':
+        try:
+            # En lugar de eliminar, cambiar estado a CANCELADO
+            turno.estado = 'CANCELADO'
+            turno.save()
+            messages.success(request, 'Turno cancelado exitosamente.')
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+
+@login_required(login_url="/login/")
+def detalle_reserva_turno(request, turno_id):
+    """
+    Vista para ver detalles de una reserva de turno
+    """
+    turno = get_object_or_404(TurnoReserva, pk=turno_id)
+    
+    return render(request, 'appConsultasTango/detalle_reserva_turno.html', {
+        'turno': turno,
+        'Nombre': 'Detalle de Reserva'
+    })
+
+
+@login_required(login_url="/login/")
+def listado_reservas(request):
+    """
+    Vista de listado de reservas (alternativa al calendario)
+    """
+    # Filtros opcionales
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    estado = request.GET.get('estado')
+    
+    turnos = TurnoReserva.objects.all()
+    
+    if fecha_desde:
+        turnos = turnos.filter(fecha__gte=fecha_desde)
+    if fecha_hasta:
+        turnos = turnos.filter(fecha__lte=fecha_hasta)
+    if estado:
+        turnos = turnos.filter(estado=estado)
+    
+    turnos = turnos.order_by('-fecha', '-hora_inicio')
+    
+    return render(request, 'appConsultasTango/listado_reservas.html', {
+        'turnos': turnos,
+        'Nombre': 'Listado de Reservas'
+    })
+
+# ============================================================================
+# FIN VISTAS CALENDARIO DE RESERVAS
+# ============================================================================
+
+# ============================================================================
+# FUNCIONES DE AYUDA PARA PERMISOS
+# ============================================================================
+
+def es_admin_o_logistica_sup(user):
+    """Verificar si el usuario pertenece a Admin o Logistica_Sup"""
+    if user.is_superuser:
+        return True
+    user_groups = [g.name for g in user.groups.all()]
+    return 'Admin' in user_groups or 'Logistica_Sup' in user_groups
+
+def es_admin_logistica_sup_o_logistica(user):
+    """Verificar si el usuario pertenece a Admin, Logistica_Sup o Logistica"""
+    if user.is_superuser:
+        return True
+    user_groups = [g.name for g in user.groups.all()]
+    return 'Admin' in user_groups or 'Logistica_Sup' in user_groups or 'Logistica' in user_groups
+
+# ============================================================================
+# VISTAS CRUD PARA GESTIÓN DE ESTADOS DE TURNOS
+# Solo accesibles para Admin y Logistica_Sup
+# ============================================================================
+
+@login_required(login_url="/login/")
+@user_passes_test(es_admin_o_logistica_sup, login_url="/login/")
+def listado_estados_turno(request):
+    """
+    Vista para listar todos los estados de turnos
+    Solo accesible para Admin y Logistica_Sup
+    """
+    estados = EstadoTurno.objects.all().order_by('orden_ejecucion')
+    
+    return render(request, 'appConsultasTango/estados/listado_estados.html', {
+        'estados': estados,
+        'Nombre': 'Gestión de Estados de Turnos'
+    })
+
+
+@login_required(login_url="/login/")
+@user_passes_test(es_admin_o_logistica_sup, login_url="/login/")
+def crear_estado_turno(request):
+    """
+    Vista para crear un nuevo estado de turno
+    Solo accesible para Admin y Logistica_Sup
+    """
+    if request.method == 'POST':
+        form = EstadoTurnoForm(request.POST)
+        if form.is_valid():
+            estado = form.save()
+            messages.success(request, f'Estado "{estado.nombre}" creado exitosamente.')
+            return redirect('herramientas:herramientas_listado_estados_turno')
+        else:
+            messages.error(request, 'Error al crear el estado. Verifique los datos.')
+    else:
+        form = EstadoTurnoForm()
+    
+    return render(request, 'appConsultasTango/estados/crear_estado.html', {
+        'form': form,
+        'Nombre': 'Crear Estado de Turno'
+    })
+
+
+@login_required(login_url="/login/")
+@user_passes_test(es_admin_o_logistica_sup, login_url="/login/")
+def editar_estado_turno(request, estado_id):
+    """
+    Vista para editar un estado de turno existente
+    Solo accesible para Admin y Logistica_Sup
+    """
+    estado = get_object_or_404(EstadoTurno, pk=estado_id)
+    
+    if request.method == 'POST':
+        form = EstadoTurnoForm(request.POST, instance=estado)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Estado "{estado.nombre}" actualizado exitosamente.')
+            return redirect('herramientas:herramientas_listado_estados_turno')
+        else:
+            messages.error(request, 'Error al actualizar el estado. Verifique los datos.')
+    else:
+        form = EstadoTurnoForm(instance=estado)
+    
+    return render(request, 'appConsultasTango/estados/editar_estado.html', {
+        'form': form,
+        'estado': estado,
+        'Nombre': 'Editar Estado de Turno'
+    })
+
+
+@login_required(login_url="/login/")
+@user_passes_test(es_admin_o_logistica_sup, login_url="/login/")
+def eliminar_estado_turno(request, estado_id):
+    """
+    Vista para eliminar un estado de turno
+    Solo accesible para Admin y Logistica_Sup
+    Valida que no haya turnos usando este estado
+    """
+    estado = get_object_or_404(EstadoTurno, pk=estado_id)
+    
+    # Verificar si hay turnos usando este estado
+    turnos_con_estado = TurnoReserva.objects.filter(estado=estado).count()
+    
+    if request.method == 'POST':
+        if turnos_con_estado > 0:
+            messages.error(
+                request, 
+                f'No se puede eliminar el estado "{estado.nombre}" porque hay {turnos_con_estado} turno(s) usándolo. '
+                'Por favor, cambie el estado de esos turnos primero o desactive el estado en lugar de eliminarlo.'
+            )
+            return redirect('herramientas:herramientas_listado_estados_turno')
+        
+        try:
+            nombre_estado = estado.nombre
+            estado.delete()
+            messages.success(request, f'Estado "{nombre_estado}" eliminado exitosamente.')
+            return redirect('herramientas:herramientas_listado_estados_turno')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar el estado: {str(e)}')
+            return redirect('herramientas:herramientas_listado_estados_turno')
+    
+    return render(request, 'appConsultasTango/estados/eliminar_estado.html', {
+        'estado': estado,
+        'turnos_con_estado': turnos_con_estado,
+        'Nombre': 'Eliminar Estado de Turno'
+    })
+
+
+@login_required(login_url="/login/")
+@user_passes_test(es_admin_o_logistica_sup, login_url="/login/")
+def reordenar_estados_turno(request):
+    """
+    Vista AJAX para reordenar estados mediante drag and drop
+    Recibe orden_ejecucion para cada estado
+    """
+    if request.method == 'POST':
+        try:
+            import json
+            data = json.loads(request.body)
+            
+            # data debe ser un array de objetos {id: X, orden: Y}
+            for item in data:
+                estado_id = item.get('id')
+                nuevo_orden = item.get('orden')
+                
+                if estado_id and nuevo_orden:
+                    EstadoTurno.objects.filter(pk=estado_id).update(orden_ejecucion=nuevo_orden)
+            
+            return JsonResponse({'success': True, 'message': 'Estados reordenados exitosamente'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+
+# ============================================================================
+# FIN VISTAS CRUD ESTADOS
+# ============================================================================
+
+    return render(request, 'appConsultasTango/confirmar_eliminar_codigo_error.html', context)
 
 logger = logging.getLogger(__name__)
 
@@ -276,7 +814,7 @@ def Eliminar_Turno(request):
         datos = Turno.objects.get(IdTurno=IdTurno)
         datos.delete()
         # Redirigir a la página de éxito
-        return redirect('herramientas:Listar_turno') # Updated redirect
+        return redirect('herramientas:herramientas_listar_turno') # Updated redirect
     else:
         IdTurno = request.GET.get('IdTurno')
         datos = Turno.objects.get(IdTurno=IdTurno)
@@ -290,7 +828,7 @@ def Editar_Turno(request,IdTurno):
         if form.is_valid():
             form.save()
             # Redirigir a la página de éxito
-            return redirect('herramientas:Listar_turno') # Updated redirect
+            return redirect('herramientas:herramientas_listar_turno') # Updated redirect
     else:
         form = TurnoForm(instance=datos)
     return render(request, 'appConsultasTango/Editar_turno.html', {'form': form})
@@ -307,7 +845,7 @@ def Crear_turno(request):
         if form.is_valid():
             form.save()
             # Redirigir a la página de éxito
-            return redirect('herramientas:Listar_turno') # Updated redirect
+            return redirect('herramientas:herramientas_listar_turno') # Updated redirect
     else:
         form = TurnoForm()
     return render(request, 'appConsultasTango/Crear_turno.html', {'form': form})

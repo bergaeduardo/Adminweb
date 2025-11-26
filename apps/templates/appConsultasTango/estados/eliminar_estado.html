@@ -1,0 +1,138 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %} Eliminar Estado de Turno {% endblock %}
+
+{% block stylesheets %}
+<!-- Google Font: Source Sans Pro -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1><i class="fas fa-trash-alt"></i> Eliminar Estado</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'herramientas:herramientas_listado_estados_turno' %}">Estados</a></li>
+                        <li class="breadcrumb-item active">Eliminar</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6 offset-md-3">
+                    <div class="card card-danger">
+                        <div class="card-header">
+                            <h3 class="card-title">Confirmar Eliminación</h3>
+                        </div>
+                        
+                        <div class="card-body">
+                            {% if turnos_con_estado > 0 %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>¡Atención!</strong> No se puede eliminar este estado porque hay 
+                                <strong>{{ turnos_con_estado }} turno(s)</strong> usándolo actualmente.
+                            </div>
+                            <p>
+                                Para poder eliminar este estado, debe:
+                            </p>
+                            <ol>
+                                <li>Cambiar el estado de todos los turnos que lo usan</li>
+                                <li>O desactivar el estado en lugar de eliminarlo</li>
+                            </ol>
+                            {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-question-circle"></i>
+                                ¿Está seguro que desea eliminar el siguiente estado?
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Nombre:</dt>
+                                        <dd class="col-sm-8"><strong>{{ estado.nombre }}</strong></dd>
+
+                                        <dt class="col-sm-4">Descripción:</dt>
+                                        <dd class="col-sm-8">{{ estado.descripcion|default:"N/A" }}</dd>
+
+                                        <dt class="col-sm-4">Orden:</dt>
+                                        <dd class="col-sm-8">{{ estado.orden_ejecucion }}</dd>
+
+                                        <dt class="col-sm-4">Color:</dt>
+                                        <dd class="col-sm-8">
+                                            <span style="display: inline-block; width: 30px; height: 20px; background-color: {{ estado.color }}; border: 1px solid #000;"></span>
+                                            {{ estado.color }}
+                                        </dd>
+
+                                        <dt class="col-sm-4">Requerido:</dt>
+                                        <dd class="col-sm-8">
+                                            {% if estado.es_requerido %}
+                                            <span class="badge badge-success">Sí</span>
+                                            {% else %}
+                                            <span class="badge badge-warning">No</span>
+                                            {% endif %}
+                                        </dd>
+
+                                        <dt class="col-sm-4">Estado:</dt>
+                                        <dd class="col-sm-8">
+                                            {% if estado.activo %}
+                                            <span class="badge badge-success">Activo</span>
+                                            {% else %}
+                                            <span class="badge badge-secondary">Inactivo</span>
+                                            {% endif %}
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Nota:</strong> Esta acción no se puede deshacer.
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-footer">
+                            {% if turnos_con_estado == 0 %}
+                            <form method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash-alt"></i> Sí, Eliminar
+                                </button>
+                            </form>
+                            {% endif %}
+                            <a href="{% url 'herramientas:herramientas_listado_estados_turno' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> 
+                                {% if turnos_con_estado > 0 %}Volver{% else %}Cancelar{% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<!-- jQuery -->
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/assets/js/adminlte.min.js"></script>
+{% endblock javascripts %}

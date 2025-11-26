@@ -1,0 +1,190 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block body_class %}sidebar-mini sidebar-collapse{% endblock body_class %}
+
+{% block stylesheets %}
+<!-- Google Font: Source Sans Pro -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<!-- DataTables -->
+<link rel="stylesheet" href="/static/assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" href="/static/assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>{{ Nombre }}</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'herramientas:herramientas_listado_turnos' %}">Turnos</a></li>
+                        <li class="breadcrumb-item active">{{ Nombre }}</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Mensajes de alerta -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle"></i>
+                    {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                    {% elif message.tags == 'info' %}
+                        <i class="fas fa-info-circle"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Listado de Reservas de Turnos</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'herramientas:herramientas_calendario_reservas' %}" class="btn btn-info btn-sm">
+                            <i class="fas fa-calendar"></i> Ver Calendario
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="reservas-table" class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Proveedor</th>
+                                    <th>Fecha</th>
+                                    <th>Horario</th>
+                                    <th>Orden de Compra</th>
+                                    <th>Unidades</th>
+                                    <th>Bultos</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for turno in turnos %}
+                                <tr>
+                                    <td>{{ turno.id_turno_reserva }}</td>
+                                    <td>
+                                        <strong>{{ turno.codigo_proveedor }}</strong><br/>
+                                        <small class="text-muted">{{ turno.nombre_proveedor|default:"-" }}</small>
+                                    </td>
+                                    <td>{{ turno.fecha|date:"d/m/Y" }}</td>
+                                    <td>{{ turno.hora_inicio|time:"H:i" }} - {{ turno.hora_fin|time:"H:i" }}</td>
+                                    <td>{{ turno.orden_compra }}</td>
+                                    <td>{{ turno.cantidad_unidades }}</td>
+                                    <td>{{ turno.cantidad_bultos|default:"-" }}</td>
+                                    <td>
+                                        {% if turno.estado == 'RESERVADO' %}
+                                            <span class="badge badge-info">Reservado</span>
+                                        {% elif turno.estado == 'CONFIRMADO' %}
+                                            <span class="badge badge-success">Confirmado</span>
+                                        {% elif turno.estado == 'COMPLETADO' %}
+                                            <span class="badge badge-primary">Completado</span>
+                                        {% elif turno.estado == 'CANCELADO' %}
+                                            <span class="badge badge-danger">Cancelado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'herramientas:herramientas_detalle_reserva_turno' turno.id_turno_reserva %}" 
+                                           class="btn btn-info btn-sm" title="Ver Detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if turno.estado != 'CANCELADO' and turno.estado != 'COMPLETADO' %}
+                                            <a href="{% url 'herramientas:herramientas_editar_reserva_turno' turno.id_turno_reserva %}" 
+                                               class="btn btn-warning btn-sm" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button class="btn btn-danger btn-sm btn-cancelar" 
+                                                    data-turno-id="{{ turno.id_turno_reserva }}" title="Cancelar">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center">No hay reservas registradas</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<!-- jQuery -->
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- DataTables -->
+<script src="/static/assets/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="/static/assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script src="/static/assets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script src="/static/assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/assets/js/adminlte.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Inicializar DataTables
+    $('#reservas-table').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+        },
+        "order": [[2, "desc"], [3, "desc"]]  // Ordenar por fecha y hora descendente
+    });
+
+    // Cancelar reserva
+    $('.btn-cancelar').click(function() {
+        var turnoId = $(this).data('turno-id');
+        
+        if (confirm('¿Está seguro de cancelar esta reserva?')) {
+            $.ajax({
+                url: '/Herramientas/eliminar_reserva/' + turnoId,
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Error al cancelar la reserva');
+                    }
+                },
+                error: function() {
+                    alert('Error al cancelar la reserva');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock javascripts %}

@@ -24,6 +24,24 @@ urlpatterns = [
     path('crear_codigo_error', views.crear_codigo_error, name='herramientas_crear_codigo_error'),
     path('editar_codigo_error/<int:codigo_id>', views.editar_codigo_error, name='herramientas_editar_codigo_error'),
     path('eliminar_codigo_error/<int:codigo_id>', views.eliminar_codigo_error, name='herramientas_eliminar_codigo_error'),
+    
+    # Nuevas URLs para Calendario de Reservas
+    path('calendario_reservas', views.calendario_reservas, name='herramientas_calendario_reservas'),
+    path('obtener_turnos_calendario', views.obtener_turnos_calendario, name='herramientas_obtener_turnos_calendario'),
+    path('obtener_slots_disponibles', views.obtener_slots_disponibles, name='herramientas_obtener_slots_disponibles'),
+    path('nueva_reserva', views.nueva_reserva_turno, name='herramientas_nueva_reserva_turno'),
+    path('editar_reserva/<int:turno_id>', views.editar_reserva_turno, name='herramientas_editar_reserva_turno'),
+    path('eliminar_reserva/<int:turno_id>', views.eliminar_reserva_turno, name='herramientas_eliminar_reserva_turno'),
+    path('detalle_reserva/<int:turno_id>', views.detalle_reserva_turno, name='herramientas_detalle_reserva_turno'),
+    path('listado_reservas', views.listado_reservas, name='herramientas_listado_reservas'),
+    
+    # URLs para Gestión de Estados de Turnos (Admin y Logistica_Sup)
+    path('estados_turno/listado', views.listado_estados_turno, name='herramientas_listado_estados_turno'),
+    path('estados_turno/crear', views.crear_estado_turno, name='herramientas_crear_estado_turno'),
+    path('estados_turno/editar/<int:estado_id>', views.editar_estado_turno, name='herramientas_editar_estado_turno'),
+    path('estados_turno/eliminar/<int:estado_id>', views.eliminar_estado_turno, name='herramientas_eliminar_estado_turno'),
+    path('estados_turno/reordenar', views.reordenar_estados_turno, name='herramientas_reordenar_estados_turno'),
+    
     path("cargaAnticipoGrupo", views.CargaAnticipoGrupo, name="herramientas_carga_anticipo_grupo"),
     path("ImpRotulos", views.ImpRotulos, name="herramientas_imprimir_rotulos"),
     path("ImpRemEcom", views.ImpRemEcom, name="herramientas_importar_rem_ecom"),

@@ -1,0 +1,385 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block body_class %}sidebar-mini sidebar-collapse{% endblock body_class %}
+
+{% block stylesheets %}
+<!-- Google Font: Source Sans Pro -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>{{ Nombre }}</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'herramientas:herramientas_calendario_reservas' %}">Calendario</a></li>
+                        <li class="breadcrumb-item active">{{ Nombre }}</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="card {% if solo_lectura %}card-secondary{% else %}card-warning{% endif %}">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                {% if solo_lectura %}
+                                <i class="fas fa-eye"></i> Ver Turno #{{ turno.id_turno_reserva }}
+                                {% else %}
+                                <i class="fas fa-edit"></i> Editar Reserva de Turno #{{ turno.id_turno_reserva }}
+                                {% endif %}
+                            </h3>
+                        </div>
+                        
+                        <!-- Información del Estado Actual -->
+                        <div class="card-body bg-light border-bottom">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Estado Actual:</strong></p>
+                                    <h4>
+                                        <span class="badge" style="background-color: {{ turno.estado.color }}; font-size: 1.1em;">
+                                            {{ turno.estado.nombre }}
+                                        </span>
+                                        {% if not turno.estado.permite_editar %}
+                                        <span class="badge badge-danger ml-2">
+                                            <i class="fas fa-lock"></i> No Editable
+                                        </span>
+                                        {% endif %}
+                                    </h4>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Última Modificación de Estado:</strong></p>
+                                    <p class="mb-0">
+                                        {% if turno.estado_actual_desde %}
+                                            {{ turno.estado_actual_desde|date:"d/m/Y H:i" }} 
+                                            {% if turno.usuario_ultima_modificacion_estado %}
+                                                por {{ turno.usuario_ultima_modificacion_estado }}
+                                            {% endif %}
+                                        {% else %}
+                                            Sin información
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            {% if solo_lectura %}
+                            <div class="alert alert-info mt-3 mb-0">
+                                <h5><i class="fas fa-lock"></i> Modo Solo Lectura</h5>
+                                <p class="mb-0">
+                                    Este turno se encuentra en estado <strong>"{{ turno.estado.nombre }}"</strong> que no permite modificaciones.
+                                    <br>
+                                    Los campos se muestran únicamente para consulta. No es posible editar ningún dato ni guardar cambios.
+                                    <br>
+                                    Si necesita realizar modificaciones, contacte al administrador del sistema.
+                                </p>
+                            </div>
+                            {% elif turno_es_pasado %}
+                            <div class="alert alert-warning mt-3 mb-0">
+                                <h5><i class="fas fa-exclamation-triangle"></i> Turno de Fecha Pasada</h5>
+                                <p class="mb-0">
+                                    Este turno corresponde al día actual o a una fecha pasada.
+                                    <br>
+                                    Los campos de <strong>fecha y hora</strong> no se pueden modificar.
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="card-body">
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.codigo_proveedor.id_for_label }}">Código Proveedor *</label>
+                                            {% if solo_lectura %}
+                                            <input type="text" class="form-control" value="{{ turno.codigo_proveedor }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            {% else %}
+                                            {{ form.codigo_proveedor }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.nombre_proveedor.id_for_label }}">Nombre Proveedor</label>
+                                            {% if solo_lectura %}
+                                            <input type="text" class="form-control" value="{{ turno.nombre_proveedor }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            {% else %}
+                                            {{ form.nombre_proveedor }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="{{ form.fecha.id_for_label }}">Fecha *</label>
+                                            {% if solo_lectura %}
+                                            <input type="text" class="form-control" value="{{ turno.fecha|date:'d/m/Y' }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            {% else %}
+                                            {{ form.fecha }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="{{ form.hora_inicio.id_for_label }}">Hora Inicio *</label>
+                                            {% if solo_lectura %}
+                                            <input type="text" class="form-control" value="{{ turno.hora_inicio }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            {% else %}
+                                            {{ form.hora_inicio }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="{{ form.hora_fin.id_for_label }}">Hora Fin *</label>
+                                            {% if solo_lectura %}
+                                            <input type="text" class="form-control" value="{{ turno.hora_fin }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            {% else %}
+                                            {{ form.hora_fin }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.orden_compra.id_for_label }}">Orden de Compra *</label>
+                                            {% if solo_lectura %}
+                                            <input type="text" class="form-control" value="{{ turno.orden_compra }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            {% else %}
+                                            {{ form.orden_compra }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.remitos.id_for_label }}">Remitos *</label>
+                                            {% if solo_lectura %}
+                                            <input type="text" class="form-control" value="{{ turno.remitos }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            {% else %}
+                                            {{ form.remitos }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.cantidad_unidades.id_for_label }}">Cantidad Unidades *</label>
+                                            {% if solo_lectura %}
+                                            <input type="text" class="form-control" value="{{ turno.cantidad_unidades }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            {% else %}
+                                            {{ form.cantidad_unidades }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.cantidad_bultos.id_for_label }}">Cantidad Bultos</label>
+                                            {% if solo_lectura %}
+                                            <input type="text" class="form-control" value="{{ turno.cantidad_bultos|default:'-' }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            {% else %}
+                                            {{ form.cantidad_bultos }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="{{ form.observaciones.id_for_label }}">Observaciones</label>
+                                            {% if solo_lectura %}
+                                            <textarea class="form-control" rows="3" readonly style="background-color: #e9ecef; cursor: not-allowed;">{{ turno.observaciones|default:'' }}</textarea>
+                                            {% else %}
+                                            {{ form.observaciones }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Campo Estado -->
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="{{ form.estado.id_for_label }}">Estado del Turno *</label>
+                                            {% if solo_lectura %}
+                                            <div>
+                                                <span class="badge" style="background-color: {{ turno.estado.color }}; font-size: 1em; padding: 8px 12px;">
+                                                    {{ turno.estado.nombre }}
+                                                </span>
+                                            </div>
+                                            {% else %}
+                                            {{ form.estado }}
+                                            {% if form.estado.field.widget.attrs.disabled %}
+                                                <small class="form-text text-muted">
+                                                    <i class="fas fa-info-circle"></i> 
+                                                    Solo usuarios Admin/Logística pueden modificar el estado.
+                                                </small>
+                                            {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {% if not solo_lectura and not turno.historial_estados.exists %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> 
+                                    <strong>Nota:</strong> Los turnos deben ser en bloques de 30 minutos. 
+                                    Usuarios sin permisos Admin/Logística solo pueden reservar hasta 2 bloques consecutivos (1 hora).
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer">
+                                {% if solo_lectura %}
+                                <a href="{% url 'herramientas:herramientas_calendario_reservas' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Volver al Calendario
+                                </a>
+                                {% else %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Guardar Cambios
+                                </button>
+                                <a href="{% url 'herramientas:herramientas_calendario_reservas' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Historial de Estados -->
+                    {% if historial_estados %}
+                    <div class="card card-info mt-3">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-history"></i> Historial de Cambios de Estado</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha/Hora</th>
+                                        <th>Estado Anterior</th>
+                                        <th>Estado Nuevo</th>
+                                        <th>Usuario</th>
+                                        <th>Observaciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for registro in historial_estados %}
+                                    <tr>
+                                        <td>{{ registro.fecha_cambio|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            {% if registro.estado_anterior %}
+                                                <span class="badge" style="background-color: {{ registro.estado_anterior.color }};">
+                                                    {{ registro.estado_anterior.nombre }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge" style="background-color: {{ registro.estado_nuevo.color }};">
+                                                {{ registro.estado_nuevo.nombre }}
+                                            </span>
+                                        </td>
+                                        <td>{{ registro.usuario }}</td>
+                                        <td>{{ registro.observaciones|default:"-" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<!-- jQuery -->
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/assets/js/adminlte.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+$(document).ready(function() {
+    // Mostrar mensajes Django con SweetAlert2
+    {% if messages %}
+        {% for message in messages %}
+            Swal.fire({
+                icon: '{% if message.tags == "success" %}success{% elif message.tags == "error" or message.tags == "danger" %}error{% elif message.tags == "warning" %}warning{% else %}info{% endif %}',
+                title: '{% if message.tags == "success" %}¡Éxito!{% elif message.tags == "error" or message.tags == "danger" %}Error{% elif message.tags == "warning" %}Advertencia{% else %}Información{% endif %}',
+                html: '{{ message|escapejs }}',
+                confirmButtonColor: '{% if message.tags == "success" %}#28a745{% elif message.tags == "error" or message.tags == "danger" %}#dc3545{% elif message.tags == "warning" %}#ffc107{% else %}#17a2b8{% endif %}',
+                confirmButtonText: 'Entendido'
+            });
+        {% endfor %}
+    {% endif %}
+    
+    // Mostrar errores del formulario con SweetAlert2
+    {% if form.errors %}
+        let mensajesHTML = '<div style="text-align: left;"><ul style="margin: 0; padding-left: 20px;">';
+        {% for field in form %}
+            {% for error in field.errors %}
+                mensajesHTML += '<li><strong>{{ field.label|escapejs }}:</strong> {{ error|escapejs }}</li>';
+            {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+            mensajesHTML += '<li><strong>{{ error|escapejs }}</strong></li>';
+        {% endfor %}
+        mensajesHTML += '</ul></div>';
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'No se puede completar la operación',
+            html: mensajesHTML,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Entendido',
+            width: '600px'
+        });
+    {% endif %}
+    
+    // Auto-completar nombre proveedor
+    $('#codigoProveedor').on('blur', function() {
+        var codigo = $(this).val();
+        if (codigo) {
+            $.ajax({
+                url: '{% url "herramientas:herramientas_get_nombre_proveedor" %}',
+                data: { codigo: codigo },
+                success: function(data) {
+                    $('#nombreProveedor').val(data.nombre);
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock javascripts %}

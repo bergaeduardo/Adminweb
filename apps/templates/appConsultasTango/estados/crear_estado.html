@@ -1,0 +1,231 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %} Crear Estado de Turno {% endblock %}
+
+{% block stylesheets %}
+<!-- Google Font: Source Sans Pro -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1><i class="fas fa-plus-circle"></i> Crear Nuevo Estado</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'herramientas:herramientas_listado_estados_turno' %}">Estados</a></li>
+                        <li class="breadcrumb-item active">Crear</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Mensajes de Django -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle"></i>
+                    {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                    {% elif message.tags == 'info' %}
+                        <i class="fas fa-info-circle"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="row">
+                <div class="col-md-8 offset-md-2">
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title">Formulario de Nuevo Estado</h3>
+                        </div>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.non_field_errors }}
+                                </div>
+                                {% endif %}
+
+                                <!-- Nombre -->
+                                <div class="form-group">
+                                    <label for="{{ form.nombre.id_for_label }}">
+                                        {{ form.nombre.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.nombre }}
+                                    {% if form.nombre.errors %}
+                                    <div class="text-danger small">{{ form.nombre.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Nombre único para identificar el estado (ej: RECEPCIONADO, AUDITADO, etc.)
+                                    </small>
+                                </div>
+
+                                <!-- Descripción -->
+                                <div class="form-group">
+                                    <label for="{{ form.descripcion.id_for_label }}">
+                                        {{ form.descripcion.label }}
+                                    </label>
+                                    {{ form.descripcion }}
+                                    {% if form.descripcion.errors %}
+                                    <div class="text-danger small">{{ form.descripcion.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Descripción breve del estado (opcional)
+                                    </small>
+                                </div>
+
+                                <!-- Orden de Ejecución -->
+                                <div class="form-group">
+                                    <label for="{{ form.orden_ejecucion.id_for_label }}">
+                                        {{ form.orden_ejecucion.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.orden_ejecucion }}
+                                    {% if form.orden_ejecucion.errors %}
+                                    <div class="text-danger small">{{ form.orden_ejecucion.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Número que determina en qué orden se ejecuta este estado (debe ser único)
+                                    </small>
+                                </div>
+
+                                <!-- Color -->
+                                <div class="form-group">
+                                    <label for="{{ form.color.id_for_label }}">
+                                        {{ form.color.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        {{ form.color }}
+                                        <div class="input-group-append">
+                                            <span class="input-group-text" id="color-preview" style="width: 50px; background-color: #17a2b8;"></span>
+                                        </div>
+                                    </div>
+                                    {% if form.color.errors %}
+                                    <div class="text-danger small">{{ form.color.errors }}</div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Color para visualizar este estado en el calendario
+                                    </small>
+                                </div>
+
+                                <div class="row">
+                                    <!-- Es Requerido -->
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <div class="form-check">
+                                                {{ form.es_requerido }}
+                                                <label class="form-check-label" for="{{ form.es_requerido.id_for_label }}">
+                                                    {{ form.es_requerido.label }}
+                                                </label>
+                                            </div>
+                                            {% if form.es_requerido.errors %}
+                                            <div class="text-danger small">{{ form.es_requerido.errors }}</div>
+                                            {% endif %}
+                                            <small class="form-text text-muted">
+                                                Si está marcado, todos los turnos deben pasar por este estado
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Permite Editar -->
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <div class="form-check">
+                                                {{ form.permite_editar }}
+                                                <label class="form-check-label" for="{{ form.permite_editar.id_for_label }}">
+                                                    {{ form.permite_editar.label }}
+                                                </label>
+                                            </div>
+                                            {% if form.permite_editar.errors %}
+                                            <div class="text-danger small">{{ form.permite_editar.errors }}</div>
+                                            {% endif %}
+                                            <small class="form-text text-muted">
+                                                Si está desmarcado, los turnos en este estado no se pueden editar
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Activo -->
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <div class="form-check">
+                                                {{ form.activo }}
+                                                <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                                                    {{ form.activo.label }}
+                                                </label>
+                                            </div>
+                                            {% if form.activo.errors %}
+                                            <div class="text-danger small">{{ form.activo.errors }}</div>
+                                            {% endif %}
+                                            <small class="form-text text-muted">
+                                                Solo los estados activos son visibles en el sistema
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Guardar Estado
+                                </button>
+                                <a href="{% url 'herramientas:herramientas_listado_estados_turno' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<!-- jQuery -->
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/assets/js/adminlte.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // Actualizar preview del color
+        $('#id_color').on('input change', function() {
+            var color = $(this).val();
+            $('#color-preview').css('background-color', color);
+        });
+        
+        // Inicializar preview
+        var initialColor = $('#id_color').val();
+        if (initialColor) {
+            $('#color-preview').css('background-color', initialColor);
+        }
+    });
+</script>
+{% endblock javascripts %}
