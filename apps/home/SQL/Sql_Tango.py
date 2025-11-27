@@ -269,3 +269,94 @@ def obtener_sucursal_activa():
                  WHERE ACTIVO = 1"""
         cursor.execute(sql)
         return cursor.fetchone()
+
+def agregar_estado_no_confirmado():
+    """Agregar estado NO CONFIRMADO a la tabla EstadoTurno si no existe"""
+    with connections['mi_db_2'].cursor() as cursor:
+        # Verificar si ya existe
+        cursor.execute("SELECT id_estado FROM EstadoTurno WHERE nombre = 'NO CONFIRMADO'")
+        resultado = cursor.fetchone()
+        
+        if resultado:
+            return resultado[0]
+        
+        # Insertar nuevo estado
+        sql = """
+        INSERT INTO EstadoTurno 
+        (nombre, descripcion, orden_ejecucion, es_requerido, permite_editar, color, activo, fecha_creacion, fecha_modificacion)
+        VALUES 
+        ('NO CONFIRMADO', 'Turno no confirmado a tiempo (30 min antes)', 99, 0, 0, '#dc3545', 0, GETDATE(), GETDATE())
+        """
+        cursor.execute(sql)
+        
+        # Obtener el ID insertado
+        cursor.execute("SELECT id_estado FROM EstadoTurno WHERE nombre = 'NO CONFIRMADO'")
+        nuevo_id = cursor.fetchone()[0]
+        
+        return nuevo_id
+
+def obtener_estado_por_nombre(nombre_estado):
+    """Obtener un estado por su nombre"""
+    with connections['mi_db_2'].cursor() as cursor:
+        sql = "SELECT id_estado, nombre, orden_ejecucion, permite_editar, activo FROM EstadoTurno WHERE nombre = %s"
+        cursor.execute(sql, [nombre_estado])
+        return cursor.fetchone()
+
+def marcar_turnos_no_confirmados():
+    """
+    Marca turnos RESERVADOS como NO CONFIRMADO si no se confirmaron 30 min antes
+    Retorna cantidad de turnos marcados
+    """
+    from datetime import datetime, timedelta
+    
+    with connections['mi_db_2'].cursor() as cursor:
+        # Obtener IDs de estados
+        cursor.execute("SELECT id_estado FROM EstadoTurno WHERE nombre = 'RESERVADO'")
+        estado_reservado_id = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT id_estado FROM EstadoTurno WHERE nombre = 'NO CONFIRMADO'")
+        estado_no_confirmado_id = cursor.fetchone()[0]
+        
+        # Calcular fecha y hora límite (30 minutos atrás)
+        limite = datetime.now() - timedelta(minutes=30)
+        
+        # Buscar turnos RESERVADOS que ya pasaron el límite
+        sql_buscar = """
+        SELECT id_turno_reserva, codigo_proveedor, fecha, hora_inicio
+        FROM TurnoReserva
+        WHERE id_estado = %s
+        AND DATEADD(MINUTE, 0, CAST(CONCAT(CONVERT(VARCHAR, fecha, 23), ' ', CONVERT(VARCHAR, hora_inicio, 108)) AS DATETIME)) <= %s
+        """
+        cursor.execute(sql_buscar, [estado_reservado_id, limite])
+        turnos_a_marcar = cursor.fetchall()
+        
+        # Actualizar turnos
+        turnos_actualizados = 0
+        for turno in turnos_a_marcar:
+            id_turno = turno[0]
+            
+            # Actualizar estado
+            sql_update = """
+            UPDATE TurnoReserva
+            SET id_estado = %s, estado_actual_desde = GETDATE()
+            WHERE id_turno_reserva = %s
+            """
+            cursor.execute(sql_update, [estado_no_confirmado_id, id_turno])
+            
+            # Registrar en historial
+            sql_historial = """
+            INSERT INTO HistorialEstadoTurno 
+            (id_turno_reserva, id_estado_anterior, id_estado_nuevo, usuario, observaciones, fecha_cambio)
+            VALUES (%s, %s, %s, %s, %s, GETDATE())
+            """
+            cursor.execute(sql_historial, [
+                id_turno,
+                estado_reservado_id,
+                estado_no_confirmado_id,
+                'SISTEMA',
+                'Cambio automático: turno no confirmado 30 min antes del horario'
+            ])
+            
+            turnos_actualizados += 1
+        
+        return turnos_actualizados

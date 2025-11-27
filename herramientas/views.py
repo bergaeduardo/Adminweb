@@ -372,51 +372,68 @@ def nueva_reserva_turno(request):
     Crea registro en historial de estados al crear
     """
     if request.method == 'POST':
-        # Obtener el primer estado antes de crear el formulario
-        primer_estado = EstadoTurno.objects.filter(activo=True).order_by('orden_ejecucion').first()
-        
-        # Crear una copia mutable de POST data
-        post_data = request.POST.copy()
-        
-        # Si no viene estado en POST, agregar el primer estado
-        if not post_data.get('estado') and primer_estado:
-            post_data['estado'] = primer_estado.id_estado
-        
-        form = TurnoReservaForm(post_data, user=request.user)
-        if form.is_valid():
-            turno = form.save(commit=False)
-            turno.usuario_creador = request.user.username
+        try:
+            # Obtener el primer estado antes de crear el formulario
+            primer_estado = EstadoTurno.objects.filter(activo=True).order_by('orden_ejecucion').first()
             
-            # Asegurar que tiene estado (doble verificación)
-            if not turno.estado and primer_estado:
-                turno.estado = primer_estado
+            # Crear una copia mutable de POST data
+            post_data = request.POST.copy()
             
-            # Registrar datos de estado
-            turno.usuario_ultima_modificacion_estado = request.user.username
-            turno.estado_actual_desde = timezone.now()
+            # Si no viene estado en POST, agregar el primer estado
+            if not post_data.get('estado') and primer_estado:
+                post_data['estado'] = primer_estado.id_estado
             
-            turno.save()
+            form = TurnoReservaForm(post_data, user=request.user)
+            if form.is_valid():
+                turno = form.save(commit=False)
+                turno.usuario_creador = request.user.username
+                
+                # Asegurar que tiene estado (doble verificación)
+                if not turno.estado and primer_estado:
+                    turno.estado = primer_estado
+                
+                # Registrar datos de estado
+                turno.usuario_ultima_modificacion_estado = request.user.username
+                turno.estado_actual_desde = timezone.now()
+                
+                turno.save()
+                
+                # Crear registro en historial de estados
+                HistorialEstadoTurno.objects.create(
+                    turno=turno,
+                    estado_anterior=None,  # Es el primer estado
+                    estado_nuevo=turno.estado,
+                    usuario=request.user.username,
+                    observaciones="Creación de turno"
+                )
+                
+                messages.success(request, 'Turno reservado exitosamente.')
+                return JsonResponse({
+                    'success': True, 
+                    'message': 'Turno reservado exitosamente',
+                    'turno_id': turno.id_turno_reserva
+                })
+            else:
+                # Retornar errores del formulario
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                }, status=400)
+        except Exception as e:
+            # Capturar cualquier excepción no prevista y retornar error descriptivo
+            import traceback
+            error_detail = str(e)
+            traceback_detail = traceback.format_exc()
             
-            # Crear registro en historial de estados
-            HistorialEstadoTurno.objects.create(
-                turno=turno,
-                estado_anterior=None,  # Es el primer estado
-                estado_nuevo=turno.estado,
-                usuario=request.user.username,
-                observaciones="Creación de turno"
-            )
+            # Log para debugging
+            print(f"Error al crear turno: {error_detail}")
+            print(traceback_detail)
             
-            messages.success(request, 'Turno reservado exitosamente.')
-            return JsonResponse({
-                'success': True, 
-                'message': 'Turno reservado exitosamente',
-                'turno_id': turno.id_turno_reserva
-            })
-        else:
-            # Retornar errores del formulario
             return JsonResponse({
                 'success': False,
-                'errors': form.errors
+                'errors': {
+                    '__all__': [f'Error del sistema: {error_detail}']
+                }
             }, status=400)
     else:
         # GET request - mostrar formulario
@@ -734,6 +751,38 @@ def reordenar_estados_turno(request):
             return JsonResponse({'success': False, 'error': str(e)}, status=400)
     
     return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+
+@login_required(login_url="/login/")
+@user_passes_test(es_admin_o_logistica_sup, login_url="/login/")
+def ejecutar_marcar_no_confirmados(request):
+    """
+    Vista para ejecutar manualmente el proceso de marcado de turnos NO CONFIRMADOS
+    Solo Admin y Logistica_Sup pueden ejecutarla
+    """
+    if request.method == 'POST':
+        try:
+            from apps.home.SQL.Sql_Tango import marcar_turnos_no_confirmados
+            
+            turnos_marcados = marcar_turnos_no_confirmados()
+            
+            if turnos_marcados > 0:
+                messages.success(
+                    request,
+                    f'Se marcaron {turnos_marcados} turno(s) como NO CONFIRMADO exitosamente.'
+                )
+            else:
+                messages.info(request, 'No hay turnos RESERVADOS que deban marcarse como NO CONFIRMADO.')
+            
+        except Exception as e:
+            messages.error(request, f'Error al ejecutar el proceso: {str(e)}')
+        
+        return redirect('herramientas:herramientas_listado_estados_turno')
+    
+    # GET request - mostrar confirmación
+    return render(request, 'appConsultasTango/estados/confirmar_marcar_no_confirmados.html', {
+        'Nombre': 'Marcar Turnos No Confirmados'
+    })
 
 
 # ============================================================================

@@ -1,0 +1,131 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %} Marcar Turnos No Confirmados {% endblock %}
+
+{% block stylesheets %}
+<!-- Google Font: Source Sans Pro -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Marcar Turnos No Confirmados</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'herramientas:herramientas_listado_estados_turno' %}">Estados de Turno</a></li>
+                        <li class="breadcrumb-item active">Marcar No Confirmados</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-8 offset-md-2">
+                    <div class="card card-warning">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-exclamation-triangle"></i> Confirmación de Operación
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <h5><i class="icon fas fa-info"></i> ¿Qué hace esta operación?</h5>
+                                <p>Esta operación buscará todos los turnos que cumplan las siguientes condiciones:</p>
+                                <ul>
+                                    <li>Estado actual: <strong>RESERVADO</strong></li>
+                                    <li>Horario programado hace más de <strong>30 minutos</strong></li>
+                                    <li>No fueron confirmados a tiempo</li>
+                                </ul>
+                                <p class="mb-0">Esos turnos serán marcados automáticamente como <strong class="text-danger">NO CONFIRMADO</strong>.</p>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <h5><i class="icon fas fa-exclamation-triangle"></i> Advertencia</h5>
+                                <p class="mb-0">
+                                    Esta acción cambiará el estado de los turnos identificados y registrará 
+                                    el cambio en el historial como ejecutado por el usuario <strong>SISTEMA</strong>.
+                                    Esta operación no se puede deshacer automáticamente.
+                                </p>
+                            </div>
+
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-12 text-center">
+                                        <button type="submit" class="btn btn-warning btn-lg">
+                                            <i class="fas fa-check-circle"></i> Ejecutar Proceso
+                                        </button>
+                                        <a href="{% url 'herramientas:herramientas_listado_estados_turno' %}" class="btn btn-secondary btn-lg">
+                                            <i class="fas fa-times"></i> Cancelar
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card card-info collapsed-card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-question-circle"></i> Información Adicional
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5>¿Cuándo se debe ejecutar este proceso?</h5>
+                            <p>Se recomienda ejecutar este proceso en los siguientes casos:</p>
+                            <ul>
+                                <li>Periódicamente durante el día (cada 30-60 minutos)</li>
+                                <li>Al final del día para limpiar turnos no confirmados</li>
+                                <li>Manualmente cuando se detecten turnos que no se confirmaron a tiempo</li>
+                            </ul>
+
+                            <h5 class="mt-3">Automatización</h5>
+                            <p>
+                                Para automatizar este proceso, puede configurar una tarea programada de Windows 
+                                que ejecute el script correspondiente, o contactar con el administrador del sistema 
+                                para configurar una tarea programada en el servidor.
+                            </p>
+
+                            <h5 class="mt-3">Estados que no bloquean horarios</h5>
+                            <p>Los siguientes estados liberan el horario para nuevas reservas:</p>
+                            <ul>
+                                <li><span class="badge badge-danger">CANCELADO</span></li>
+                                <li><span class="badge badge-danger">RECHAZADO</span></li>
+                                <li><span class="badge badge-danger">NO CONFIRMADO</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<!-- jQuery -->
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/assets/js/adminlte.min.js"></script>
+{% endblock %}

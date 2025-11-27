@@ -227,6 +227,36 @@ class TurnoReservaForm(forms.ModelForm):
             
             # Solo validar si hay cambio de estado
             if estado_actual and nuevo_estado != estado_actual:
+                from django.utils import timezone
+                
+                # Obtener fecha y hora del turno
+                turno_datetime = timezone.make_aware(
+                    datetime.combine(self.instance.fecha, self.instance.hora_inicio)
+                )
+                ahora = timezone.now()
+                tiempo_hasta_turno = (turno_datetime - ahora).total_seconds() / 60  # minutos
+                
+                # REGLA 1: RESERVADO -> CONFIRMADO solo hasta 30 min antes
+                if estado_actual.nombre == 'RESERVADO' and nuevo_estado.nombre == 'CONFIRMADO':
+                    if tiempo_hasta_turno < 30:
+                        minutos_faltantes = abs(int(tiempo_hasta_turno))
+                        raise forms.ValidationError(
+                            f"No se puede confirmar el turno. Solo puede cambiar de RESERVADO a CONFIRMADO "
+                            f"hasta 30 minutos antes del horario programado. "
+                            f"El turno es en {minutos_faltantes} minutos (o ya pasó). "
+                            f"Si el turno no se confirmó a tiempo, debe marcarse como NO CONFIRMADO."
+                        )
+                
+                # REGLA 2: Si la fecha/hora ya pasaron, solo permitir cambios desde estados activos (no cancelación)
+                if tiempo_hasta_turno < 0:  # El turno ya pasó
+                    estados_de_cancelacion = ['RESERVADO', 'NO CONFIRMADO', 'CANCELADO']
+                    if estado_actual.nombre in estados_de_cancelacion:
+                        raise forms.ValidationError(
+                            f"El turno programado para {self.instance.fecha.strftime('%d/%m/%Y')} a las "
+                            f"{self.instance.hora_inicio.strftime('%H:%M')} ya pasó. "
+                            f"No se pueden realizar cambios de estado desde '{estado_actual.nombre}'."
+                        )
+                
                 orden_actual = estado_actual.orden_ejecucion
                 orden_nuevo = nuevo_estado.orden_ejecucion
                 
@@ -245,6 +275,7 @@ class TurnoReservaForm(forms.ModelForm):
                         raise forms.ValidationError(
                             f"No puede saltarse estados requeridos. Primero debe pasar por: {nombres_estados}"
                         )
+
 
         if not all([fecha, hora_inicio, hora_fin]):
             return cleaned_data
@@ -282,16 +313,21 @@ class TurnoReservaForm(forms.ModelForm):
             )
 
         # Validar disponibilidad del horario (no superponer con otros turnos)
-        # Excluir turnos cancelados de la validación
+        # Excluir el turno actual (si estamos editando) y turnos cancelados/rechazados/no confirmados
         turnos_existentes = TurnoReserva.objects.filter(
             fecha=fecha
         ).exclude(pk=self.instance.pk if self.instance.pk else None)
         
-        # Solo validar contra turnos con estados activos (no cancelados)
+        # Estados que NO bloquean horarios (cancelaciones/rechazos)
+        estados_no_bloqueantes = ['CANCELADO', 'RECHAZADO', 'NO CONFIRMADO']
+        
+        # Solo validar contra turnos con estados activos que SÍ ocupan el horario
         turnos_activos = []
         for turno in turnos_existentes:
-            if turno.estado and turno.estado.activo:
-                turnos_activos.append(turno)
+            if turno.estado:
+                # Excluir turnos cancelados/rechazados/no confirmados
+                if turno.estado.nombre not in estados_no_bloqueantes:
+                    turnos_activos.append(turno)
 
         for turno in turnos_activos:
             # Verificar superposición
@@ -299,7 +335,7 @@ class TurnoReservaForm(forms.ModelForm):
                 raise forms.ValidationError(
                     f"El horario seleccionado ({hora_inicio.strftime('%H:%M')} - {hora_fin.strftime('%H:%M')}) "
                     f"se superpone con una reserva existente del proveedor {turno.codigo_proveedor} "
-                    f"({turno.hora_inicio.strftime('%H:%M')} - {turno.hora_fin.strftime('%H:%M')}). "
+                    f"(Estado: {turno.estado.nombre}, Horario: {turno.hora_inicio.strftime('%H:%M')} - {turno.hora_fin.strftime('%H:%M')}). "
                     f"Por favor, seleccione otro horario disponible."
                 )
 
@@ -333,8 +369,20 @@ class TurnoReservaForm(forms.ModelForm):
         return codigo
 
     def clean_fecha(self):
-        """Validar que no se puedan reservar turnos para hoy o fechas pasadas"""
+        """
+        Validar fechas de turnos:
+        - Al CREAR: No permitir hoy ni fechas pasadas (requiere 1 día anticipación)
+        - Al EDITAR: Permitir cualquier fecha (solo cambio de estado/datos)
+        """
         fecha = self.cleaned_data.get('fecha')
+        
+        # Si es un turno existente (estamos editando), permitir cualquier fecha
+        # Solo validamos fechas al crear nuevos turnos
+        if self.instance and self.instance.pk:
+            # Es edición - permitir la fecha actual sin validaciones restrictivas
+            return fecha
+        
+        # Es creación - validar que no sea hoy ni pasado
         if fecha:
             hoy = date.today()
             if fecha < hoy:
@@ -346,7 +394,7 @@ class TurnoReservaForm(forms.ModelForm):
                 )
             elif fecha == hoy:
                 raise forms.ValidationError(
-                    f"No se puede reservar para el día de hoy ({hoy.strftime('%d/%m/%Y')}). "
+                    f"No se puede crear una reserva para el día de hoy ({hoy.strftime('%d/%m/%Y')}). "
                     f"Las reservas deben realizarse con al menos un día de anticipación. "
                     f"La primera fecha disponible es mañana ({(hoy + timedelta(days=1)).strftime('%d/%m/%Y')})."
                 )

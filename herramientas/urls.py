@@ -41,6 +41,7 @@ urlpatterns = [
     path('estados_turno/editar/<int:estado_id>', views.editar_estado_turno, name='herramientas_editar_estado_turno'),
     path('estados_turno/eliminar/<int:estado_id>', views.eliminar_estado_turno, name='herramientas_eliminar_estado_turno'),
     path('estados_turno/reordenar', views.reordenar_estados_turno, name='herramientas_reordenar_estados_turno'),
+    path('estados_turno/marcar_no_confirmados', views.ejecutar_marcar_no_confirmados, name='herramientas_marcar_no_confirmados'),
     
     path("cargaAnticipoGrupo", views.CargaAnticipoGrupo, name="herramientas_carga_anticipo_grupo"),
     path("ImpRotulos", views.ImpRotulos, name="herramientas_imprimir_rotulos"),
