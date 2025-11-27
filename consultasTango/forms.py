@@ -313,31 +313,45 @@ class TurnoReservaForm(forms.ModelForm):
             )
 
         # Validar disponibilidad del horario (no superponer con otros turnos)
-        # Excluir el turno actual (si estamos editando) y turnos cancelados/rechazados/no confirmados
-        turnos_existentes = TurnoReserva.objects.filter(
-            fecha=fecha
-        ).exclude(pk=self.instance.pk if self.instance.pk else None)
+        # SOLO si se están modificando fecha u horarios (no validar al solo cambiar estado)
+        horarios_modificados = False
+        if self.instance and self.instance.pk:
+            # Estamos editando - verificar si cambiaron fecha u horarios
+            horarios_modificados = (
+                self.instance.fecha != fecha or
+                self.instance.hora_inicio != hora_inicio or
+                self.instance.hora_fin != hora_fin
+            )
+        else:
+            # Estamos creando - siempre validar
+            horarios_modificados = True
         
-        # Estados que NO bloquean horarios (cancelaciones/rechazos)
-        estados_no_bloqueantes = ['CANCELADO', 'RECHAZADO', 'NO CONFIRMADO']
-        
-        # Solo validar contra turnos con estados activos que SÍ ocupan el horario
-        turnos_activos = []
-        for turno in turnos_existentes:
-            if turno.estado:
-                # Excluir turnos cancelados/rechazados/no confirmados
-                if turno.estado.nombre not in estados_no_bloqueantes:
-                    turnos_activos.append(turno)
+        if horarios_modificados:
+            # Excluir el turno actual (si estamos editando) y turnos cancelados/rechazados/no confirmados
+            turnos_existentes = TurnoReserva.objects.filter(
+                fecha=fecha
+            ).exclude(pk=self.instance.pk if self.instance.pk else None)
+            
+            # Estados que NO bloquean horarios (cancelaciones/rechazos)
+            estados_no_bloqueantes = ['CANCELADO', 'RECHAZADO', 'NO CONFIRMADO']
+            
+            # Solo validar contra turnos con estados activos que SÍ ocupan el horario
+            turnos_activos = []
+            for turno in turnos_existentes:
+                if turno.estado:
+                    # Excluir turnos cancelados/rechazados/no confirmados
+                    if turno.estado.nombre not in estados_no_bloqueantes:
+                        turnos_activos.append(turno)
 
-        for turno in turnos_activos:
-            # Verificar superposición
-            if not (hora_fin <= turno.hora_inicio or hora_inicio >= turno.hora_fin):
-                raise forms.ValidationError(
-                    f"El horario seleccionado ({hora_inicio.strftime('%H:%M')} - {hora_fin.strftime('%H:%M')}) "
-                    f"se superpone con una reserva existente del proveedor {turno.codigo_proveedor} "
-                    f"(Estado: {turno.estado.nombre}, Horario: {turno.hora_inicio.strftime('%H:%M')} - {turno.hora_fin.strftime('%H:%M')}). "
-                    f"Por favor, seleccione otro horario disponible."
-                )
+            for turno in turnos_activos:
+                # Verificar superposición
+                if not (hora_fin <= turno.hora_inicio or hora_inicio >= turno.hora_fin):
+                    raise forms.ValidationError(
+                        f"El horario seleccionado ({hora_inicio.strftime('%H:%M')} - {hora_fin.strftime('%H:%M')}) "
+                        f"se superpone con una reserva existente del proveedor {turno.codigo_proveedor} "
+                        f"(Estado: {turno.estado.nombre}, Horario: {turno.hora_inicio.strftime('%H:%M')} - {turno.hora_fin.strftime('%H:%M')}). "
+                        f"Por favor, seleccione otro horario disponible."
+                    )
 
         # Validar límite de 2 turnos consecutivos para usuarios no Admin/Logística
         if self.user:
