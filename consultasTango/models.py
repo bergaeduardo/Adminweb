@@ -68,8 +68,39 @@ class Turno(models.Model):
         return f'{self.IdTurno} - {self.OrdenCompra}'
 
 class CodigosError(models.Model):
-    CodigoError = models.IntegerField(primary_key=True)
-    DescripcionError = models.CharField(max_length=100)
+    """
+    Catálogo de códigos de error para incidencias en recepción de mercadería
+    Permite categorización y activación/desactivación
+    """
+    CodigoError = models.IntegerField(primary_key=True, verbose_name="Código")
+    DescripcionError = models.CharField(max_length=200, verbose_name="Descripción del Error")
+    Categoria = models.CharField(
+        max_length=50,
+        choices=[
+            ('DOCUMENTACION', 'Documentación'),
+            ('MERCADERIA', 'Mercadería'),
+            ('EMBALAJE', 'Embalaje'),
+            ('CANTIDAD', 'Cantidad'),
+            ('CALIDAD', 'Calidad'),
+            ('ETIQUETADO', 'Etiquetado'),
+            ('OTROS', 'Otros'),
+        ],
+        default='OTROS',
+        verbose_name="Categoría"
+    )
+    Activo = models.BooleanField(default=True, verbose_name="Activo")
+    FechaCreacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha Creación")
+    FechaModificacion = models.DateTimeField(auto_now=True, verbose_name="Fecha Modificación")
+    
+    class Meta:
+        db_table = 'CodigosError'
+        ordering = ['Categoria', 'CodigoError']
+        verbose_name = 'Código de Error'
+        verbose_name_plural = 'Códigos de Error'
+    
+    def __str__(self):
+        return f'{self.CodigoError} - {self.DescripcionError}'
+
 
 class EstadoTurno(models.Model):
     """
@@ -190,6 +221,76 @@ class HistorialEstadoTurno(models.Model):
     def __str__(self):
         anterior = self.estado_anterior.nombre if self.estado_anterior else "Inicial"
         return f'{self.turno} - {anterior} → {self.estado_nuevo.nombre}'
+
+class IncidenciasTurno(models.Model):
+    """
+    Modelo para registrar incidencias/errores detectados durante la recepción de mercadería
+    Permite a operadores documentar problemas con códigos de error predefinidos
+    """
+    id_incidencia = models.AutoField(primary_key=True, db_column='id_incidencia')
+    turno = models.ForeignKey(
+        TurnoReserva,
+        on_delete=models.CASCADE,
+        related_name='incidencias',
+        db_column='id_turno_reserva',
+        verbose_name="Turno Reserva"
+    )
+    codigo_error = models.ForeignKey(
+        CodigosError,
+        on_delete=models.PROTECT,
+        related_name='incidencias',
+        db_column='CodigoError',
+        verbose_name="Código de Error"
+    )
+    cantidad_afectada = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Cantidad Afectada"
+    )
+    detalle = models.TextField(
+        max_length=500,
+        null=True,
+        blank=True,
+        verbose_name="Detalle de la Incidencia"
+    )
+    usuario_registro = models.CharField(
+        max_length=150,
+        verbose_name="Usuario que Registró"
+    )
+    fecha_registro = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha y Hora de Registro"
+    )
+    resuelto = models.BooleanField(
+        default=False,
+        verbose_name="¿Resuelto?"
+    )
+    fecha_resolucion = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha Resolución"
+    )
+    usuario_resolucion = models.CharField(
+        max_length=150,
+        null=True,
+        blank=True,
+        verbose_name="Usuario Resolución"
+    )
+    observaciones_resolucion = models.TextField(
+        max_length=500,
+        null=True,
+        blank=True,
+        verbose_name="Observaciones Resolución"
+    )
+    
+    class Meta:
+        db_table = 'IncidenciasTurno'
+        ordering = ['-fecha_registro']
+        verbose_name = 'Incidencia de Turno'
+        verbose_name_plural = 'Incidencias de Turnos'
+    
+    def __str__(self):
+        return f'Incidencia #{self.id_incidencia} - Turno {self.turno.id_turno_reserva} - {self.codigo_error}'
 
 class EB_facturaManual(models.Model):
     fechaRegistro = models.DateTimeField(auto_now_add=True)

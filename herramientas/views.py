@@ -9,13 +9,14 @@ from django.http import HttpResponse, HttpResponseRedirect,JsonResponse
 from django.template import loader
 from django.urls import reverse
 from django.shortcuts import render, redirect,get_object_or_404
+from django.views.decorators.http import require_http_methods
 # from Transportes.models import Transporte
 # from Transportes.forms import TransporteForm
 from django.views import View
 from django.views.generic.list import ListView
 from apps.settingsUrls import *
 from consultasTango.forms import TurnoForm,TurnoEditForm,CodigoErrorForm,CategoriaForm, SubcategoriaForm, RelacionForm, TurnoReservaForm, EstadoTurnoForm
-from consultasTango.models import Turno,CodigosError, TurnoReserva, EstadoTurno, HistorialEstadoTurno
+from consultasTango.models import Turno,CodigosError, TurnoReserva, EstadoTurno, HistorialEstadoTurno, IncidenciasTurno
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -518,7 +519,8 @@ def editar_reserva_turno(request, turno_id):
             
             turno_actualizado.save()
             messages.success(request, 'Turno actualizado exitosamente.')
-            return redirect('herramientas:herramientas_calendario_reservas')
+            # Redirigir a la misma página de edición para que el usuario vea el mensaje
+            return redirect('herramientas:herramientas_editar_reserva_turno', turno_id=turno.id_turno_reserva)
         # Si hay errores, no agregar mensaje adicional ya que form.errors ya los muestra
     else:
         form = TurnoReservaForm(instance=turno, user=request.user)
@@ -526,11 +528,19 @@ def editar_reserva_turno(request, turno_id):
     # Obtener historial de estados para mostrar en el template
     historial_estados = HistorialEstadoTurno.objects.filter(turno=turno).order_by('-fecha_cambio')
     
+    # Obtener incidencias reportadas para este turno
+    incidencias = IncidenciasTurno.objects.filter(turno=turno).select_related('codigo_error').order_by('-fecha_registro')
+    
+    # Obtener códigos de error activos para el modal
+    codigos_error = CodigosError.objects.filter(Activo=True).order_by('Categoria', 'CodigoError')
+    
     return render(request, 'appConsultasTango/editar_reserva_turno.html', {
         'form': form,
         'turno': turno,
         'turno_es_pasado': turno_es_pasado,
         'historial_estados': historial_estados,
+        'incidencias': incidencias,
+        'codigos_error': codigos_error,
         'solo_lectura': solo_lectura,
         'Nombre': f"{'Ver' if solo_lectura else 'Editar'} Turno #{turno.id_turno_reserva}"
     })
@@ -567,6 +577,47 @@ def detalle_reserva_turno(request, turno_id):
         'turno': turno,
         'Nombre': 'Detalle de Reserva'
     })
+
+
+@login_required(login_url="/login/")
+@require_http_methods(["POST"])
+def reportar_incidencia(request, turno_id):
+    """
+    Vista AJAX para reportar una incidencia en un turno
+    """
+    try:
+        turno = get_object_or_404(TurnoReserva, pk=turno_id)
+        codigo_error_id = request.POST.get('codigo_error')
+        cantidad_afectada = request.POST.get('cantidad_afectada')
+        detalle = request.POST.get('detalle')
+        
+        # Validar que se haya seleccionado un código de error
+        if not codigo_error_id:
+            return JsonResponse({'error': 'Debe seleccionar un código de error'}, status=400)
+        
+        # Obtener el código de error
+        try:
+            codigo_error = CodigosError.objects.get(CodigoError=codigo_error_id, Activo=True)
+        except CodigosError.DoesNotExist:
+            return JsonResponse({'error': 'El código de error seleccionado no es válido o está inactivo'}, status=400)
+        
+        # Crear la incidencia
+        incidencia = IncidenciasTurno.objects.create(
+            turno=turno,
+            codigo_error=codigo_error,
+            cantidad_afectada=int(cantidad_afectada) if cantidad_afectada else None,
+            detalle=detalle if detalle else None,
+            usuario_registro=request.user.username
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Incidencia reportada exitosamente',
+            'incidencia_id': incidencia.id_incidencia
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': f'Error al reportar incidencia: {str(e)}'}, status=500)
 
 
 @login_required(login_url="/login/")

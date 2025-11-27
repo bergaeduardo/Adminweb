@@ -12,6 +12,15 @@
   <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
   <!-- Theme style -->
   <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+  <style>
+    .custom-control-input:checked ~ .custom-control-label::before {
+      background-color: #28a745;
+      border-color: #28a745;
+    }
+    .text-danger {
+      color: #dc3545;
+    }
+  </style>
 {% endblock stylesheets %}
 {% block content %}
 <div class="content-wrapper">
@@ -34,6 +43,28 @@
 
   <section class="content">
     <div class="container-fluid">
+      
+      <!-- Mensajes de notificación -->
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {% if message.tags == 'success' %}
+              <i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' or message.tags == 'danger' %}
+              <i class="fas fa-exclamation-circle"></i>
+            {% elif message.tags == 'warning' %}
+              <i class="fas fa-exclamation-triangle"></i>
+            {% elif message.tags == 'info' %}
+              <i class="fas fa-info-circle"></i>
+            {% endif %}
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        {% endfor %}
+      {% endif %}
+
       <div class="row justify-content-center">
         <div class="col-md-8">
           <div class="card card-primary">
@@ -43,22 +74,88 @@
             <form method="post">
               {% csrf_token %}
               <div class="card-body">
-                {% if accion == 'Editar' %}
-                <div class="form-group">
-                  <label>Código de Error (No editable)</label>
-                  <input type="text" class="form-control" value="{{ codigo.CodigoError }}" readonly>
+                
+                <!-- Mostrar errores del formulario si existen -->
+                {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible">
+                  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                  <h5><i class="icon fas fa-ban"></i> Errores en el formulario</h5>
+                  <ul>
+                    {% for field in form %}
+                      {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                      {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                      <li>{{ error }}</li>
+                    {% endfor %}
+                  </ul>
                 </div>
                 {% endif %}
+
+                <!-- Campo Código de Error -->
                 <div class="form-group">
-                  <label for="{{ form.DescripcionError.id_for_label }}">Descripción del Error</label>
-                  {{ form.DescripcionError }}
+                  <label for="{{ form.CodigoError.id_for_label }}">{{ form.CodigoError.label }} <span class="text-danger">*</span></label>
+                  {% if accion == 'Editar' %}
+                    <input type="text" class="form-control" value="{{ codigo.CodigoError }}" readonly>
+                    <input type="hidden" name="CodigoError" value="{{ codigo.CodigoError }}">
+                    <small class="form-text text-muted">El código no puede ser modificado una vez creado</small>
+                  {% else %}
+                    {{ form.CodigoError }}
+                    <small class="form-text text-muted">Ingrese un número único (Ej: 101, 202, 303). Se recomienda agrupar por categoría: 100s=Documentación, 200s=Mercadería, etc.</small>
+                  {% endif %}
                 </div>
+
+                <!-- Campo Descripción -->
+                <div class="form-group">
+                  <label for="{{ form.DescripcionError.id_for_label }}">{{ form.DescripcionError.label }} <span class="text-danger">*</span></label>
+                  {{ form.DescripcionError }}
+                  <small class="form-text text-muted">Descripción clara y concisa del error (máximo 200 caracteres)</small>
+                </div>
+
+                <!-- Campo Categoría -->
+                <div class="form-group">
+                  <label for="{{ form.Categoria.id_for_label }}">{{ form.Categoria.label }} <span class="text-danger">*</span></label>
+                  {{ form.Categoria }}
+                  <small class="form-text text-muted">Seleccione la categoría a la que pertenece este código de error</small>
+                </div>
+
+                <!-- Campo Activo -->
+                <div class="form-group">
+                  <div class="custom-control custom-switch">
+                    {{ form.Activo }}
+                    <label class="custom-control-label" for="{{ form.Activo.id_for_label }}">
+                      {{ form.Activo.label }}
+                    </label>
+                  </div>
+                  <small class="form-text text-muted">Los códigos inactivos no aparecerán en los formularios de registro de incidencias</small>
+                </div>
+
+                {% if accion == 'Editar' %}
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Fecha de Creación</label>
+                      <input type="text" class="form-control" value="{{ codigo.FechaCreacion|date:'d/m/Y H:i' }}" readonly>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>Última Modificación</label>
+                      <input type="text" class="form-control" value="{{ codigo.FechaModificacion|date:'d/m/Y H:i' }}" readonly>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+
               </div>
               <div class="card-footer">
                 <button type="submit" class="btn btn-primary">
-                  {% if accion == 'Crear' %}Crear{% else %}Guardar Cambios{% endif %}
+                  <i class="fas fa-save"></i> {% if accion == 'Crear' %}Crear Código{% else %}Guardar Cambios{% endif %}
                 </button>
-                <a href="{% url 'herramientas:herramientas_lista_codigos_error' %}" class="btn btn-secondary">Cancelar</a>
+                <a href="{% url 'herramientas:herramientas_lista_codigos_error' %}" class="btn btn-secondary">
+                  <i class="fas fa-times"></i> Cancelar
+                </a>
               </div>
             </form>
           </div>
@@ -77,5 +174,51 @@
   <script src="/static/assets/js/adminlte.min.js"></script>
   <!-- AdminLTE for demo purposes -->
   <script src="/static/assets/js/demo.js"></script>
+  <script>
+    $(document).ready(function() {
+      // Agregar clase custom-control-input al checkbox Activo
+      $('#id_Activo').addClass('custom-control-input');
+      
+      // Validación antes de enviar
+      $('form').on('submit', function(e) {
+        let isValid = true;
+        let errorMsg = '';
+        
+        {% if accion == 'Crear' %}
+        // Validar código de error
+        const codigo = $('#id_CodigoError').val();
+        if (!codigo || codigo.trim() === '') {
+          isValid = false;
+          errorMsg += '- Debe ingresar un código de error\n';
+        } else if (isNaN(codigo) || parseInt(codigo) <= 0) {
+          isValid = false;
+          errorMsg += '- El código debe ser un número positivo\n';
+        }
+        {% endif %}
+        
+        // Validar descripción
+        const descripcion = $('#id_DescripcionError').val();
+        if (!descripcion || descripcion.trim() === '') {
+          isValid = false;
+          errorMsg += '- Debe ingresar una descripción\n';
+        } else if (descripcion.length > 200) {
+          isValid = false;
+          errorMsg += '- La descripción no puede exceder 200 caracteres\n';
+        }
+        
+        // Validar categoría
+        const categoria = $('#id_Categoria').val();
+        if (!categoria || categoria === '') {
+          isValid = false;
+          errorMsg += '- Debe seleccionar una categoría\n';
+        }
+        
+        if (!isValid) {
+          e.preventDefault();
+          alert('Por favor corrija los siguientes errores:\n\n' + errorMsg);
+        }
+      });
+    });
+  </script>
 {% endblock javascripts %}
 

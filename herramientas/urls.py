@@ -33,6 +33,7 @@ urlpatterns = [
     path('editar_reserva/<int:turno_id>', views.editar_reserva_turno, name='herramientas_editar_reserva_turno'),
     path('eliminar_reserva/<int:turno_id>', views.eliminar_reserva_turno, name='herramientas_eliminar_reserva_turno'),
     path('detalle_reserva/<int:turno_id>', views.detalle_reserva_turno, name='herramientas_detalle_reserva_turno'),
+    path('reportar_incidencia/<int:turno_id>', views.reportar_incidencia, name='herramientas_reportar_incidencia'),
     path('listado_reservas', views.listado_reservas, name='herramientas_listado_reservas'),
     
     # URLs para Gestión de Estados de Turnos (Admin y Logistica_Sup)

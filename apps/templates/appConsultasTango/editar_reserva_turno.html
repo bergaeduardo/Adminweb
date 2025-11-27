@@ -10,6 +10,23 @@
 <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
 <!-- Theme style -->
 <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+<style>
+    .card-header[data-toggle="collapse"] {
+        transition: background-color 0.3s ease;
+    }
+    
+    .card-header[data-toggle="collapse"]:hover {
+        background-color: rgba(0,0,0,0.05);
+    }
+    
+    .card-header .btn-tool {
+        pointer-events: none;
+    }
+    
+    .collapse {
+        transition: height 0.3s ease;
+    }
+</style>
 {% endblock stylesheets %}
 
 {% block content %}
@@ -256,59 +273,132 @@
                                 <a href="{% url 'herramientas:herramientas_calendario_reservas' %}" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left"></i> Volver al Calendario
                                 </a>
+                                <!-- Botón para reportar incidencia (solo lectura) -->
+                                <button type="button" class="btn btn-danger float-right" data-toggle="modal" data-target="#modalIncidencia">
+                                    <i class="fas fa-exclamation-triangle"></i> Reportar Incidencia
+                                </button>
                                 {% else %}
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-primary" id="btnGuardar">
                                     <i class="fas fa-save"></i> Guardar Cambios
                                 </button>
                                 <a href="{% url 'herramientas:herramientas_calendario_reservas' %}" class="btn btn-secondary">
                                     <i class="fas fa-times"></i> Cancelar
                                 </a>
+                                <!-- Botón para reportar incidencia -->
+                                <button type="button" class="btn btn-danger float-right" data-toggle="modal" data-target="#modalIncidencia">
+                                    <i class="fas fa-exclamation-triangle"></i> Reportar Incidencia
+                                </button>
                                 {% endif %}
                             </div>
                         </form>
                     </div>
 
+                    <!-- Incidencias Reportadas -->
+                    {% if incidencias %}
+                    <div class="card card-danger mt-3">
+                        <div class="card-header" style="cursor: pointer;" data-toggle="collapse" data-target="#collapseIncidencias" aria-expanded="false" aria-controls="collapseIncidencias">
+                            <h3 class="card-title">
+                                <i class="fas fa-exclamation-circle"></i> Incidencias Reportadas 
+                                <span class="badge badge-light ml-2">{{ incidencias.count }}</span>
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool">
+                                    <i class="fas fa-chevron-down" id="iconIncidencias"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="collapseIncidencias" class="collapse">
+                            <div class="card-body p-0">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha/Hora</th>
+                                            <th>Código</th>
+                                            <th>Descripción Error</th>
+                                            <th>Cantidad Afectada</th>
+                                            <th>Detalle</th>
+                                            <th>Usuario</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for incidencia in incidencias %}
+                                        <tr {% if incidencia.resuelto %}class="table-success"{% endif %}>
+                                            <td>{{ incidencia.fecha_registro|date:"d/m/Y H:i" }}</td>
+                                            <td>
+                                                <span class="badge badge-danger">{{ incidencia.codigo_error.CodigoError }}</span>
+                                            </td>
+                                            <td>{{ incidencia.codigo_error.DescripcionError }}</td>
+                                            <td>{{ incidencia.cantidad_afectada|default:"-" }}</td>
+                                            <td>{{ incidencia.detalle|default:"-"|truncatewords:10 }}</td>
+                                            <td>{{ incidencia.usuario_registro }}</td>
+                                            <td>
+                                                {% if incidencia.resuelto %}
+                                                    <span class="badge badge-success"><i class="fas fa-check"></i> Resuelto</span>
+                                                {% else %}
+                                                    <span class="badge badge-warning"><i class="fas fa-clock"></i> Pendiente</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Historial de Estados -->
                     {% if historial_estados %}
                     <div class="card card-info mt-3">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="fas fa-history"></i> Historial de Cambios de Estado</h3>
+                        <div class="card-header" style="cursor: pointer;" data-toggle="collapse" data-target="#collapseHistorial" aria-expanded="false" aria-controls="collapseHistorial">
+                            <h3 class="card-title">
+                                <i class="fas fa-history"></i> Historial de Cambios de Estado 
+                                <span class="badge badge-light ml-2">{{ historial_estados.count }}</span>
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool">
+                                    <i class="fas fa-chevron-down" id="iconHistorial"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="card-body p-0">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Fecha/Hora</th>
-                                        <th>Estado Anterior</th>
-                                        <th>Estado Nuevo</th>
-                                        <th>Usuario</th>
-                                        <th>Observaciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for registro in historial_estados %}
-                                    <tr>
-                                        <td>{{ registro.fecha_cambio|date:"d/m/Y H:i" }}</td>
-                                        <td>
-                                            {% if registro.estado_anterior %}
-                                                <span class="badge" style="background-color: {{ registro.estado_anterior.color }};">
-                                                    {{ registro.estado_anterior.nombre }}
+                        <div id="collapseHistorial" class="collapse">
+                            <div class="card-body p-0">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha/Hora</th>
+                                            <th>Estado Anterior</th>
+                                            <th>Estado Nuevo</th>
+                                            <th>Usuario</th>
+                                            <th>Observaciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for registro in historial_estados %}
+                                        <tr>
+                                            <td>{{ registro.fecha_cambio|date:"d/m/Y H:i" }}</td>
+                                            <td>
+                                                {% if registro.estado_anterior %}
+                                                    <span class="badge" style="background-color: {{ registro.estado_anterior.color }};">
+                                                        {{ registro.estado_anterior.nombre }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge badge-secondary">N/A</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge" style="background-color: {{ registro.estado_nuevo.color }};">
+                                                    {{ registro.estado_nuevo.nombre }}
                                                 </span>
-                                            {% else %}
-                                                <span class="badge badge-secondary">N/A</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <span class="badge" style="background-color: {{ registro.estado_nuevo.color }};">
-                                                {{ registro.estado_nuevo.nombre }}
-                                            </span>
-                                        </td>
-                                        <td>{{ registro.usuario }}</td>
-                                        <td>{{ registro.observaciones|default:"-" }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                            </td>
+                                            <td>{{ registro.usuario }}</td>
+                                            <td>{{ registro.observaciones|default:"-" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                     {% endif %}
@@ -316,6 +406,67 @@
             </div>
         </div>
     </section>
+</div>
+
+<!-- Modal para Reportar Incidencia -->
+<div class="modal fade" id="modalIncidencia" tabindex="-1" role="dialog" aria-labelledby="modalIncidenciaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger">
+                <h5 class="modal-title text-white" id="modalIncidenciaLabel">
+                    <i class="fas fa-exclamation-triangle"></i> Reportar Incidencia - Turno #{{ turno.id_turno_reserva }}
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="formIncidencia" method="post" action="{% url 'herramientas:herramientas_reportar_incidencia' turno.id_turno_reserva %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Información del Turno:</strong><br>
+                        Proveedor: {{ turno.codigo_proveedor }} - {{ turno.nombre_proveedor }}<br>
+                        Fecha: {{ turno.fecha|date:"d/m/Y" }} | Horario: {{ turno.hora_inicio }} - {{ turno.hora_fin }}<br>
+                        OC: {{ turno.orden_compra }} | Remitos: {{ turno.remitos }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_codigo_error">Código de Error <span class="text-danger">*</span></label>
+                        <select name="codigo_error" id="id_codigo_error" class="form-control" required>
+                            <option value="">-- Seleccione un código de error --</option>
+                            {% for codigo in codigos_error %}
+                            <option value="{{ codigo.CodigoError }}" data-categoria="{{ codigo.Categoria }}">
+                                [{{ codigo.CodigoError }}] {{ codigo.get_Categoria_display }} - {{ codigo.DescripcionError }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">Seleccione el tipo de problema detectado</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_cantidad_afectada">Cantidad Afectada</label>
+                        <input type="number" name="cantidad_afectada" id="id_cantidad_afectada" class="form-control" min="0" placeholder="Número de unidades afectadas">
+                        <small class="form-text text-muted">Opcional: Indique cuántas unidades fueron afectadas por esta incidencia</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_detalle">Detalle de la Incidencia</label>
+                        <textarea name="detalle" id="id_detalle" class="form-control" rows="4" placeholder="Describa en detalle la incidencia detectada..."></textarea>
+                        <small class="form-text text-muted">Opcional: Proporcione información adicional que ayude a resolver la incidencia</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-save"></i> Registrar Incidencia
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -339,13 +490,15 @@ $(document).ready(function() {
                 title: '{% if message.tags == "success" %}¡Éxito!{% elif message.tags == "error" or message.tags == "danger" %}Error{% elif message.tags == "warning" %}Advertencia{% else %}Información{% endif %}',
                 html: '{{ message|escapejs }}',
                 confirmButtonColor: '{% if message.tags == "success" %}#28a745{% elif message.tags == "error" or message.tags == "danger" %}#dc3545{% elif message.tags == "warning" %}#ffc107{% else %}#17a2b8{% endif %}',
-                confirmButtonText: 'Entendido'
+                confirmButtonText: 'Entendido',
+                allowOutsideClick: false,
+                allowEscapeKey: false
             });
         {% endfor %}
     {% endif %}
     
     // Mostrar errores del formulario con SweetAlert2
-    {% if form.errors %}
+    {% if form.errors and not messages %}
         let mensajesHTML = '<div style="text-align: left;"><ul style="margin: 0; padding-left: 20px;">';
         {% for field in form %}
             {% for error in field.errors %}
@@ -379,6 +532,121 @@ $(document).ready(function() {
                 }
             });
         }
+    });
+
+    {% if not solo_lectura %}
+    // Detectar cambio de estado y preguntar si desea reportar incidencia
+    var estadoOriginal = $('#id_estado').val();
+    var estadoReservado = '{% for estado in form.estado.field.queryset %}{% if estado.nombre == "RESERVADO" %}{{ estado.id_estado }}{% endif %}{% endfor %}';
+    var yaValidado = false;
+    
+    // Solo aplicar al formulario principal de edición de turno, NO al formulario del modal
+    $('form:not(#formIncidencia)').on('submit', function(e) {
+        // Si ya fue validado, permitir el envío
+        if (yaValidado) {
+            return true;
+        }
+        
+        var estadoActual = $('#id_estado').val();
+        
+        // Si cambió el estado Y el nuevo estado NO es RESERVADO
+        if (estadoActual != estadoOriginal && estadoActual != estadoReservado) {
+            e.preventDefault();
+            
+            Swal.fire({
+                title: 'Cambio de Estado Detectado',
+                html: '¿Desea reportar una incidencia para este turno?<br><small class=\"text-muted\">Puede reportarla ahora o más tarde desde el botón \"Reportar Incidencia\"</small>',
+                icon: 'question',
+                showCancelButton: true,
+                showDenyButton: true,
+                confirmButtonColor: '#dc3545',
+                denyButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class=\"fas fa-exclamation-triangle\"></i> Reportar Incidencia',
+                denyButtonText: '<i class=\"fas fa-save\"></i> Solo Guardar',
+                cancelButtonText: '<i class=\"fas fa-times\"></i> Cancelar',
+                width: '500px'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Guardar primero, luego abrir modal de incidencia
+                    sessionStorage.setItem('abrirModalIncidencia', 'true');
+                    yaValidado = true;
+                    $('form:not(#formIncidencia)').submit();
+                } else if (result.isDenied) {
+                    // Solo guardar sin reportar incidencia
+                    yaValidado = true;
+                    $('form:not(#formIncidencia)').submit();
+                }
+                // Si cancela, no hace nada y yaValidado sigue en false
+            });
+            
+            return false;
+        }
+    });
+
+    // Verificar si debe abrir modal de incidencia después de guardar
+    if (sessionStorage.getItem('abrirModalIncidencia') === 'true') {
+        sessionStorage.removeItem('abrirModalIncidencia');
+        {% if not form.errors %}
+            setTimeout(function() {
+                $('#modalIncidencia').modal('show');
+            }, 500);
+        {% endif %}
+    }
+    {% endif %}
+
+    // Animación de iconos de collapse
+    $('#collapseIncidencias').on('show.bs.collapse', function () {
+        $('#iconIncidencias').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+    });
+    
+    $('#collapseIncidencias').on('hide.bs.collapse', function () {
+        $('#iconIncidencias').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+    });
+    
+    $('#collapseHistorial').on('show.bs.collapse', function () {
+        $('#iconHistorial').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+    });
+    
+    $('#collapseHistorial').on('hide.bs.collapse', function () {
+        $('#iconHistorial').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+    });
+
+    // Manejo del formulario de incidencia
+    $('#formIncidencia').on('submit', function(e) {
+        e.preventDefault();
+        
+        var formData = $(this).serialize();
+        
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                $('#modalIncidencia').modal('hide');
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Incidencia Registrada!',
+                    text: 'La incidencia ha sido reportada exitosamente.',
+                    confirmButtonColor: '#28a745'
+                }).then(() => {
+                    // Recargar página para mostrar la incidencia
+                    window.location.reload();
+                });
+            },
+            error: function(xhr) {
+                var errorMsg = 'Error al registrar la incidencia.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMsg = xhr.responseJSON.error;
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: errorMsg,
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        });
     });
 });
 </script>

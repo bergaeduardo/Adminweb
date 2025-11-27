@@ -1,5 +1,5 @@
 from django import forms
-from .models import Turno, CodigosError, TurnoReserva, EstadoTurno
+from .models import Turno, CodigosError, TurnoReserva, EstadoTurno, IncidenciasTurno
 from django.db import connections
 from datetime import datetime, timedelta, date
 
@@ -12,10 +12,67 @@ class ImageUploadForm(forms.Form):
 class CodigoErrorForm(forms.ModelForm):
     class Meta:
         model = CodigosError
-        fields = ['DescripcionError']
+        fields = ['CodigoError', 'DescripcionError', 'Categoria', 'Activo']
         widgets = {
-            'DescripcionError': forms.TextInput(attrs={'class': 'form-control'}),
+            'CodigoError': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: 101'
+            }),
+            'DescripcionError': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Mercadería dañada'
+            }),
+            'Categoria': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'Activo': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
         }
+        labels = {
+            'CodigoError': 'Código de Error',
+            'DescripcionError': 'Descripción',
+            'Categoria': 'Categoría',
+            'Activo': 'Activo'
+        }
+
+class IncidenciaTurnoForm(forms.ModelForm):
+    """
+    Formulario para registrar incidencias en turnos de recepción
+    Filtra solo códigos de error activos y permite agregar detalles
+    """
+    class Meta:
+        model = IncidenciasTurno
+        fields = ['codigo_error', 'cantidad_afectada', 'detalle']
+        widgets = {
+            'codigo_error': forms.Select(attrs={
+                'class': 'form-control select2',
+                'required': True
+            }),
+            'cantidad_afectada': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Cantidad de unidades afectadas',
+                'min': '0'
+            }),
+            'detalle': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Describa la incidencia en detalle...'
+            }),
+        }
+        labels = {
+            'codigo_error': 'Código de Error',
+            'cantidad_afectada': 'Cantidad Afectada',
+            'detalle': 'Detalle de la Incidencia'
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filtrar solo códigos de error activos y ordenar por categoría
+        self.fields['codigo_error'].queryset = CodigosError.objects.filter(Activo=True).order_by('Categoria', 'CodigoError')
+        # Hacer que el detalle sea opcional
+        self.fields['detalle'].required = False
+        self.fields['cantidad_afectada'].required = False
 
     
 class TurnoEditForm(forms.ModelForm):
