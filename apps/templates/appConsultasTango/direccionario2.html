@@ -28,6 +28,51 @@
       text-align: left;
       border-color:gray;
     }
+    .filter-toggle-btn {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      padding: 10px;
+      border-radius: 50%;
+      border: none;
+      width: 45px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 15px auto;
+      font-size: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .filter-toggle-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    .filter-toggle-btn.inactive {
+      background: #6c757d;
+      color: white;
+    }
+    .filter-toggle-btn.active {
+      background: #28a745;
+      color: white;
+    }
+    .filter-alert {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      z-index: 9999;
+      min-width: 300px;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
   </style>
 {% endblock stylesheets %}
 
@@ -129,6 +174,17 @@
                     </div>
                   </div>
                 </div>
+                {% if request.user|has_group:"admin" or request.user|has_group:"Sistemas" %}
+                <!-- Botón de filtro sucursal madre -->
+                <div class="text-center mt-3">
+                  <button type="button" id="filter-toggle" class="filter-toggle-btn {% if mostrar_todos %}active{% else %}inactive{% endif %}" title="{% if mostrar_todos %}Filtro activado - Mostrando todas las sucursales. Click para ver solo principales{% else %}Filtro desactivado - Solo sucursales principales. Click para ver todas{% endif %}">
+                    <i class="fas fa-tools"></i>
+                  </button>
+                  <div class="text-muted small">
+                    <small>{% if mostrar_todos %}Mostrar Principales{% else %}Mostrar Todas{% endif %}</small>
+                  </div>
+                </div>
+                {% endif %}
               </div>
             </div>
             <!-- /.card-body -->
@@ -327,6 +383,49 @@
         timer: 10000
       });
     })
+
+    // Control del filtro de sucursal madre
+    $('#filter-toggle').click(function() {
+      const currentUrl = new URL(window.location.href);
+      const mostrarTodos = currentUrl.searchParams.get('mostrar_todos');
+      
+      let mensaje, tipo;
+      
+      // Toggle del parámetro y definir mensaje
+      if (mostrarTodos === 'true') {
+        currentUrl.searchParams.set('mostrar_todos', 'false');
+        mensaje = '<strong>Filtro Desactivado:</strong> Mostrando solo sucursales principales';
+        tipo = 'warning';
+      } else {
+        currentUrl.searchParams.set('mostrar_todos', 'true');
+        mensaje = '<strong>Filtro Activado:</strong> Mostrando todas las sucursales';
+        tipo = 'success';
+      }
+      
+      // Mostrar alerta de Bootstrap
+      const alertHtml = `
+        <div class="alert alert-${tipo} alert-dismissible fade show filter-alert" role="alert">
+          ${mensaje}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      `;
+      
+      $('body').append(alertHtml);
+      
+      // Auto-cerrar después de 3 segundos
+      setTimeout(function() {
+        $('.filter-alert').fadeOut(300, function() {
+          $(this).remove();
+        });
+      }, 3000);
+      
+      // Recargar la página después de mostrar la notificación
+      setTimeout(function() {
+        window.location.href = currentUrl.toString();
+      }, 800);
+    });
 
   })
   $('.toastrDefaultSuccess').each(function() {

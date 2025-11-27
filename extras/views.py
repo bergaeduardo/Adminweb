@@ -152,7 +152,18 @@ def direccionario(request):
 @login_required(login_url="/login/")
 def agenda(request):
     Nombre='Direccionario'
-    datos = Direccionario.objects.all()
+    
+    # Verificar si se debe mostrar todos los registros (filtro desactivado)
+    mostrar_todos = request.GET.get('mostrar_todos', 'false') == 'true'
+    
+    if mostrar_todos:
+        # Filtro desactivado: mostrar todos los registros
+        datos = Direccionario.objects.all()
+    else:
+        # Filtro activado (por defecto): mostrar solo sucursales sin sucursal_madre
+        # nro_sucursal_madre es IntegerField, solo filtrar por NULL
+        datos = Direccionario.objects.filter(nro_sucursal_madre__isnull=True)
+    
     canal = filtroCanal()
     tipo_local = filtroTipoLocal()
     grupo = filtroGrupoEmpresario()
@@ -166,7 +177,14 @@ def agenda(request):
         else:
             dato.mails_empresa = []
 
-    return render(request,'appConsultasTango/direccionario2.html',{'datos': datos,'canal':canal,'tipo_local':tipo_local,'grupo':grupo,'Nombre':Nombre})
+    return render(request,'appConsultasTango/direccionario2.html',{
+        'datos': datos,
+        'canal':canal,
+        'tipo_local':tipo_local,
+        'grupo':grupo,
+        'Nombre':Nombre,
+        'mostrar_todos': mostrar_todos
+    })
 
 @login_required(login_url="/login/")
 def DireccionarioTabla(request):    # <<<----- Direccionario Tabla -->
