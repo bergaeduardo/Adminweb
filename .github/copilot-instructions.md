@@ -56,8 +56,10 @@ python manage.py runserver --settings=core.local
 
 ### Base de Datos
 - **NO** ejecutar migraciones en apps con `managed = False`
-- Solo migrar app `default` (PostgreSQL) y `consultasWMS`
-- Usar `python manage.py migrate --database=mi_db_3` para WMS específicamente
+- Solo migrar manualmente las bases editables
+- Usar por ejemplo
+`python manage.py migrate ` para PostgreSQL y
+`python manage.py migrate --database=mi_db_3` para WMS
 
 ### API y CORS
 - REST Framework configurado con documentación en `/docs/`
