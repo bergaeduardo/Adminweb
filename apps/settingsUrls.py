@@ -130,7 +130,6 @@ DIR_HERAMIENTAS = {
     'mostrarOrden':SERVIDOR['production'] + 'administracion/comercioExterior/mostrarOrden.php',
     'Controlcajasdiario':SERVIDOR['production'] + 'administracion/controlSucursales/controlDiarioCajaSucursales.php',
     'CargaGastosAlquileres':SERVIDOR['production'] + 'administracion/impuestos/alquileres/cargaAlquileres.php',
-    'GestionDeAlquileres':SERVIDOR['production'] + 'administracion/impuestos/alquileres/porcGastosAlquileres.php',
     'ControlEgresosDeCaja':SERVIDOR['production'] + 'administracion/controlSucursales/controlEgresosCajaSucursales.php?userName=',
     'ControlMasivoCobranza':SERVIDOR['production'] + 'administracion/controlSucursales/controlMasivoCaja.php',
     'CargarContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/contratos/cargaContratoAlquileres.php',

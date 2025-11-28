@@ -861,12 +861,6 @@ def CargaGastosAlquileres(request):
     return redirect(dir_iframe)
 
 @login_required(login_url="/login/")
-def GestionDeAlquileres(request):
-    Nombre = 'Gestión % De Alquileres'
-    dir_iframe = DIR_HERAMIENTAS['GestionDeAlquileres'] #+ UserName
-    return redirect(dir_iframe)
-
-@login_required(login_url="/login/")
 def ControlEgresosDeCaja(request,UserName):
     Nombre = 'Control Egresos De Caja'
     dir_iframe = DIR_HERAMIENTAS['ControlEgresosDeCaja'] + UserName

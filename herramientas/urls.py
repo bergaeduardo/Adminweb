@@ -82,7 +82,6 @@ urlpatterns = [
     path('Controlgastos', views.Controlgastos, name='herramientas_control_gastos'),
     path('Cargargastos', views.Cargargastos, name='herramientas_cargar_gastos'),
     path('Controlcajasdiario', views.Controlcajasdiario, name='herramientas_control_cajas_diario'),
-    path('GestionDeAlquileres', views.GestionDeAlquileres, name='herramientas_gestion_alquileres'),
     path('CargaGastosAlquileres', views.CargaGastosAlquileres, name='herramientas_carga_gastos_alquileres'),
     path('ControlEgresosDeCaja/<str:UserName>', views.ControlEgresosDeCaja, name='herramientas_control_egresos_caja'),
     path('ControlMasivoCobranza', views.ControlMasivoCobranza, name='herramientas_control_masivo_cobranza'),
