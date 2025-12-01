@@ -29,6 +29,7 @@ urlpatterns = [
     path("ImpRemEcom", views.ImpRemEcom, name="herramientas_importar_rem_ecom"),
     path("ImprimirEtiquetasBultos", views.ImprimirEtiquetasBultos, name="herramientas_imprimir_etiquetas_bultos"),
     path("RemisionMasiva", views.RemisionMasiva, name="herramientas_remision_masiva"),
+    path("AnularRemitos", views.AnularRemitos, name="herramientas_anular_remitos"),
 
     # Abastecimiento
     path('Stock_excluido', views.Stock_excluido, name='herramientas_stock_excluido'),

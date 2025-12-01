@@ -41,6 +41,12 @@ from numpy import int64, isnan # Keep numpy imports
 # Logistica
 
 @login_required(login_url="/login/")
+def AnularRemitos(request):
+    Nombre = 'Anular Remitos'
+    dir_iframe = DIR_HERAMIENTAS['AnularRemitos']
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre})
+
+@login_required(login_url="/login/")
 def RemisionMasiva(request):
     Nombre = ''
     dir_iframe = DIR_HERAMIENTAS['RemisionMasiva']
