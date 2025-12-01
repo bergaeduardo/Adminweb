@@ -277,6 +277,15 @@ class TurnoReservaForm(forms.ModelForm):
                 self.fields['cantidad_unidades'].widget.attrs['readonly'] = True
                 self.fields['cantidad_bultos'].widget.attrs['readonly'] = True
                 # Observaciones sigue siendo editable
+                
+                # Hacer campos opcionales para estados distintos de RESERVADO
+                self.fields['codigo_proveedor'].required = False
+                self.fields['fecha'].required = False
+                self.fields['hora_inicio'].required = False
+                self.fields['hora_fin'].required = False
+                self.fields['orden_compra'].required = False
+                self.fields['remitos'].required = False
+                self.fields['cantidad_unidades'].required = False
             else:
                 # Si estamos en RESERVADO pero la fecha ya pasó, deshabilitar fecha y hora
                 hoy = date.today()
@@ -464,6 +473,13 @@ class TurnoReservaForm(forms.ModelForm):
         """
         orden_compra = self.cleaned_data.get('orden_compra')
         
+        # Si el estado NO es RESERVADO, permitir campo vacío
+        if self.instance and self.instance.pk:
+            if self.instance.estado and self.instance.estado.nombre != 'RESERVADO':
+                if not orden_compra:
+                    return ''
+        
+        # Para estado RESERVADO o turnos nuevos, mantener validación original
         if not orden_compra:
             raise forms.ValidationError("Debe seleccionar al menos una orden de compra")
         
