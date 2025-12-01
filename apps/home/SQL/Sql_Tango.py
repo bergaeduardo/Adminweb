@@ -358,5 +358,64 @@ def marcar_turnos_no_confirmados():
             ])
             
             turnos_actualizados += 1
+
+
+def obtener_nombre_proveedor_por_codigo(codigo_proveedor):
+    """
+    Obtiene nombre de proveedor desde tabla CPA01 de base Tango (mi_db_2)
+    
+    Args:
+        codigo_proveedor (str): Código del proveedor a buscar
+    
+    Returns:
+        str: Nombre del proveedor o None si no existe
+    """
+    try:
+        with connections['mi_db_2'].cursor() as cursor:
+            sql = "SELECT NOM_PROVEE FROM dbo.CPA01 WHERE COD_CPA01 = %s"
+            cursor.execute(sql, [codigo_proveedor.strip().upper()])
+            resultado = cursor.fetchone()
+            return resultado[0] if resultado else None
+    except Exception as e:
+        print(f"Error al obtener nombre de proveedor: {str(e)}")
+        return None
+
+
+def obtener_ordenes_compra_activas_proveedor(codigo_proveedor):
+    """
+    Obtiene órdenes de compra activas de un proveedor desde tablas de Tango (mi_db_2)
+    
+    Consulta las tablas CPA35 (encabezado OC), CPA36 (detalle OC), CPA01 (proveedores)
+    y ESTADO_ORDEN_COMPRA para obtener OCs activas de los últimos 12 meses
+    
+    Args:
+        codigo_proveedor (str): Código del proveedor
+    
+    Returns:
+        list: Lista de tuplas (numero_oc, fecha_emision, estado_desc)
+              Formato del número de OC: " 0000100012634" (string con espacio inicial)
+    """
+    try:
+        with connections['mi_db_2'].cursor() as cursor:
+            sql = """
+            SELECT DISTINCT
+                oc.N_ORDEN_CO AS NumeroOrdenCompra,
+                oc.FEC_EMISIO AS FechaEmision,
+                est.DESC_ESTADO_ORDEN_COMPRA AS EstadoOrden
+            FROM dbo.CPA35 oc
+            INNER JOIN dbo.CPA01 prov ON oc.ID_CPA01 = prov.ID_CPA01
+            INNER JOIN dbo.ESTADO_ORDEN_COMPRA est ON oc.ID_ESTADO_ORDEN_COMPRA = est.ID_ESTADO_ORDEN_COMPRA
+            INNER JOIN dbo.CPA36 det ON oc.ID_CPA35 = det.ID_CPA35
+            WHERE prov.COD_CPA01 = %s
+              AND oc.ID_ESTADO_ORDEN_COMPRA IN (1, 2, 3, 9)
+              AND det.COD_DEPOSI = '01'
+              AND oc.FEC_EMISIO >= DATEADD(MONTH, -12, GETDATE())
+            ORDER BY oc.FEC_EMISIO DESC
+            """
+            cursor.execute(sql, [codigo_proveedor.strip().upper()])
+            return cursor.fetchall()
+    except Exception as e:
+        print(f"Error al obtener órdenes de compra activas: {str(e)}")
+        return []
         
         return turnos_actualizados

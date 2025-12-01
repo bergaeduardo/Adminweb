@@ -16,6 +16,7 @@ urlpatterns = [
     path('Gestion_guias_mayoristas', views.Gestion_guias_mayoristas, name='herramientas_gestion_guias_mayoristas'),
     path('registro', views.registro_turno, name='herramientas_registro_turno'),
     path('get_nombre_proveedor', views.get_nombre_proveedor, name='herramientas_get_nombre_proveedor'),
+    path('get_ordenes_compra_proveedor', views.get_ordenes_compra_proveedor, name='herramientas_get_ordenes_compra_proveedor'),
     path('listado', views.listado_turnos, name='herramientas_listado_turnos'),
     path('eliminar/<int:turno_id>', views.eliminar_turno, name='herramientas_eliminar_turno'),
     path('ver/<int:turno_id>', views.ver_turno, name='herramientas_ver_turno'),

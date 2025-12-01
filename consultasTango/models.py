@@ -138,7 +138,7 @@ class TurnoReserva(models.Model):
     fecha = models.DateField(verbose_name="Fecha del Turno")
     hora_inicio = models.TimeField(verbose_name="Hora Inicio")
     hora_fin = models.TimeField(verbose_name="Hora Fin")
-    orden_compra = models.CharField(max_length=14, null=False, blank=False, verbose_name="Orden de Compra")
+    orden_compra = models.CharField(max_length=500, null=False, blank=False, verbose_name="Órdenes de Compra")
     remitos = models.CharField(max_length=100, null=False, blank=False, verbose_name="Remitos")
     cantidad_unidades = models.IntegerField(null=False, blank=False, verbose_name="Cantidad de Unidades")
     cantidad_bultos = models.IntegerField(null=True, blank=True, verbose_name="Cantidad de Bultos")

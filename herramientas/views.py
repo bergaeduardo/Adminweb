@@ -75,16 +75,62 @@ def registro_turno(request):
 
 @login_required(login_url="/login/")
 def get_nombre_proveedor(request):
-    codigo_proveedor = request.GET.get('codigo', '')
-    # Aquí deberías implementar la lógica para obtener el nombre del proveedor
-    # Por ahora, usaremos un diccionario de ejemplo
-    proveedores = {
-        'AGODIF': 'DI FALCO MARIO DI FALCO JOSE Y DI FALCO COSME SOC DE HECHO',
-        'BFBISE': 'BANCO MACRO S.A.',
-        # ... Añade el resto de los proveedores aquí
+    """
+    API que retorna nombre de proveedor consultando tabla CPA01 de Tango
+    Consulta dinámicamente la base de datos en lugar de usar diccionario estático
+    """
+    codigo_proveedor = request.GET.get('codigo', '').strip().upper()
+    
+    if not codigo_proveedor:
+        return JsonResponse({'nombre': '', 'error': 'Código no proporcionado'})
+    
+    try:
+        from apps.home.SQL.Sql_Tango import obtener_nombre_proveedor_por_codigo
+        nombre = obtener_nombre_proveedor_por_codigo(codigo_proveedor)
+        
+        if nombre:
+            return JsonResponse({'nombre': nombre})
+        else:
+            return JsonResponse({'nombre': '', 'error': 'Proveedor no encontrado'})
+    except Exception as e:
+        return JsonResponse({'nombre': '', 'error': f'Error al consultar proveedor: {str(e)}'})
+
+
+@login_required(login_url="/login/")
+def get_ordenes_compra_proveedor(request):
+    """
+    API AJAX que retorna órdenes de compra activas de un proveedor
+    Formato Select2 compatible para cargar dinámicamente en campo multi-selección
+    
+    Returns JSON con formato:
+    {
+        "ordenes": [
+            {"id": " 0000100012634", "text": " 0000100012634 - Emitida (01/12/2024)"},
+            ...
+        ]
     }
-    nombre_proveedor = proveedores.get(codigo_proveedor, '')
-    return JsonResponse({'nombre': nombre_proveedor})
+    """
+    codigo_proveedor = request.GET.get('codigo', '').strip().upper()
+    
+    if not codigo_proveedor:
+        return JsonResponse({'ordenes': [], 'error': 'Código no proporcionado'})
+    
+    try:
+        from apps.home.SQL.Sql_Tango import obtener_ordenes_compra_activas_proveedor
+        ordenes = obtener_ordenes_compra_activas_proveedor(codigo_proveedor)
+        
+        # Formatear para Select2
+        ordenes_lista = [
+            {
+                'id': orden[0].strip(),  # N_ORDEN_CO (string con espacio inicial)
+                'text': f"{orden[0].strip()} - {orden[2]} ({orden[1].strftime('%d/%m/%Y')})"
+            }
+            for orden in ordenes
+        ]
+        
+        return JsonResponse({'ordenes': ordenes_lista})
+    except Exception as e:
+        return JsonResponse({'ordenes': [], 'error': f'Error al consultar órdenes: {str(e)}'})
 
 @login_required(login_url="/login/")
 def listado_turnos(request):

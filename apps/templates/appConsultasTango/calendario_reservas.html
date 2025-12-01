@@ -10,6 +10,9 @@
 <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
 <!-- Theme style -->
 <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+<!-- Select2 -->
+<link rel="stylesheet" href="/static/assets/plugins/select2/css/select2.min.css">
+<link rel="stylesheet" href="/static/assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
 <!-- FullCalendar -->
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
 <style>
@@ -192,6 +195,8 @@
 <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <!-- AdminLTE App -->
 <script src="/static/assets/js/adminlte.min.js"></script>
+<!-- Select2 -->
+<script src="/static/assets/plugins/select2/js/select2.full.min.js"></script>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- FullCalendar -->
@@ -447,15 +452,66 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Auto-completar nombre proveedor
+    // Auto-completar nombre proveedor y cargar OCs activas
     $(document).on('blur', '#codigoProveedor', function() {
         var codigo = $(this).val();
         if (codigo) {
+            // Obtener nombre del proveedor
             $.get('{% url "herramientas:herramientas_get_nombre_proveedor" %}', {codigo: codigo}, function(data) {
                 $('#nombreProveedor').val(data.nombre);
             });
+            
+            // Cargar órdenes de compra activas
+            $.get('{% url "herramientas:herramientas_get_ordenes_compra_proveedor" %}', {codigo: codigo}, function(data) {
+                if (data.ordenes && data.ordenes.length > 0) {
+                    // Limpiar opciones previas
+                    var $select = $('#ordenCompraSelect');
+                    $select.empty();
+                    
+                    // Agregar opciones nuevas
+                    $.each(data.ordenes, function(index, orden) {
+                        $select.append(
+                            $('<option></option>')
+                                .attr('value', orden.id)
+                                .text(orden.text)
+                        );
+                    });
+                    
+                    // Reinicializar Select2
+                    $select.trigger('change');
+                } else {
+                    var $select = $('#ordenCompraSelect');
+                    $select.empty().append(
+                        $('<option></option>')
+                            .attr('value', '')
+                            .text('No hay órdenes de compra activas')
+                    ).trigger('change');
+                }
+            });
         }
     });
+    
+    // Inicializar Select2 para el campo de órdenes de compra
+    $(document).on('select2:open', '#ordenCompraSelect', function() {
+        // Asegurarse de que Select2 esté inicializado correctamente
+    }).on('change', '#ordenCompraSelect', function() {
+        // Evento al cambiar la selección
+    });
 });
+
+// Inicializar Select2 cuando se carga el formulario en el modal
+$(document).on('select2:init', '.select2-multiple', function() {
+    // Callback cuando Select2 se inicializa
+});
+
+// Función global para inicializar Select2 en formularios cargados dinámicamente
+function inicializarSelect2() {
+    $('.select2-multiple').select2({
+        theme: 'bootstrap4',
+        placeholder: 'Seleccione órdenes de compra...',
+        allowClear: true,
+        width: '100%'
+    });
+}
 </script>
 {% endblock javascripts %}

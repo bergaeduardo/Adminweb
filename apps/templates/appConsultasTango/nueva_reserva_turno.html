@@ -1,5 +1,9 @@
 {% load static %}
 
+<!-- Estilos Select2 (local) -->
+<link rel="stylesheet" href="/static/assets/plugins/select2/css/select2.min.css">
+<link rel="stylesheet" href="/static/assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+
 <form id="formNuevaReserva" method="post">
     {% csrf_token %}
     
@@ -119,19 +123,97 @@
     </div>
 </form>
 
+<script src="/static/assets/plugins/select2/js/select2.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 $(document).ready(function() {
-    // Auto-completar nombre proveedor al perder foco
+    // Inicializar Select2 para campo de órdenes de compra
+    $('#ordenCompraSelect').select2({
+        theme: 'bootstrap4',
+        placeholder: 'Seleccione órdenes de compra...',
+        allowClear: true,
+        width: '100%'
+    });
+    
+    // Auto-completar nombre proveedor y cargar OCs activas al perder foco
     $('#codigoProveedor').on('blur', function() {
-        var codigo = $(this).val();
+        var codigo = $(this).val().trim().toUpperCase();
+        
         if (codigo) {
+            // Obtener nombre del proveedor
             $.ajax({
                 url: '{% url "herramientas:herramientas_get_nombre_proveedor" %}',
                 data: { codigo: codigo },
                 success: function(data) {
-                    $('#nombreProveedor').val(data.nombre);
+                    if (data.nombre) {
+                        $('#nombreProveedor').val(data.nombre);
+                    } else if (data.error) {
+                        $('#nombreProveedor').val('');
+                        console.warn('Proveedor no encontrado: ' + data.error);
+                    }
+                },
+                error: function() {
+                    console.error('Error al obtener nombre de proveedor');
                 }
             });
+            
+            // Cargar órdenes de compra activas
+            $.ajax({
+                url: '{% url "herramientas:herramientas_get_ordenes_compra_proveedor" %}',
+                data: { codigo: codigo },
+                success: function(data) {
+                    var $select = $('#ordenCompraSelect');
+                    
+                    if (data.ordenes && data.ordenes.length > 0) {
+                        // Limpiar opciones previas
+                        $select.empty();
+                        
+                        // Agregar opción vacía
+                        $select.append(
+                            $('<option></option>')
+                                .attr('value', '')
+                                .text('-- Seleccione órdenes de compra --')
+                        );
+                        
+                        // Agregar nuevas opciones
+                        $.each(data.ordenes, function(index, orden) {
+                            $select.append(
+                                $('<option></option>')
+                                    .attr('value', orden.id)
+                                    .text(orden.text)
+                            );
+                        });
+                        
+                        // Reinicializar Select2
+                        $select.trigger('change');
+                    } else {
+                        // Sin órdenes disponibles
+                        $select.empty().append(
+                            $('<option></option>')
+                                .attr('value', '')
+                                .text('No hay órdenes de compra activas')
+                        ).trigger('change');
+                    }
+                },
+                error: function() {
+                    var $select = $('#ordenCompraSelect');
+                    $select.empty().append(
+                        $('<option></option>')
+                            .attr('value', '')
+                            .text('Error al cargar órdenes')
+                    ).trigger('change');
+                }
+            });
+        } else {
+            // Si está vacío el código, limpiar nombre y OCs
+            $('#nombreProveedor').val('');
+            var $select = $('#ordenCompraSelect');
+            $select.empty().append(
+                $('<option></option>')
+                    .attr('value', '')
+                    .text('-- Ingrese código de proveedor --')
+            ).trigger('change');
         }
     });
 });

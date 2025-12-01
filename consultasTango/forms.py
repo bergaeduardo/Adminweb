@@ -205,7 +205,11 @@ class TurnoReservaForm(forms.ModelForm):
             'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}, format='%Y-%m-%d'),
             'hora_inicio': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time', 'step': '1800'}),  # Pasos de 30 min
             'hora_fin': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time', 'step': '1800'}),
-            'orden_compra': forms.TextInput(attrs={'class': 'form-control'}),
+            'orden_compra': forms.SelectMultiple(attrs={
+                'class': 'form-control select2-multiple',
+                'id': 'ordenCompraSelect',
+                'data-placeholder': 'Seleccione órdenes de compra...'
+            }),
             'remitos': forms.TextInput(attrs={'class': 'form-control'}),
             'cantidad_unidades': forms.NumberInput(attrs={'class': 'form-control'}),
             'cantidad_bultos': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -259,17 +263,31 @@ class TurnoReservaForm(forms.ModelForm):
                 'disabled': 'disabled'
             })
         
-        # Si estamos editando y la fecha ya pasó, hacer campos readonly
+        # Si estamos editando, aplicar restricciones según estado y fecha
         if self.instance and self.instance.pk:
-            hoy = date.today()
-            if self.instance.fecha <= hoy:
-                # Deshabilitar campos de fecha y hora
+            # Si el estado NO es RESERVADO, deshabilitar todos los campos editables (excepto observaciones)
+            if self.instance.estado and self.instance.estado.nombre != 'RESERVADO':
+                # Deshabilitar campos de datos principales
+                self.fields['codigo_proveedor'].widget.attrs['readonly'] = True
+                self.fields['nombre_proveedor'].widget.attrs['readonly'] = True
                 self.fields['fecha'].widget.attrs['readonly'] = True
                 self.fields['hora_inicio'].widget.attrs['readonly'] = True
                 self.fields['hora_fin'].widget.attrs['readonly'] = True
-                
-                # Mostrar advertencia
-                self.fields['fecha'].help_text = "No se pueden editar turnos del día actual o fechas pasadas"
+                self.fields['remitos'].widget.attrs['readonly'] = True
+                self.fields['cantidad_unidades'].widget.attrs['readonly'] = True
+                self.fields['cantidad_bultos'].widget.attrs['readonly'] = True
+                # Observaciones sigue siendo editable
+            else:
+                # Si estamos en RESERVADO pero la fecha ya pasó, deshabilitar fecha y hora
+                hoy = date.today()
+                if self.instance.fecha <= hoy:
+                    # Deshabilitar campos de fecha y hora
+                    self.fields['fecha'].widget.attrs['readonly'] = True
+                    self.fields['hora_inicio'].widget.attrs['readonly'] = True
+                    self.fields['hora_fin'].widget.attrs['readonly'] = True
+                    
+                    # Mostrar advertencia
+                    self.fields['fecha'].help_text = "No se pueden editar turnos del día actual o fechas pasadas"
 
     def clean(self):
         cleaned_data = super().clean()
@@ -438,6 +456,32 @@ class TurnoReservaForm(forms.ModelForm):
         if codigo:
             codigo = codigo.upper().strip()
         return codigo
+
+    def clean_orden_compra(self):
+        """
+        Validar y procesar órdenes de compra múltiples
+        Convierte lista de OCs en string separado por pipe: " 0000100012634| 0000100012635"
+        """
+        orden_compra = self.cleaned_data.get('orden_compra')
+        
+        if not orden_compra:
+            raise forms.ValidationError("Debe seleccionar al menos una orden de compra")
+        
+        # Si es lista (viene del SelectMultiple)
+        if isinstance(orden_compra, list):
+            if not orden_compra:
+                raise forms.ValidationError("Debe seleccionar al menos una orden de compra")
+            # Unir con pipe como separador, preservando espacios iniciales
+            orden_compra = '|'.join([str(oc).strip() for oc in orden_compra])
+        else:
+            # Si es string, limpiar espacios extra
+            orden_compra = str(orden_compra).strip()
+        
+        # Validar que no esté vacío después del procesamiento
+        if not orden_compra:
+            raise forms.ValidationError("Las órdenes de compra no pueden estar vacías")
+        
+        return orden_compra
 
     def clean_fecha(self):
         """

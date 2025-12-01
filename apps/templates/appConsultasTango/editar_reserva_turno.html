@@ -105,6 +105,15 @@
                                     Si necesita realizar modificaciones, contacte al administrador del sistema.
                                 </p>
                             </div>
+                            {% elif turno.estado and turno.estado.nombre != 'RESERVADO' %}
+                            <div class="alert alert-warning mt-3 mb-0">
+                                <h5><i class="fas fa-lock"></i> Turno en Estado: {{ turno.estado.nombre }}</h5>
+                                <p class="mb-0">
+                                    Los campos de <strong>proveedor, fechas, horarios, remitos y cantidades</strong> no se pueden modificar cuando el turno se encuentra en estado <strong>"{{ turno.estado.nombre }}"</strong>.
+                                    <br>
+                                    Solo se puede cambiar el estado del turno. Para modificar otros datos, el turno debe estar en estado <strong>"RESERVADO"</strong>.
+                                </p>
+                            </div>
                             {% elif turno_es_pasado %}
                             <div class="alert alert-warning mt-3 mb-0">
                                 <h5><i class="fas fa-exclamation-triangle"></i> Turno de Fecha Pasada</h5>
@@ -125,7 +134,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="{{ form.codigo_proveedor.id_for_label }}">Código Proveedor *</label>
-                                            {% if solo_lectura %}
+                                            {% if solo_lectura or form.codigo_proveedor.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.codigo_proveedor }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                             {% else %}
                                             {{ form.codigo_proveedor }}
@@ -135,7 +144,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="{{ form.nombre_proveedor.id_for_label }}">Nombre Proveedor</label>
-                                            {% if solo_lectura %}
+                                            {% if solo_lectura or form.nombre_proveedor.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.nombre_proveedor }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                             {% else %}
                                             {{ form.nombre_proveedor }}
@@ -148,7 +157,7 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="{{ form.fecha.id_for_label }}">Fecha *</label>
-                                            {% if solo_lectura %}
+                                            {% if solo_lectura or form.fecha.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.fecha|date:'d/m/Y' }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                             {% else %}
                                             {{ form.fecha }}
@@ -158,7 +167,7 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="{{ form.hora_inicio.id_for_label }}">Hora Inicio *</label>
-                                            {% if solo_lectura %}
+                                            {% if solo_lectura or form.hora_inicio.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.hora_inicio }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                             {% else %}
                                             {{ form.hora_inicio }}
@@ -168,7 +177,7 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="{{ form.hora_fin.id_for_label }}">Hora Fin *</label>
-                                            {% if solo_lectura %}
+                                            {% if solo_lectura or form.hora_fin.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.hora_fin }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                             {% else %}
                                             {{ form.hora_fin }}
@@ -184,14 +193,15 @@
                                             {% if solo_lectura %}
                                             <input type="text" class="form-control" value="{{ turno.orden_compra }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                             {% else %}
-                                            {{ form.orden_compra }}
+                                            <input type="text" class="form-control" value="{{ turno.orden_compra|default:'' }}" readonly style="background-color: #e9ecef; cursor: not-allowed;" title="Las órdenes de compra no se pueden editar en este formulario">
                                             {% endif %}
                                         </div>
                                     </div>
+                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="{{ form.remitos.id_for_label }}">Remitos *</label>
-                                            {% if solo_lectura %}
+                                            {% if solo_lectura or form.remitos.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.remitos }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                             {% else %}
                                             {{ form.remitos }}
@@ -199,12 +209,13 @@
                                         </div>
                                     </div>
                                 </div>
+                                </div>
 
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="{{ form.cantidad_unidades.id_for_label }}">Cantidad Unidades *</label>
-                                            {% if solo_lectura %}
+                                            {% if solo_lectura or form.cantidad_unidades.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.cantidad_unidades }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                             {% else %}
                                             {{ form.cantidad_unidades }}
@@ -214,7 +225,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="{{ form.cantidad_bultos.id_for_label }}">Cantidad Bultos</label>
-                                            {% if solo_lectura %}
+                                            {% if solo_lectura or form.cantidad_bultos.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.cantidad_bultos|default:'-' }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                             {% else %}
                                             {{ form.cantidad_bultos }}
@@ -227,11 +238,7 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="{{ form.observaciones.id_for_label }}">Observaciones</label>
-                                            {% if solo_lectura %}
-                                            <textarea class="form-control" rows="3" readonly style="background-color: #e9ecef; cursor: not-allowed;">{{ turno.observaciones|default:'' }}</textarea>
-                                            {% else %}
                                             {{ form.observaciones }}
-                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
