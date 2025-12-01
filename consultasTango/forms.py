@@ -346,19 +346,24 @@ class TurnoReservaForm(forms.ModelForm):
                 
                 # Si el nuevo estado tiene un orden mayor, verificar estados requeridos intermedios
                 if orden_nuevo > orden_actual:
-                    # Buscar estados requeridos que se estén saltando
-                    estados_intermedios_requeridos = EstadoTurno.objects.filter(
-                        orden_ejecucion__gt=orden_actual,
-                        orden_ejecucion__lt=orden_nuevo,
-                        es_requerido=True,
-                        activo=True
-                    ).order_by('orden_ejecucion')
-                    
-                    if estados_intermedios_requeridos.exists():
-                        nombres_estados = ', '.join([e.nombre for e in estados_intermedios_requeridos])
-                        raise forms.ValidationError(
-                            f"No puede saltarse estados requeridos. Primero debe pasar por: {nombres_estados}"
-                        )
+                    # EXCEPCIÓN: Permitir salto directo de RESERVADO a RECHAZADO
+                    if estado_actual.nombre == 'RESERVADO' and nuevo_estado.nombre == 'RECHAZADO':
+                        # Permitir este cambio sin validación de estados intermedios
+                        pass
+                    else:
+                        # Buscar estados requeridos que se estén saltando
+                        estados_intermedios_requeridos = EstadoTurno.objects.filter(
+                            orden_ejecucion__gt=orden_actual,
+                            orden_ejecucion__lt=orden_nuevo,
+                            es_requerido=True,
+                            activo=True
+                        ).order_by('orden_ejecucion')
+                        
+                        if estados_intermedios_requeridos.exists():
+                            nombres_estados = ', '.join([e.nombre for e in estados_intermedios_requeridos])
+                            raise forms.ValidationError(
+                                f"No puede saltarse estados requeridos. Primero debe pasar por: {nombres_estados}"
+                            )
 
 
         if not all([fecha, hora_inicio, hora_fin]):
@@ -470,6 +475,7 @@ class TurnoReservaForm(forms.ModelForm):
         """
         Validar y procesar órdenes de compra múltiples
         Convierte lista de OCs en string separado por pipe: " 0000100012634| 0000100012635"
+        Para edición: acepta string existente (desde campo hidden) sin modificación
         """
         orden_compra = self.cleaned_data.get('orden_compra')
         
@@ -483,14 +489,14 @@ class TurnoReservaForm(forms.ModelForm):
         if not orden_compra:
             raise forms.ValidationError("Debe seleccionar al menos una orden de compra")
         
-        # Si es lista (viene del SelectMultiple)
+        # Si es lista (viene del SelectMultiple en creación)
         if isinstance(orden_compra, list):
             if not orden_compra:
                 raise forms.ValidationError("Debe seleccionar al menos una orden de compra")
             # Unir con pipe como separador, preservando espacios iniciales
             orden_compra = '|'.join([str(oc).strip() for oc in orden_compra])
         else:
-            # Si es string, limpiar espacios extra
+            # Si es string (viene del campo hidden en edición), limpiar espacios extra
             orden_compra = str(orden_compra).strip()
         
         # Validar que no esté vacío después del procesamiento

@@ -29,6 +29,28 @@ import json
 from apps.home.SQL.Sql_Tango import * # Keep SQL imports
 from apps.home.SQL.Sql_WMS import * # Keep SQL imports
 import xlwt # Keep excel writing imports
+
+
+def formatear_orden_compra(orden_compra):
+    """
+    Formatea el campo orden_compra para mostrar de forma legible.
+    Convierte formatos como "['OC1', 'OC2']" o "OC1|OC2" en "OC1, OC2"
+    """
+    if not orden_compra:
+        return ''
+    
+    oc_str = str(orden_compra)
+    
+    # Remover corchetes y comillas de formato lista Python
+    oc_str = oc_str.replace('[', '').replace(']', '').replace("'", '').replace('"', '')
+    
+    # Reemplazar pipes por comas
+    oc_str = oc_str.replace('|', ', ')
+    
+    # Limpiar espacios extras
+    oc_str = ', '.join([oc.strip() for oc in oc_str.split(',') if oc.strip()])
+    
+    return oc_str
 import xlrd # Keep excel reading imports
 from numpy import int64, isnan # Keep numpy imports
 from datetime import datetime, timedelta, date, time as dt_time
@@ -329,7 +351,7 @@ def obtener_turnos_calendario(request):
             
             eventos.append({
                 'id': turno.id_turno_reserva,
-                'title': f'{turno.codigo_proveedor} - OC: {turno.orden_compra}',
+                'title': f'{turno.codigo_proveedor} - OC: {formatear_orden_compra(turno.orden_compra)}',
                 'start': inicio.isoformat(),
                 'end': fin.isoformat(),
                 'backgroundColor': color,
@@ -337,7 +359,7 @@ def obtener_turnos_calendario(request):
                 'extendedProps': {
                     'codigo_proveedor': turno.codigo_proveedor,
                     'nombre_proveedor': turno.nombre_proveedor or '',
-                    'orden_compra': turno.orden_compra,
+                    'orden_compra': formatear_orden_compra(turno.orden_compra),
                     'remitos': turno.remitos,
                     'cantidad_unidades': turno.cantidad_unidades,
                     'cantidad_bultos': turno.cantidad_bultos or 0,
@@ -417,6 +439,7 @@ def nueva_reserva_turno(request):
     """
     Vista para crear una nueva reserva de turno
     Crea registro en historial de estados al crear
+    Procesa archivos adjuntos si se envían
     """
     if request.method == 'POST':
         try:
@@ -454,11 +477,60 @@ def nueva_reserva_turno(request):
                     observaciones="Creación de turno"
                 )
                 
-                messages.success(request, 'Turno reservado exitosamente.')
+                # Procesar archivos adjuntos si los hay
+                archivos_subidos = 0
+                archivos_error = []
+                
+                for key in request.FILES:
+                    if key.startswith('archivo_'):
+                        archivo = request.FILES[key]
+                        tipo_key = 'tipo_documento_' + key.split('_')[1]
+                        tipo_documento = request.POST.get(tipo_key, 'OTRO')
+                        
+                        try:
+                            # Validar tamaño (5MB máximo)
+                            if archivo.size > 5 * 1024 * 1024:
+                                archivos_error.append(f'{archivo.name}: excede 5MB')
+                                continue
+                            
+                            # Validar extensión
+                            ext = os.path.splitext(archivo.name)[1].lower()
+                            if ext not in EXTENSIONES_PERMITIDAS:
+                                archivos_error.append(f'{archivo.name}: extensión no permitida')
+                                continue
+                            
+                            # Detectar tipo MIME
+                            tipo_mime, _ = mimetypes.guess_type(archivo.name)
+                            if not tipo_mime:
+                                tipo_mime = 'application/octet-stream'
+                            
+                            # Crear adjunto
+                            AdjuntoTurnoReserva.objects.create(
+                                turno=turno,
+                                archivo=archivo,
+                                tipo_documento=tipo_documento,
+                                nombre_original=archivo.name,
+                                tipo_archivo=tipo_mime,
+                                tamaño_bytes=archivo.size,
+                                usuario_subio=request.user.username
+                            )
+                            archivos_subidos += 1
+                            
+                        except Exception as e:
+                            archivos_error.append(f'{archivo.name}: {str(e)}')
+                
+                mensaje = 'Turno reservado exitosamente'
+                if archivos_subidos > 0:
+                    mensaje += f'. Se adjuntaron {archivos_subidos} archivo(s).'
+                if archivos_error:
+                    mensaje += f' Errores en archivos: {", ".join(archivos_error)}'
+                
                 return JsonResponse({
                     'success': True, 
-                    'message': 'Turno reservado exitosamente',
-                    'turno_id': turno.id_turno_reserva
+                    'message': mensaje,
+                    'turno_id': turno.id_turno_reserva,
+                    'archivos_subidos': archivos_subidos,
+                    'archivos_error': archivos_error
                 })
             else:
                 # Retornar errores del formulario
@@ -2441,3 +2513,210 @@ def gestion_sucursales_ecommerce(request):
             'sucursal_activa': None,
             'titulo': 'Gestión de Sucursales E-commerce'
         })
+
+
+# ============================================================================
+# VISTAS PARA ADJUNTOS DE TURNOS DE RESERVA
+# ============================================================================
+
+from consultasTango.models import AdjuntoTurnoReserva
+import mimetypes
+
+# Constantes para adjuntos
+MAX_FILE_SIZE_MB = 5
+MAX_FILES_PER_TURNO = 5
+EXTENSIONES_PERMITIDAS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.xlsx', '.xls', '.csv', '.doc', '.docx']
+
+
+@login_required(login_url="/login/")
+@require_http_methods(["POST"])
+def subir_adjunto_turno(request, turno_id):
+    """
+    Vista AJAX para subir un archivo adjunto a un turno.
+    Valida tamaño máximo (5MB), extensiones permitidas y límite de archivos por turno.
+    """
+    try:
+        turno = get_object_or_404(TurnoReserva, pk=turno_id)
+        
+        # Verificar que el archivo fue enviado
+        if 'archivo' not in request.FILES:
+            return JsonResponse({'success': False, 'error': 'No se recibió ningún archivo'}, status=400)
+        
+        archivo = request.FILES['archivo']
+        tipo_documento = request.POST.get('tipo_documento', 'OTRO')
+        
+        # Validar cantidad máxima de archivos por turno
+        cantidad_actual = AdjuntoTurnoReserva.objects.filter(turno=turno).count()
+        if cantidad_actual >= MAX_FILES_PER_TURNO:
+            return JsonResponse({
+                'success': False, 
+                'error': f'Se alcanzó el límite máximo de {MAX_FILES_PER_TURNO} archivos por turno'
+            }, status=400)
+        
+        # Validar tamaño del archivo (máximo 5MB)
+        if archivo.size > MAX_FILE_SIZE_MB * 1024 * 1024:
+            return JsonResponse({
+                'success': False, 
+                'error': f'El archivo excede el tamaño máximo permitido ({MAX_FILE_SIZE_MB}MB)'
+            }, status=400)
+        
+        # Validar extensión
+        ext = os.path.splitext(archivo.name)[1].lower()
+        if ext not in EXTENSIONES_PERMITIDAS:
+            return JsonResponse({
+                'success': False, 
+                'error': f'Extensión no permitida. Extensiones válidas: {", ".join(EXTENSIONES_PERMITIDAS)}'
+            }, status=400)
+        
+        # Detectar tipo MIME
+        tipo_mime, _ = mimetypes.guess_type(archivo.name)
+        if not tipo_mime:
+            tipo_mime = 'application/octet-stream'
+        
+        # Crear el registro de adjunto
+        adjunto = AdjuntoTurnoReserva(
+            turno=turno,
+            archivo=archivo,
+            tipo_documento=tipo_documento,
+            nombre_original=archivo.name,
+            tipo_archivo=tipo_mime,
+            tamaño_bytes=archivo.size,
+            usuario_subio=request.user.username
+        )
+        adjunto.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Archivo subido exitosamente',
+            'adjunto': {
+                'id': adjunto.id_adjunto,
+                'nombre': adjunto.nombre_original,
+                'tipo_documento': adjunto.get_tipo_documento_display(),
+                'tamaño': adjunto.get_tamaño_legible(),
+                'es_imagen': adjunto.es_imagen(),
+                'url': adjunto.archivo.url,
+                'fecha_subida': adjunto.fecha_subida.strftime('%d/%m/%Y %H:%M'),
+                'usuario': adjunto.usuario_subio,
+                'puede_eliminar': adjunto.puede_eliminar()
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': f'Error al subir el archivo: {str(e)}'
+        }, status=500)
+
+
+@login_required(login_url="/login/")
+@require_http_methods(["POST", "DELETE"])
+def eliminar_adjunto_turno(request, adjunto_id):
+    """
+    Vista AJAX para eliminar un archivo adjunto.
+    Solo permite eliminar si el turno está en estado RESERVADO.
+    """
+    try:
+        adjunto = get_object_or_404(AdjuntoTurnoReserva, pk=adjunto_id)
+        
+        # Verificar que el turno está en estado RESERVADO
+        if not adjunto.puede_eliminar():
+            return JsonResponse({
+                'success': False, 
+                'error': 'No se puede eliminar el adjunto. El turno no está en estado RESERVADO.'
+            }, status=403)
+        
+        # Guardar nombre para mensaje
+        nombre_archivo = adjunto.nombre_original
+        
+        # Eliminar (el método delete del modelo también elimina el archivo físico)
+        adjunto.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Archivo "{nombre_archivo}" eliminado exitosamente'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': f'Error al eliminar el archivo: {str(e)}'
+        }, status=500)
+
+
+@login_required(login_url="/login/")
+def descargar_adjunto_turno(request, adjunto_id):
+    """
+    Vista para descargar un archivo adjunto.
+    Fuerza la descarga en lugar de mostrar en el navegador.
+    """
+    try:
+        adjunto = get_object_or_404(AdjuntoTurnoReserva, pk=adjunto_id)
+        
+        # Abrir el archivo y preparar la respuesta
+        file_path = adjunto.archivo.path
+        
+        if not os.path.exists(file_path):
+            return JsonResponse({'error': 'Archivo no encontrado'}, status=404)
+        
+        with open(file_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type=adjunto.tipo_archivo)
+            response['Content-Disposition'] = f'attachment; filename="{adjunto.nombre_original}"'
+            response['Content-Length'] = adjunto.tamaño_bytes
+            return response
+            
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error al descargar el archivo: {str(e)}'
+        }, status=500)
+
+
+@login_required(login_url="/login/")
+def listar_adjuntos_turno(request, turno_id):
+    """
+    Vista AJAX para listar los adjuntos de un turno.
+    Retorna JSON con la lista de archivos.
+    """
+    try:
+        turno = get_object_or_404(TurnoReserva, pk=turno_id)
+        adjuntos = AdjuntoTurnoReserva.objects.filter(turno=turno)
+        
+        adjuntos_lista = []
+        for adjunto in adjuntos:
+            adjuntos_lista.append({
+                'id': adjunto.id_adjunto,
+                'nombre': adjunto.nombre_original,
+                'tipo_documento': adjunto.get_tipo_documento_display(),
+                'tipo_documento_key': adjunto.tipo_documento,
+                'tamaño': adjunto.get_tamaño_legible(),
+                'es_imagen': adjunto.es_imagen(),
+                'es_pdf': adjunto.es_pdf(),
+                'url': adjunto.archivo.url,
+                'fecha_subida': adjunto.fecha_subida.strftime('%d/%m/%Y %H:%M'),
+                'usuario': adjunto.usuario_subio,
+                'puede_eliminar': adjunto.puede_eliminar()
+            })
+        
+        # Estado del turno para saber si permite subir más archivos
+        puede_subir = turno.estado and turno.estado.nombre == 'RESERVADO'
+        archivos_restantes = MAX_FILES_PER_TURNO - len(adjuntos_lista)
+        
+        return JsonResponse({
+            'success': True,
+            'adjuntos': adjuntos_lista,
+            'total': len(adjuntos_lista),
+            'puede_subir': puede_subir,
+            'archivos_restantes': archivos_restantes,
+            'max_archivos': MAX_FILES_PER_TURNO,
+            'max_tamaño_mb': MAX_FILE_SIZE_MB
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': f'Error al listar adjuntos: {str(e)}'
+        }, status=500)
+
+
+# ============================================================================
+# FIN VISTAS ADJUNTOS DE TURNOS
+# ============================================================================

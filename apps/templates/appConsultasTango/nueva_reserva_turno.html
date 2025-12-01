@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="/static/assets/plugins/select2/css/select2.min.css">
 <link rel="stylesheet" href="/static/assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
 
-<form id="formNuevaReserva" method="post">
+<form id="formNuevaReserva" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     
     <div class="row">
@@ -109,6 +109,40 @@
         </div>
     </div>
 
+    <!-- Sección de Documentos Adjuntos -->
+    <div class="card card-outline card-primary mb-3">
+        <div class="card-header py-2" data-toggle="collapse" data-target="#collapseAdjuntosNuevo" style="cursor: pointer;">
+            <h6 class="mb-0">
+                <i class="fas fa-paperclip"></i> Documentos Adjuntos (Opcional)
+                <span class="badge badge-secondary ml-2" id="cantidadArchivosSeleccionados">0</span>
+                <i class="fas fa-chevron-down float-right"></i>
+            </h6>
+        </div>
+        <div id="collapseAdjuntosNuevo" class="collapse">
+            <div class="card-body py-2">
+                <small class="text-muted d-block mb-2">
+                    <i class="fas fa-info-circle"></i> Máximo 5 archivos, cada uno hasta 5MB.
+                    Formatos: JPG, PNG, GIF, PDF, Excel, CSV, Word.
+                </small>
+                
+                <!-- Lista de archivos a subir -->
+                <div id="listaArchivosAdjuntar" class="mb-2">
+                    <!-- Se llena dinámicamente -->
+                </div>
+                
+                <!-- Botón para agregar archivos -->
+                <div class="d-flex align-items-center">
+                    <input type="file" id="inputArchivosAdjuntos" multiple 
+                           accept=".jpg,.jpeg,.png,.gif,.pdf,.xlsx,.xls,.csv,.doc,.docx"
+                           style="display: none;">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAgregarArchivo">
+                        <i class="fas fa-plus"></i> Agregar Archivo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="alert alert-info">
         <i class="fas fa-info-circle"></i> 
         <strong>Nota:</strong> Los turnos deben ser en bloques de 30 minutos. 
@@ -127,6 +161,13 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+// Variables para archivos adjuntos
+var archivosAdjuntos = [];
+var tiposDocumento = {}; // Almacenar tipos de documento por índice
+var maxArchivos = 5;
+var maxTamanoMB = 5;
+var extensionesPermitidas = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.xlsx', '.xls', '.csv', '.doc', '.docx'];
+
 $(document).ready(function() {
     // Inicializar Select2 para campo de órdenes de compra
     $('#ordenCompraSelect').select2({
@@ -216,5 +257,170 @@ $(document).ready(function() {
             ).trigger('change');
         }
     });
+    
+    // === MANEJO DE ARCHIVOS ADJUNTOS ===
+    
+    // Botón agregar archivo
+    $('#btnAgregarArchivo').on('click', function() {
+        if (archivosAdjuntos.length >= maxArchivos) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Límite alcanzado',
+                text: 'Solo puede adjuntar un máximo de ' + maxArchivos + ' archivos.',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
+        $('#inputArchivosAdjuntos').click();
+    });
+    
+    // Input de archivos
+    $('#inputArchivosAdjuntos').on('change', function() {
+        var files = this.files;
+        
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            
+            // Validar cantidad
+            if (archivosAdjuntos.length >= maxArchivos) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Límite alcanzado',
+                    text: 'Solo puede adjuntar un máximo de ' + maxArchivos + ' archivos.',
+                    confirmButtonColor: '#ffc107'
+                });
+                break;
+            }
+            
+            // Validar tamaño
+            if (file.size > maxTamanoMB * 1024 * 1024) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Archivo muy grande',
+                    text: 'El archivo "' + file.name + '" excede el tamaño máximo de ' + maxTamanoMB + 'MB.',
+                    confirmButtonColor: '#dc3545'
+                });
+                continue;
+            }
+            
+            // Validar extensión
+            var ext = '.' + file.name.split('.').pop().toLowerCase();
+            if (extensionesPermitidas.indexOf(ext) === -1) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Formato no permitido',
+                    text: 'El archivo "' + file.name + '" no tiene un formato permitido.',
+                    confirmButtonColor: '#dc3545'
+                });
+                continue;
+            }
+            
+            // Agregar a la lista
+            archivosAdjuntos.push(file);
+            // Inicializar tipo de documento por defecto
+            tiposDocumento[archivosAdjuntos.length - 1] = 'OTRO';
+        }
+        
+        // Limpiar input y actualizar vista
+        $(this).val('');
+        actualizarListaArchivos();
+    });
+    
+    // Animación collapse
+    $('#collapseAdjuntosNuevo').on('show.bs.collapse', function () {
+        $(this).prev().find('.fa-chevron-down').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+    });
+    
+    $('#collapseAdjuntosNuevo').on('hide.bs.collapse', function () {
+        $(this).prev().find('.fa-chevron-up').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+    });
 });
+
+// Función para actualizar lista visual de archivos
+function actualizarListaArchivos() {
+    var $lista = $('#listaArchivosAdjuntar');
+    $lista.empty();
+    
+    $('#cantidadArchivosSeleccionados').text(archivosAdjuntos.length);
+    
+    if (archivosAdjuntos.length === 0) {
+        $lista.html('<p class="text-muted mb-0"><small>No hay archivos seleccionados</small></p>');
+        return;
+    }
+    
+    archivosAdjuntos.forEach(function(file, index) {
+        var tamano = (file.size / 1024).toFixed(1);
+        if (tamano > 1024) {
+            tamano = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+        } else {
+            tamano = tamano + ' KB';
+        }
+        
+        var icono = 'fa-file';
+        if (file.type.startsWith('image/')) icono = 'fa-file-image text-info';
+        else if (file.type === 'application/pdf') icono = 'fa-file-pdf text-danger';
+        else if (file.name.match(/\.(xlsx?|csv)$/i)) icono = 'fa-file-excel text-success';
+        else if (file.name.match(/\.(docx?)$/i)) icono = 'fa-file-word text-primary';
+        
+        var html = `
+            <div class="bg-light rounded p-3 mb-2" data-index="${index}">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div>
+                        <i class="fas ${icono} mr-2"></i>
+                        <span><strong>${file.name}</strong></span>
+                        <small class="text-muted ml-2">(${tamano})</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="quitarArchivo(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="form-group mb-0">
+                    <label for="tipoDoc_${index}" class="small mb-1">Tipo de Documento:</label>
+                    <select name="tipo_documento_${index}" id="tipoDoc_${index}" class="form-control form-control-sm" onchange="actualizarTipoDocumento(${index}, this.value)">
+                        <option value="REMITO">Remito</option>
+                        <option value="CONSOLIDADO">Detalle Consolidado de Carga</option>
+                        <option value="FACTURA">Factura</option>
+                        <option value="OTRO" selected>Otro Documento</option>
+                    </select>
+                </div>
+            </div>
+        `;
+        $lista.append(html);
+    });
+}
+
+// Función para quitar archivo de la lista
+function quitarArchivo(index) {
+    archivosAdjuntos.splice(index, 1);
+    // Limpiar tipo de documento asociado
+    delete tiposDocumento[index];
+    
+    // Reindexar tipos de documento
+    var nuevosTipos = {};
+    Object.keys(tiposDocumento).forEach(function(oldIndex, newIndex) {
+        if (parseInt(oldIndex) > index) {
+            nuevosTipos[oldIndex - 1] = tiposDocumento[oldIndex];
+        } else {
+            nuevosTipos[oldIndex] = tiposDocumento[oldIndex];
+        }
+    });
+    tiposDocumento = nuevosTipos;
+    
+    actualizarListaArchivos();
+}
+
+// Función para actualizar tipo de documento
+function actualizarTipoDocumento(index, tipo) {
+    tiposDocumento[index] = tipo;
+}
+
+// Obtener archivos adjuntos para envío del formulario
+function obtenerArchivosAdjuntos() {
+    return archivosAdjuntos;
+}
+
+// Obtener tipos de documento para envío del formulario
+function obtenerTiposDocumento() {
+    return tiposDocumento;
+}
 </script>

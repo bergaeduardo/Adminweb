@@ -321,19 +321,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 $('#formNuevaReserva').on('submit', function(e) {
                     e.preventDefault();
                     
+                    // Crear FormData para incluir archivos
+                    var formData = new FormData(this);
+                    
+                    // Agregar archivos adjuntos si existen
+                    if (typeof archivosAdjuntos !== 'undefined' && archivosAdjuntos.length > 0) {
+                        archivosAdjuntos.forEach(function(file, index) {
+                            formData.append('archivo_' + index, file);
+                            // Obtener el tipo de documento seleccionado
+                            var tipoDoc = (typeof tiposDocumento !== 'undefined' && tiposDocumento[index]) ? tiposDocumento[index] : 'OTRO';
+                            formData.append('tipo_documento_' + index, tipoDoc);
+                        });
+                    }
+                    
                     $.ajax({
                         url: '{% url "herramientas:herramientas_nueva_reserva_turno" %}',
                         method: 'POST',
-                        data: $(this).serialize(),
+                        data: formData,
+                        processData: false,
+                        contentType: false,
                         success: function(response) {
                             if (response.success) {
                                 $('#modalNuevaReserva').modal('hide');
                                 calendar.refetchEvents();
+                                
+                                // Usar el mensaje del servidor que incluye info de archivos adjuntos
+                                var titulo = '¡Reserva Exitosa!';
+                                var icono = 'success';
+                                
+                                // Si hay errores en archivos, cambiar el ícono a warning
+                                if (response.archivos_error && response.archivos_error.length > 0) {
+                                    icono = 'warning';
+                                    titulo = '¡Reserva Creada con Observaciones!';
+                                }
+                                
                                 Swal.fire({
-                                    icon: 'success',
-                                    title: '¡Reserva Exitosa!',
-                                    text: 'El turno ha sido reservado correctamente.',
-                                    confirmButtonColor: '#28a745'
+                                    icon: icono,
+                                    title: titulo,
+                                    text: response.message,
+                                    confirmButtonColor: icono === 'success' ? '#28a745' : '#ffc107'
                                 });
                             } else {
                                 // Mostrar errores

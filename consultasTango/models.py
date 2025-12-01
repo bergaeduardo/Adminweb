@@ -299,3 +299,120 @@ class EB_facturaManual(models.Model):
     numeroFactura = models.CharField(max_length=14, validators=[RegexValidator(regex='^\d{5}-\d{8}$', message='El formato debe ser XXXXX-XXXXXXX')])
     imgFactura = models.ImageField(upload_to='images/', blank=True, null=True)
     fechaVencimiento = models.DateField(blank=True, null=True)
+
+
+def validar_extension_adjunto(value):
+    """Validador para extensiones de archivos permitidas"""
+    import os
+    ext = os.path.splitext(value.name)[1].lower()
+    extensiones_permitidas = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.xlsx', '.xls', '.csv', '.doc', '.docx']
+    if ext not in extensiones_permitidas:
+        from django.core.exceptions import ValidationError
+        raise ValidationError(
+            f'Extensión no permitida. Extensiones válidas: {", ".join(extensiones_permitidas)}'
+        )
+
+
+def ruta_adjunto_turno(instance, filename):
+    """Genera la ruta de almacenamiento para adjuntos de turnos"""
+    import os
+    from datetime import datetime
+    ext = os.path.splitext(filename)[1]
+    nuevo_nombre = f"{instance.turno.id_turno_reserva}_{datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+    return os.path.join('adjuntos_turnos', str(instance.turno.id_turno_reserva), nuevo_nombre)
+
+
+class AdjuntoTurnoReserva(models.Model):
+    """
+    Modelo para almacenar documentos adjuntos a turnos de reserva.
+    Permite subir remitos, consolidados de carga, y otros documentos.
+    Solo se puede editar/eliminar cuando el turno está en estado RESERVADO.
+    """
+    TIPO_DOCUMENTO_CHOICES = [
+        ('REMITO', 'Remito'),
+        ('CONSOLIDADO', 'Detalle Consolidado de Carga'),
+        ('FACTURA', 'Factura'),
+        ('OTRO', 'Otro Documento'),
+    ]
+    
+    id_adjunto = models.AutoField(primary_key=True, db_column='id_adjunto')
+    turno = models.ForeignKey(
+        TurnoReserva,
+        on_delete=models.CASCADE,
+        related_name='adjuntos',
+        db_column='id_turno_reserva',
+        verbose_name="Turno Reserva"
+    )
+    archivo = models.FileField(
+        upload_to=ruta_adjunto_turno,
+        validators=[validar_extension_adjunto],
+        verbose_name="Archivo"
+    )
+    tipo_documento = models.CharField(
+        max_length=20,
+        choices=TIPO_DOCUMENTO_CHOICES,
+        default='OTRO',
+        verbose_name="Tipo de Documento"
+    )
+    nombre_original = models.CharField(
+        max_length=255,
+        verbose_name="Nombre Original del Archivo"
+    )
+    tipo_archivo = models.CharField(
+        max_length=100,
+        verbose_name="Tipo MIME del Archivo"
+    )
+    tamaño_bytes = models.PositiveIntegerField(
+        verbose_name="Tamaño en Bytes"
+    )
+    usuario_subio = models.CharField(
+        max_length=150,
+        verbose_name="Usuario que Subió el Archivo"
+    )
+    fecha_subida = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha de Subida"
+    )
+    
+    class Meta:
+        db_table = 'AdjuntoTurnoReserva'
+        ordering = ['-fecha_subida']
+        verbose_name = 'Adjunto de Turno'
+        verbose_name_plural = 'Adjuntos de Turnos'
+    
+    def __str__(self):
+        return f'{self.nombre_original} - Turno #{self.turno.id_turno_reserva}'
+    
+    def es_imagen(self):
+        """Verifica si el archivo es una imagen"""
+        return self.tipo_archivo.startswith('image/')
+    
+    def es_pdf(self):
+        """Verifica si el archivo es un PDF"""
+        return self.tipo_archivo == 'application/pdf'
+    
+    def get_extension(self):
+        """Obtiene la extensión del archivo"""
+        import os
+        return os.path.splitext(self.nombre_original)[1].lower()
+    
+    def get_tamaño_legible(self):
+        """Retorna el tamaño del archivo en formato legible"""
+        if self.tamaño_bytes < 1024:
+            return f"{self.tamaño_bytes} B"
+        elif self.tamaño_bytes < 1024 * 1024:
+            return f"{self.tamaño_bytes / 1024:.1f} KB"
+        else:
+            return f"{self.tamaño_bytes / (1024 * 1024):.2f} MB"
+    
+    def puede_eliminar(self):
+        """Verifica si el adjunto puede ser eliminado (solo si turno está en RESERVADO)"""
+        return self.turno.estado and self.turno.estado.nombre == 'RESERVADO'
+    
+    def delete(self, *args, **kwargs):
+        """Elimina el archivo físico al eliminar el registro"""
+        if self.archivo:
+            import os
+            if os.path.isfile(self.archivo.path):
+                os.remove(self.archivo.path)
+        super().delete(*args, **kwargs)

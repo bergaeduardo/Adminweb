@@ -168,6 +168,12 @@ urlpatterns = [
     # Gestión de Sucursales E-commerce
     path('gestion-sucursales-ecommerce/', views.gestion_sucursales_ecommerce, name='gestion_sucursales_ecommerce'),
 
+    # URLs para Adjuntos de Turnos de Reserva
+    path('adjuntos_turno/subir/<int:turno_id>/', views.subir_adjunto_turno, name='herramientas_subir_adjunto_turno'),
+    path('adjuntos_turno/eliminar/<int:adjunto_id>/', views.eliminar_adjunto_turno, name='herramientas_eliminar_adjunto_turno'),
+    path('adjuntos_turno/descargar/<int:adjunto_id>/', views.descargar_adjunto_turno, name='herramientas_descargar_adjunto_turno'),
+    path('adjuntos_turno/listar/<int:turno_id>/', views.listar_adjuntos_turno, name='herramientas_listar_adjuntos_turno'),
+
 ]
 
 if settings.DEBUG:

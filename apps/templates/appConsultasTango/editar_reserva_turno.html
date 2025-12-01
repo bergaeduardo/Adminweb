@@ -136,6 +136,7 @@
                                             <label for="{{ form.codigo_proveedor.id_for_label }}">Código Proveedor *</label>
                                             {% if solo_lectura or form.codigo_proveedor.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.codigo_proveedor }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            <input type="hidden" name="codigo_proveedor" value="{{ turno.codigo_proveedor|default:'' }}">
                                             {% else %}
                                             {{ form.codigo_proveedor }}
                                             {% endif %}
@@ -146,6 +147,7 @@
                                             <label for="{{ form.nombre_proveedor.id_for_label }}">Nombre Proveedor</label>
                                             {% if solo_lectura or form.nombre_proveedor.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.nombre_proveedor }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            <input type="hidden" name="nombre_proveedor" value="{{ turno.nombre_proveedor|default:'' }}">
                                             {% else %}
                                             {{ form.nombre_proveedor }}
                                             {% endif %}
@@ -159,6 +161,7 @@
                                             <label for="{{ form.fecha.id_for_label }}">Fecha *</label>
                                             {% if solo_lectura or form.fecha.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.fecha|date:'d/m/Y' }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            <input type="hidden" name="fecha" value="{{ turno.fecha|date:'Y-m-d' }}">
                                             {% else %}
                                             {{ form.fecha }}
                                             {% endif %}
@@ -169,6 +172,7 @@
                                             <label for="{{ form.hora_inicio.id_for_label }}">Hora Inicio *</label>
                                             {% if solo_lectura or form.hora_inicio.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.hora_inicio }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            <input type="hidden" name="hora_inicio" value="{{ turno.hora_inicio|time:'H:i' }}">
                                             {% else %}
                                             {{ form.hora_inicio }}
                                             {% endif %}
@@ -179,6 +183,7 @@
                                             <label for="{{ form.hora_fin.id_for_label }}">Hora Fin *</label>
                                             {% if solo_lectura or form.hora_fin.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.hora_fin }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            <input type="hidden" name="hora_fin" value="{{ turno.hora_fin|time:'H:i' }}">
                                             {% else %}
                                             {{ form.hora_fin }}
                                             {% endif %}
@@ -190,25 +195,28 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="{{ form.orden_compra.id_for_label }}">Orden de Compra *</label>
+                                            {% with orden_compra_formateada=turno.orden_compra|cut:"'"|cut:"["|cut:"]" %}
                                             {% if solo_lectura %}
-                                            <input type="text" class="form-control" value="{{ turno.orden_compra }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            <input type="text" class="form-control" value="{{ orden_compra_formateada }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                             {% else %}
-                                            <input type="text" class="form-control" value="{{ turno.orden_compra|default:'' }}" readonly style="background-color: #e9ecef; cursor: not-allowed;" title="Las órdenes de compra no se pueden editar en este formulario">
+                                            <input type="text" class="form-control" value="{{ orden_compra_formateada }}" readonly style="background-color: #e9ecef; cursor: not-allowed;" title="Las órdenes de compra no se pueden editar en este formulario">
                                             {% endif %}
+                                            {% endwith %}
+                                            <!-- Campo oculto para enviar el valor de orden_compra al formulario -->
+                                            <input type="hidden" name="orden_compra" value="{{ turno.orden_compra|default:'' }}">
                                         </div>
                                     </div>
-                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="{{ form.remitos.id_for_label }}">Remitos *</label>
                                             {% if solo_lectura or form.remitos.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.remitos }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            <input type="hidden" name="remitos" value="{{ turno.remitos|default:'' }}">
                                             {% else %}
                                             {{ form.remitos }}
                                             {% endif %}
                                         </div>
                                     </div>
-                                </div>
                                 </div>
 
                                 <div class="row">
@@ -217,6 +225,7 @@
                                             <label for="{{ form.cantidad_unidades.id_for_label }}">Cantidad Unidades *</label>
                                             {% if solo_lectura or form.cantidad_unidades.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.cantidad_unidades }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            <input type="hidden" name="cantidad_unidades" value="{{ turno.cantidad_unidades|default:'' }}">
                                             {% else %}
                                             {{ form.cantidad_unidades }}
                                             {% endif %}
@@ -227,6 +236,7 @@
                                             <label for="{{ form.cantidad_bultos.id_for_label }}">Cantidad Bultos</label>
                                             {% if solo_lectura or form.cantidad_bultos.field.widget.attrs.readonly %}
                                             <input type="text" class="form-control" value="{{ turno.cantidad_bultos|default:'-' }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                                            <input type="hidden" name="cantidad_bultos" value="{{ turno.cantidad_bultos|default:'' }}">
                                             {% else %}
                                             {{ form.cantidad_bultos }}
                                             {% endif %}
@@ -355,6 +365,72 @@
                     </div>
                     {% endif %}
 
+                    <!-- Documentos Adjuntos -->
+                    <div class="card card-primary mt-3">
+                        <div class="card-header" style="cursor: pointer;" data-toggle="collapse" data-target="#collapseAdjuntos" aria-expanded="false" aria-controls="collapseAdjuntos">
+                            <h3 class="card-title">
+                                <i class="fas fa-paperclip"></i> Documentos Adjuntos
+                                <span class="badge badge-light ml-2" id="badgeAdjuntosCount">0</span>
+                            </h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool">
+                                    <i class="fas fa-chevron-down" id="iconAdjuntos"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="collapseAdjuntos" class="collapse">
+                            <div class="card-body">
+                                <!-- Info sobre límites -->
+                                <div class="alert alert-info mb-3">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Límites:</strong> Máximo <span id="maxArchivos">5</span> archivos por turno, cada uno hasta <span id="maxTamano">5</span>MB.
+                                    <br>
+                                    <strong>Formatos permitidos:</strong> Imágenes (.jpg, .png, .gif), PDF, Excel (.xlsx, .xls), CSV, Word (.doc, .docx)
+                                    {% if not turno.estado or turno.estado.nombre != 'RESERVADO' %}
+                                    <br><br>
+                                    <span class="text-warning"><i class="fas fa-lock"></i> Solo se pueden subir/eliminar archivos cuando el turno está en estado <strong>RESERVADO</strong>.</span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Botón Subir Archivo (solo si estado es RESERVADO) -->
+                                {% if turno.estado and turno.estado.nombre == 'RESERVADO' %}
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#modalSubirAdjunto" id="btnSubirAdjunto">
+                                        <i class="fas fa-upload"></i> Subir Documento
+                                    </button>
+                                    <span class="ml-2 text-muted" id="archivosRestantesInfo"></span>
+                                </div>
+                                {% endif %}
+
+                                <!-- Tabla de Adjuntos -->
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover" id="tablaAdjuntos">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 50px;">Vista</th>
+                                                <th>Nombre del Archivo</th>
+                                                <th>Tipo</th>
+                                                <th>Tamaño</th>
+                                                <th>Fecha Subida</th>
+                                                <th>Usuario</th>
+                                                <th style="width: 120px;">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbodyAdjuntos">
+                                            <!-- Se carga dinámicamente con JavaScript -->
+                                            <tr id="rowSinAdjuntos">
+                                                <td colspan="7" class="text-center text-muted">
+                                                    <i class="fas fa-folder-open fa-2x mb-2"></i><br>
+                                                    No hay documentos adjuntos
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Historial de Estados -->
                     {% if historial_estados %}
                     <div class="card card-info mt-3">
@@ -475,6 +551,94 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para Subir Adjunto -->
+<div class="modal fade" id="modalSubirAdjunto" tabindex="-1" role="dialog" aria-labelledby="modalSubirAdjuntoLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success">
+                <h5 class="modal-title text-white" id="modalSubirAdjuntoLabel">
+                    <i class="fas fa-upload"></i> Subir Documento - Turno #{{ turno.id_turno_reserva }}
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="formSubirAdjunto" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="id_tipo_documento">Tipo de Documento <span class="text-danger">*</span></label>
+                        <select name="tipo_documento" id="id_tipo_documento" class="form-control" required>
+                            <option value="REMITO">Remito</option>
+                            <option value="CONSOLIDADO">Detalle Consolidado de Carga</option>
+                            <option value="FACTURA">Factura</option>
+                            <option value="OTRO" selected>Otro Documento</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_archivo">Archivo <span class="text-danger">*</span></label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="id_archivo" name="archivo" required 
+                                accept=".jpg,.jpeg,.png,.gif,.pdf,.xlsx,.xls,.csv,.doc,.docx">
+                            <label class="custom-file-label" for="id_archivo" id="labelArchivo">Seleccionar archivo...</label>
+                        </div>
+                        <small class="form-text text-muted">
+                            Formatos: JPG, PNG, GIF, PDF, Excel, CSV, Word (máx. 5MB)
+                        </small>
+                    </div>
+
+                    <div id="previewContainer" style="display: none;" class="mt-3">
+                        <label>Vista previa:</label>
+                        <div class="text-center p-3 bg-light rounded">
+                            <img id="previewImage" src="" alt="Vista previa" style="max-width: 100%; max-height: 200px; display: none;">
+                            <div id="previewFile" style="display: none;">
+                                <i class="fas fa-file fa-3x text-secondary"></i>
+                                <p class="mb-0 mt-2" id="previewFileName"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success" id="btnSubirArchivo">
+                        <i class="fas fa-upload"></i> Subir Archivo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Lightbox para Ver Imágenes -->
+<div class="modal fade" id="modalLightbox" tabindex="-1" role="dialog" aria-labelledby="modalLightboxLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content" style="background-color: rgba(0,0,0,0.9);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white" id="modalLightboxLabel">
+                    <i class="fas fa-image"></i> <span id="lightboxImageName"></span>
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <img id="lightboxImage" src="" alt="Imagen ampliada" style="max-width: 100%; max-height: 80vh; cursor: zoom-in;" onclick="toggleZoom(this)">
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <a href="" id="lightboxDownload" class="btn btn-primary" download>
+                    <i class="fas fa-download"></i> Descargar
+                </a>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block javascripts %}
@@ -488,7 +652,14 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+// Variables globales para adjuntos
+var turnoId = {{ turno.id_turno_reserva }};
+var puedeEditar = {% if turno.estado and turno.estado.nombre == 'RESERVADO' %}true{% else %}false{% endif %};
+
 $(document).ready(function() {
+    // Cargar adjuntos al iniciar
+    cargarAdjuntos();
+    
     // Mostrar mensajes Django con SweetAlert2
     {% if messages %}
         {% for message in messages %}
@@ -655,6 +826,307 @@ $(document).ready(function() {
             }
         });
     });
+    
+    // ===== MANEJO DE ADJUNTOS =====
+    
+    // Preview de archivo seleccionado
+    $('#id_archivo').on('change', function() {
+        var file = this.files[0];
+        if (file) {
+            $('#labelArchivo').text(file.name);
+            $('#previewContainer').show();
+            
+            if (file.type.startsWith('image/')) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#previewImage').attr('src', e.target.result).show();
+                    $('#previewFile').hide();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                $('#previewImage').hide();
+                $('#previewFile').show();
+                $('#previewFileName').text(file.name);
+            }
+        } else {
+            $('#labelArchivo').text('Seleccionar archivo...');
+            $('#previewContainer').hide();
+        }
+    });
+    
+    // Subir archivo adjunto
+    $('#formSubirAdjunto').on('submit', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Verificar que el modal está visible (prevenir submits accidentales)
+        if (!$('#modalSubirAdjunto').hasClass('show')) {
+            console.log('Submit de adjunto cancelado: modal no visible');
+            return false;
+        }
+        
+        // Verificar que hay un archivo seleccionado
+        var fileInput = $('#id_archivo')[0];
+        if (!fileInput.files || fileInput.files.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sin archivo',
+                text: 'Por favor, seleccione un archivo para subir.',
+                confirmButtonColor: '#ffc107'
+            });
+            return false;
+        }
+        
+        var formData = new FormData();
+        formData.append('archivo', fileInput.files[0]);
+        formData.append('tipo_documento', $('#id_tipo_documento').val());
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        
+        var $btn = $('#btnSubirArchivo');
+        var btnOriginal = $btn.html();
+        
+        $btn.html('<i class="fas fa-spinner fa-spin"></i> Subiendo...').prop('disabled', true);
+        
+        $.ajax({
+            url: '{% url "herramientas:herramientas_subir_adjunto_turno" turno.id_turno_reserva %}',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#modalSubirAdjunto').modal('hide');
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Archivo Subido!',
+                        text: response.message,
+                        confirmButtonColor: '#28a745'
+                    });
+                    // Limpiar formulario
+                    $('#formSubirAdjunto')[0].reset();
+                    $('#labelArchivo').text('Seleccionar archivo...');
+                    $('#previewContainer').hide();
+                    // Recargar lista de adjuntos
+                    cargarAdjuntos();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.error,
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
+            },
+            error: function(xhr) {
+                var errorMsg = 'Error al subir el archivo.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMsg = xhr.responseJSON.error;
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: errorMsg,
+                    confirmButtonColor: '#dc3545'
+                });
+            },
+            complete: function() {
+                $btn.html(btnOriginal).prop('disabled', false);
+            }
+        });
+    });
+    
+    // Limpiar modal al cerrar
+    $('#modalSubirAdjunto').on('hidden.bs.modal', function() {
+        $('#formSubirAdjunto')[0].reset();
+        $('#labelArchivo').text('Seleccionar archivo...');
+        $('#previewContainer').hide();
+    });
+    
+    // Animación de iconos de collapse para adjuntos
+    $('#collapseAdjuntos').on('show.bs.collapse', function () {
+        $('#iconAdjuntos').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+    });
+    
+    $('#collapseAdjuntos').on('hide.bs.collapse', function () {
+        $('#iconAdjuntos').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+    });
 });
+
+// Función para cargar lista de adjuntos
+function cargarAdjuntos() {
+    $.ajax({
+        url: '{% url "herramientas:herramientas_listar_adjuntos_turno" turno.id_turno_reserva %}',
+        type: 'GET',
+        success: function(response) {
+            if (response.success) {
+                renderizarAdjuntos(response);
+            }
+        },
+        error: function(xhr) {
+            console.error('Error al cargar adjuntos:', xhr);
+        }
+    });
+}
+
+// Función para renderizar la tabla de adjuntos
+function renderizarAdjuntos(data) {
+    var $tbody = $('#tbodyAdjuntos');
+    $tbody.empty();
+    
+    // Actualizar badge de cantidad
+    $('#badgeAdjuntosCount').text(data.total);
+    
+    // Actualizar info de archivos restantes
+    if (data.puede_subir) {
+        $('#archivosRestantesInfo').text('(' + data.archivos_restantes + ' archivos disponibles)');
+        if (data.archivos_restantes <= 0) {
+            $('#btnSubirAdjunto').prop('disabled', true).text(' Límite alcanzado');
+        } else {
+            $('#btnSubirAdjunto').prop('disabled', false);
+        }
+    }
+    
+    if (data.adjuntos.length === 0) {
+        $tbody.append(`
+            <tr id="rowSinAdjuntos">
+                <td colspan="7" class="text-center text-muted">
+                    <i class="fas fa-folder-open fa-2x mb-2"></i><br>
+                    No hay documentos adjuntos
+                </td>
+            </tr>
+        `);
+        return;
+    }
+    
+    data.adjuntos.forEach(function(adjunto) {
+        var iconoPreview = '';
+        if (adjunto.es_imagen) {
+            iconoPreview = `<img src="${adjunto.url}" alt="Preview" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; cursor: pointer;" 
+                            onclick="abrirLightbox('${adjunto.url}', '${adjunto.nombre}', ${adjunto.id})" title="Ver imagen">`;
+        } else if (adjunto.es_pdf) {
+            iconoPreview = '<i class="fas fa-file-pdf fa-2x text-danger" title="PDF"></i>';
+        } else if (adjunto.nombre.match(/\.(xlsx?|csv)$/i)) {
+            iconoPreview = '<i class="fas fa-file-excel fa-2x text-success" title="Excel"></i>';
+        } else if (adjunto.nombre.match(/\.(docx?)$/i)) {
+            iconoPreview = '<i class="fas fa-file-word fa-2x text-primary" title="Word"></i>';
+        } else {
+            iconoPreview = '<i class="fas fa-file fa-2x text-secondary" title="Archivo"></i>';
+        }
+        
+        var accionesHtml = `
+            <a href="/Herramientas/adjuntos_turno/descargar/${adjunto.id}/" 
+               class="btn btn-sm btn-primary" title="Descargar">
+                <i class="fas fa-download"></i>
+            </a>
+        `;
+        
+        // Agregar botón eliminar solo si puede_eliminar
+        if (adjunto.puede_eliminar) {
+            accionesHtml += `
+                <button type="button" class="btn btn-sm btn-danger ml-1" 
+                        onclick="confirmarEliminarAdjunto(${adjunto.id}, '${adjunto.nombre}')" title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+        }
+        
+        var row = `
+            <tr data-adjunto-id="${adjunto.id}">
+                <td class="text-center">${iconoPreview}</td>
+                <td>${adjunto.nombre}</td>
+                <td><span class="badge badge-info">${adjunto.tipo_documento}</span></td>
+                <td>${adjunto.tamaño}</td>
+                <td>${adjunto.fecha_subida}</td>
+                <td>${adjunto.usuario}</td>
+                <td>${accionesHtml}</td>
+            </tr>
+        `;
+        
+        $tbody.append(row);
+    });
+}
+
+// Función para abrir lightbox de imagen
+function abrirLightbox(url, nombre, adjuntoId) {
+    $('#lightboxImage').attr('src', url);
+    $('#lightboxImageName').text(nombre);
+    // Generar URL de descarga correcta
+    var downloadUrl = `/Herramientas/adjuntos_turno/descargar/${adjuntoId}/`;
+    $('#lightboxDownload').attr('href', downloadUrl);
+    $('#modalLightbox').modal('show');
+}
+
+// Función para toggle de zoom en lightbox
+function toggleZoom(img) {
+    if (img.style.transform === 'scale(1.5)') {
+        img.style.transform = 'scale(1)';
+        img.style.cursor = 'zoom-in';
+    } else {
+        img.style.transform = 'scale(1.5)';
+        img.style.cursor = 'zoom-out';
+    }
+}
+
+// Función para confirmar eliminación de adjunto
+function confirmarEliminarAdjunto(adjuntoId, nombreArchivo) {
+    Swal.fire({
+        title: '¿Eliminar archivo?',
+        html: `¿Está seguro de eliminar el archivo <strong>"${nombreArchivo}"</strong>?<br><small class="text-muted">Esta acción no se puede deshacer.</small>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fas fa-trash"></i> Eliminar',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            eliminarAdjunto(adjuntoId);
+        }
+    });
+}
+
+// Función para eliminar adjunto
+function eliminarAdjunto(adjuntoId) {
+    $.ajax({
+        url: '{% url "herramientas:herramientas_eliminar_adjunto_turno" 0 %}'.replace('0', adjuntoId),
+        type: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Eliminado!',
+                    text: response.message,
+                    confirmButtonColor: '#28a745'
+                });
+                cargarAdjuntos();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: response.error,
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        },
+        error: function(xhr) {
+            var errorMsg = 'Error al eliminar el archivo.';
+            if (xhr.responseJSON && xhr.responseJSON.error) {
+                errorMsg = xhr.responseJSON.error;
+            }
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: errorMsg,
+                confirmButtonColor: '#dc3545'
+            });
+        }
+    });
+}
 </script>
 {% endblock javascripts %}
