@@ -516,14 +516,24 @@
 
                     <div class="form-group">
                         <label for="id_codigo_error">Código de Error <span class="text-danger">*</span></label>
-                        <select name="codigo_error" id="id_codigo_error" class="form-control" required>
-                            <option value="">-- Seleccione un código de error --</option>
-                            {% for codigo in codigos_error %}
-                            <option value="{{ codigo.CodigoError }}" data-categoria="{{ codigo.Categoria }}">
-                                [{{ codigo.CodigoError }}] {{ codigo.get_Categoria_display }} - {{ codigo.DescripcionError }}
-                            </option>
-                            {% endfor %}
-                        </select>
+                        <div class="input-group">
+                            <select name="codigo_error" id="id_codigo_error" class="form-control" required>
+                                <option value="">-- Seleccione un código de error --</option>
+                                {% for codigo in codigos_error %}
+                                <option value="{{ codigo.CodigoError }}" data-categoria="{{ codigo.Categoria }}">
+                                    [{{ codigo.CodigoError }}] {{ codigo.get_Categoria_display }} - {{ codigo.DescripcionError }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="input-group-append">
+                                <a href="{% url 'herramientas:herramientas_crear_codigo_error' %}" 
+                                   class="btn btn-success" 
+                                   title="Crear nuevo código de error" 
+                                   target="_blank">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                            </div>
+                        </div>
                         <small class="form-text text-muted">Seleccione el tipo de problema detectado</small>
                     </div>
 
