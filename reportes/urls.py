@@ -22,7 +22,6 @@ urlpatterns = [
     path('Abastecimiento/CategoriasDeProductos', views.CategoriasDeProductos, name='reportes_abastecimiento_categorias_productos'),
     path('Abastecimiento/HRecodificaciones', views.HRecodificaciones, name='reportes_abastecimiento_historial_recodificaciones'),
     path('Abastecimiento/Eficiencia_pedidos', views.Eficiencia_pedidos, name='reportes_abastecimiento_eficiencia_pedidos'),
-    path('Abastecimiento/promocionesActivas', views.promocionesActivas, name='reportes_abastecimiento_promociones_activas'),
     path('Abastecimiento/stockSupply', views.stockcentral_pivot, name='reportes_logistica_stock_supply'),
     path('Abastecimiento/stockSupplyUY', views.stockcentral_pivotUY, name='reportes_logistica_stock_supply_uy'),
     path('Abastecimiento/AnalisisProductos', views.AnalisisProductos, name='reportes_comercial_analisis_productos'),

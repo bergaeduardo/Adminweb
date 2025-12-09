@@ -40,7 +40,6 @@ DIR_REPORTES = {
     # Comercial
     'Stock_Sucursales': SERVIDOR['production']  + 'sistemas/stockYprecios/stockDepositos.php',
     'Stock_central': SERVIDOR['production']  + 'logistica/stock.php',
-    'promocionesActivas': SERVIDOR['production']  + 'comercial/mayoristas/promocionesBancarias/promocionesActivas.php',
     'VentasXcanal':SERVIDOR['production']  + 'comercial/abastecimiento/ventasAbastecimiento/',
     # 'AdmEmpleados':SERVIDOR['production']  + 'administracion/recursosHumanos/controlHorarios/verControlHorario.php',
     'AnalisisProductos':SERVIDOR['production']  + 'comercial/abastecimiento/analisisProducto/listado.php',
