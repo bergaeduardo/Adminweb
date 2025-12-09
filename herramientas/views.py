@@ -899,7 +899,7 @@ def RegistroPagoServicios(request):
 # Administracion_CE             ***Comercio Exterior***
 @login_required(login_url="/login/")
 def Cargarcontenedor(request):
-    Nombre = 'Cargar Contenedor'
+    Nombre = 'Gestión de Importaciones'
     dir_iframe = DIR_HERAMIENTAS['cargaInicial'] #+ UserName
     return redirect(dir_iframe)
 
