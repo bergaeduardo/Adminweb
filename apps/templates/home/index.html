@@ -42,7 +42,7 @@
       user-select: none;
       cursor: default;
       animation: fall linear infinite;
-      color: rgba(255, 255, 255, 0.7);
+      color: white;
       font-size: 1em;
     }
     
@@ -68,16 +68,16 @@
     const endDate = new Date('2026-01-01T00:00:00');
     
     if (currentDate < endDate) {
-      const snowflakesCount = 15; // Cantidad moderada para que sea sutil
+      const snowflakesCount = 100; // Cantidad moderada para que sea sutil
       const body = document.body;
       
       for (let i = 0; i < snowflakesCount; i++) {
         const snowflake = document.createElement('div');
         snowflake.classList.add('snowflake');
-        snowflake.innerHTML = '❄';
+        snowflake.innerHTML = '❅';
         snowflake.style.left = Math.random() * 100 + '%';
-        snowflake.style.animationDuration = (Math.random() * 10 + 10) + 's';
-        snowflake.style.animationDelay = Math.random() * 5 + 's';
+        snowflake.style.animationDuration = (Math.random() * 5 + 10) + 's';
+        snowflake.style.animationDelay = Math.random() * 10 + 's';
         snowflake.style.opacity = Math.random() * 0.5 + 0.3;
         body.appendChild(snowflake);
       }
