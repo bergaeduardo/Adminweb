@@ -6,14 +6,12 @@
 /* Ancho del sidebar cuando está expandido */
 .main-sidebar {
     width: 320px !important;
-    will-change: width;
 }
 
 /* Ancho del sidebar al hacer hover cuando está colapsado */
 .sidebar-mini.sidebar-collapse .main-sidebar:hover {
     width: 320px !important;
     box-shadow: 0 14px 28px rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.12);
-    transition-delay: 0.1s;
 }
 
 /* ========== BRAND LINK ========== */
@@ -47,16 +45,15 @@ body:not(.sidebar-mini-md):not(.sidebar-mini-xs):not(.layout-top-nav) .main-head
 
 /* ========== TRANSICIONES ========== */
 
-/* Transición suave del sidebar con curva de animación más natural */
+/* Transición suave del sidebar */
 .main-sidebar {
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.3s ease-in-out;
     overflow: hidden;
 }
 
 /* Transición suave para el brand link */
 .brand-link {
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.3s ease-in-out;
     overflow: hidden;
     white-space: nowrap;
 }
@@ -65,94 +62,77 @@ body:not(.sidebar-mini-md):not(.sidebar-mini-xs):not(.layout-top-nav) .main-head
 .content-wrapper,
 .main-footer,
 .main-header {
-    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: margin-left 0.3s ease-in-out;
 }
 
-/* Transición para los textos del sidebar - SIEMPRE activa */
+/* Transición para los textos del sidebar */
 .main-sidebar .nav-link p,
 .main-sidebar .brand-text,
 .main-sidebar .user-panel .info,
 .main-sidebar .nav-link .right {
-    transition: opacity 0.2s ease-in-out, 
-                visibility 0.2s ease-in-out,
-                width 0.2s ease-in-out;
+    transition: opacity 0.15s ease-in-out;
 }
 
-/* Fade out suave al colapsar */
+/* Fade out al colapsar */
 .sidebar-mini.sidebar-collapse .main-sidebar .nav-sidebar .nav-link p,
 .sidebar-mini.sidebar-collapse .main-sidebar .brand-text,
 .sidebar-mini.sidebar-collapse .main-sidebar .user-panel .info {
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.15s ease-in, 
-                visibility 0.15s ease-in;
 }
 
-/* Fade in suave al expandir con hover */
+/* Fade in al expandir con hover */
 .sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-sidebar .nav-link p,
 .sidebar-mini.sidebar-collapse .main-sidebar:hover .brand-text,
 .sidebar-mini.sidebar-collapse .main-sidebar:hover .user-panel .info {
     opacity: 1;
     visibility: visible;
-    transition: opacity 0.25s ease-out 0.1s, 
-                visibility 0.25s ease-out 0.1s;
 }
 
-/* Transición suave para los iconos - SIEMPRE */
-.main-sidebar .nav-icon {
-    transition: margin-right 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+/* ========== PREVENIR COMPORTAMIENTO HOVER ERRÁTICO ========== */
+
+/* DESACTIVAR el hover automático de AdminLTE completamente */
+.sidebar-mini.sidebar-collapse .main-sidebar {
+    overflow-x: hidden !important;
 }
 
-/* Transición para el alineamiento del texto - SIEMPRE */
-.main-sidebar .nav-link {
-    transition: padding 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                text-align 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+/* FORZAR que el sidebar NO se expanda automáticamente en hover */
+.sidebar-mini.sidebar-collapse .main-sidebar:hover {
+    width: 320px !important; /* Solo expandir ancho, sin cambiar clases */
 }
 
-/* Transición para el formulario de búsqueda */
-.main-sidebar .form-inline {
-    transition: opacity 0.2s ease-in-out,
-                visibility 0.2s ease-in-out,
-                max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Transición suave al cambiar entre estados (expandido/colapsado) */
-body.sidebar-mini {
-    transition: none;
-}
-
+/* Transición suave al cambiar entre estados */
 body.sidebar-mini .main-sidebar,
 body.sidebar-mini .content-wrapper,
 body.sidebar-mini .main-header,
 body.sidebar-mini .main-footer,
 body.sidebar-mini .brand-link {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease-in-out;
 }
 
-/* Prevenir FOUC (Flash of Unstyled Content) al cargar página */
-body.sidebar-mini:not(.sidebar-loaded) .main-sidebar {
-    transition: none !important;
-}
-
-body.sidebar-mini:not(.sidebar-loaded) .content-wrapper,
-body.sidebar-mini:not(.sidebar-loaded) .main-header,
-body.sidebar-mini:not(.sidebar-loaded) .main-footer {
-    transition: none !important;
-}
-
-/* Después de cargar, habilitar transiciones */
-body.sidebar-mini.sidebar-loaded .main-sidebar,
-body.sidebar-mini.sidebar-loaded .content-wrapper,
-body.sidebar-mini.sidebar-loaded .main-header,
-body.sidebar-mini.sidebar-loaded .main-footer {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+/* CRITICAL: Evitar que AdminLTE agregue/quite clases durante hover */
+.sidebar-mini.sidebar-collapse:not(.sidebar-open) .main-sidebar:hover {
+    /* Mantener colapsado visualmente pero expandir contenido */
 }
 
 /* ========== SIDEBAR COLAPSADO ========== */
 
-/* Ajuste del brand-link cuando está colapsado */
+/* Ajuste del brand-link cuando está colapsado - mantener línea completa */
 .sidebar-collapse .brand-link {
-    width: 4.6rem !important;
+    width: 100% !important;
+    max-width: 4.6rem;
+}
+
+/* Asegurar que el border-bottom se extienda completamente */
+.sidebar-mini.sidebar-collapse .main-sidebar .brand-link {
+    width: 100% !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Al hacer hover, mantener línea completa */
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .brand-link {
+    width: 100% !important;
+    max-width: 320px;
 }
 
 /* Ajuste de ancho del sidebar colapsado */
@@ -182,12 +162,6 @@ body.sidebar-mini.sidebar-loaded .main-footer {
     margin-right: 0 !important;
 }
 
-/* Ocultar las flechas de los menús desplegables cuando está colapsado */
-.sidebar-mini.sidebar-collapse .main-sidebar .nav-link .right {
-    opacity: 0;
-    visibility: hidden;
-}
-
 /* Al hacer hover, mostrar todo el contenido con fade in suave */
 .sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-sidebar .nav-link p,
 .sidebar-mini.sidebar-collapse .main-sidebar:hover .brand-text,
@@ -196,11 +170,6 @@ body.sidebar-mini.sidebar-loaded .main-footer {
     visibility: visible;
     width: auto;
     overflow: visible;
-}
-
-.sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-link .right {
-    opacity: 1;
-    visibility: visible;
 }
 
 /* Restaurar alineación al hacer hover */
@@ -309,11 +278,13 @@ body.sidebar-mini.sidebar-loaded .main-footer {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Item activo con indicador lateral */
+/* Item activo con indicador lateral + glow effect moderno */
 .main-sidebar .nav-link.active {
-    background: linear-gradient(90deg, rgba(0, 123, 255, 0.15) 0%, rgba(0, 123, 255, 0.05) 100%) !important;
+    background: linear-gradient(90deg, rgba(0, 123, 255, 0.2) 0%, rgba(0, 123, 255, 0.08) 100%) !important;
     border-left: 4px solid #007bff;
     padding-left: 11px;
+    box-shadow: inset 4px 0 0 #007bff, 0 0 20px rgba(0, 123, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
     font-weight: 600;
 }
 
@@ -396,13 +367,54 @@ body.sidebar-mini.sidebar-loaded .main-footer {
     transform: translateX(8px);
 }
 
+/* Ícono del item activo con animación sutil */
+.main-sidebar .nav-link.active .nav-icon {
+    animation: pulseIcon 2s ease-in-out infinite;
+    color: #5dade2;
+}
+
+@keyframes pulseIcon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+
 /* Flechas de submenú con animación */
 .main-sidebar .nav-link .right {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .main-sidebar .nav-item.menu-open > .nav-link .right {
-    transform: rotate(90deg);
+    transform: translateY(-50%) rotate(90deg);
+}
+
+/* Asegurar espacio para la flecha en el texto */
+.main-sidebar .nav-link p {
+    padding-right: 35px;
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+/* En sidebar colapsado, asegurar que las flechas no se muestren */
+.sidebar-mini.sidebar-collapse .main-sidebar .nav-link .right {
+    display: none;
+}
+
+/* Al hacer hover en sidebar colapsado, mostrar flechas correctamente */
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-link .right {
+    display: inline-block;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-item.menu-open > .nav-link .right {
+    transform: translateY(-50%) rotate(90deg);
 }
 
 /* User panel mejorado */
@@ -427,6 +439,8 @@ body.sidebar-mini.sidebar-loaded .main-footer {
 .main-sidebar .brand-link {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding: 15px;
+    display: block;
+    width: 100%;
 }
 
 .main-sidebar .brand-link:hover {
@@ -570,4 +584,212 @@ body.sidebar-mini.sidebar-loaded .main-footer {
 .sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-item:nth-child(3) { animation-delay: 0.11s; }
 .sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-item:nth-child(4) { animation-delay: 0.14s; }
 .sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-item:nth-child(5) { animation-delay: 0.17s; }
+
+/* ========== BUSCADOR SIDEBAR - MEJORAS DE UX ========== */
+
+/* Contenedor principal del buscador */
+.sidebar-search-wrapper {
+    position: relative;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+}
+
+/* Formulario de búsqueda - SIEMPRE VISIBLE */
+.sidebar-search-form {
+    display: block;
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+/* Estilos para el input de búsqueda */
+.sidebar-search-form .form-control-sidebar {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #c2c7d0;
+    transition: all 0.3s ease;
+}
+
+.sidebar-search-form .form-control-sidebar:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #007bff;
+    color: #fff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.sidebar-search-form .form-control-sidebar::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Botón de búsqueda */
+.sidebar-search-form .btn-sidebar {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #c2c7d0;
+    transition: all 0.3s ease;
+}
+
+.sidebar-search-form .btn-sidebar:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+/* SIDEBAR COLAPSADO - Solo mostrar input con bordes redondeados */
+.sidebar-mini.sidebar-collapse .sidebar-search-wrapper {
+    padding: 10px 10px;
+}
+
+.sidebar-mini.sidebar-collapse .sidebar-search-form .input-group {
+    display: flex;
+}
+
+.sidebar-mini.sidebar-collapse .sidebar-search-form input {
+    display: block;
+    border-radius: 0.25rem !important; /* Bordes redondeados completos */
+}
+
+.sidebar-mini.sidebar-collapse .sidebar-search-form .input-group-append {
+    display: none; /* Ocultar la lupita */
+}
+
+.sidebar-mini.sidebar-collapse .sidebar-search-form .btn-sidebar {
+    display: none;
+}
+
+.sidebar-mini.sidebar-collapse .sidebar-search-form .btn-sidebar:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+/* Al hacer HOVER sobre sidebar colapsado - mostrar input completo */
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .sidebar-search-wrapper {
+    padding: 10px 15px;
+    text-align: left;
+}
+
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .sidebar-search-form .input-group {
+    display: flex;
+    width: 100%;
+}
+
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .sidebar-search-form input {
+    display: block;
+    animation: fadeInSearch 0.3s ease;
+}
+
+.sidebar-mini.sidebar-collapse .main-sidebar:hover .sidebar-search-form .btn-sidebar {
+    border-radius: 0 0.25rem 0.25rem 0 !important;
+    padding: 0.375rem 0.75rem;
+}
+
+/* Animación para el input cuando aparece */
+@keyframes fadeInSearch {
+    from {
+        opacity: 0;
+        width: 0;
+    }
+    to {
+        opacity: 1;
+        width: 100%;
+    }
+}
+
+/* ========== HIGHLIGHT DE BÚSQUEDA ========== */
+
+/* Estilo para texto resaltado en búsqueda */
+.sidebar-search-highlight {
+    background: linear-gradient(120deg, #ffd700 0%, #ffed4e 100%);
+    color: #000;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+    animation: highlightPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes highlightPulse {
+    0%, 100% { box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3); }
+    50% { box-shadow: 0 2px 8px rgba(255, 215, 0, 0.6); }
+}
+
+/* Contenedor de resultados de búsqueda */
+.sidebar-search-results {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 10px;
+}
+
+.sidebar-search-no-results {
+    padding: 15px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+/* Animación de scroll suave a resultado */
+.sidebar-scroll-to-result {
+    scroll-behavior: smooth;
+}
+
+/* Responsive - tablets y dispositivos pequeños */
+@media (max-width: 991.98px) {
+    .sidebar-search-wrapper {
+        padding: 10px;
+    }
+}
+
+/* ========== TRANSICIONES SUAVES MEJORADAS ========== */
+
+.sidebar-expanding {
+    animation: smoothExpand 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sidebar-collapsing {
+    animation: smoothCollapse 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes smoothExpand {
+    from {
+        width: 4.6rem;
+        opacity: 0.8;
+    }
+    to {
+        width: 320px;
+        opacity: 1;
+    }
+}
+
+@keyframes smoothCollapse {
+    from {
+        width: 320px;
+        opacity: 1;
+    }
+    to {
+        width: 4.6rem;
+        opacity: 0.9;
+    }
+}
+
+/* Fade-in gradual de textos */
+.main-sidebar .nav-link p {
+    animation: fadeInText 0.3s ease;
+}
+
+@keyframes fadeInText {
+    from {
+        opacity: 0;
+        transform: translateX(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .user-avatar img {
+        width: 40px;
+        height: 40px;
+    }
+}
 
