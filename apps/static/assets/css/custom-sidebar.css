@@ -731,11 +731,13 @@ body.sidebar-mini .brand-link {
     margin: 2px 0 !important;
     border-radius: 0.2rem !important;
     transition: background-color 0.2s ease-in-out !important;
-    display: inline-block !important;
+    display: flex !important;
+    align-items: center !important;
     width: auto !important;
     max-width: calc(100% - 10px) !important;
     transform: none !important;
     box-shadow: none !important;
+    white-space: nowrap !important;
 }
 
 .sidebar-search-results .nav-link:hover {
@@ -747,16 +749,13 @@ body.sidebar-mini .brand-link {
 .sidebar-search-results .nav-icon {
     margin-right: 8px;
     flex-shrink: 0;
-    display: inline-block;
-    vertical-align: middle;
 }
 
 .sidebar-search-results .nav-link p {
     margin: 0;
-    display: inline-block;
-    vertical-align: middle;
-    white-space: normal;
-    word-wrap: break-word;
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sidebar-search-no-results {
