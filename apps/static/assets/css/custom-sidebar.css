@@ -713,9 +713,50 @@ body.sidebar-mini .brand-link {
 
 /* Contenedor de resultados de búsqueda */
 .sidebar-search-results {
-    max-height: 400px;
-    overflow-y: auto;
+    max-height: none;
+    overflow: visible;
     margin-top: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 0.25rem;
+    padding: 5px;
+}
+
+.sidebar-search-results .nav-item {
+    display: block;
+    width: auto !important;
+}
+
+.sidebar-search-results .nav-link {
+    padding: 8px 12px !important;
+    margin: 2px 0 !important;
+    border-radius: 0.2rem !important;
+    transition: background-color 0.2s ease-in-out !important;
+    display: inline-block !important;
+    width: auto !important;
+    max-width: calc(100% - 10px) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.sidebar-search-results .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.sidebar-search-results .nav-icon {
+    margin-right: 8px;
+    flex-shrink: 0;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.sidebar-search-results .nav-link p {
+    margin: 0;
+    display: inline-block;
+    vertical-align: middle;
+    white-space: normal;
+    word-wrap: break-word;
 }
 
 .sidebar-search-no-results {

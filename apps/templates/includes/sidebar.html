@@ -24,8 +24,8 @@
       <div class="sidebar-search-wrapper">
         <!-- Formulario de búsqueda - SIEMPRE VISIBLE -->
         <div class="form-inline sidebar-search-form">
-          <div class="input-group" data-widget="sidebar-search">
-            <input class="form-control form-control-sidebar" type="search" placeholder="Buscar..." aria-label="Search" id="sidebar-search-input">
+          <div class="input-group">
+            <input class="form-control form-control-sidebar" type="search" placeholder="Buscar..." aria-label="Search" id="sidebar-search-input" autocomplete="off">
             <div class="input-group-append">
               <button class="btn btn-sidebar">
                 <i class="fas fa-search fa-fw"></i>
@@ -33,6 +33,8 @@
             </div>
           </div>
         </div>
+        <!-- Dropdown de resultados -->
+        <div id="sidebar-search-results" class="sidebar-search-results" style="display: none;"></div>
       </div>
       
       <!-- Sidebar Menu -->
