@@ -57,10 +57,9 @@
             <div class="card card-primary">
               <div class="card-header" style="text-align: right;">
                 <h3 class="card-title">Subir archivo</h3>
-                <input type="checkbox" name="modelo_seleccionado" id="modelo_seleccionado" value="false"  data-toggle="toggle" data-on="UY" data-off="AR" data-onstyle="success" data-offstyle="info">
+                <input type="checkbox" name="modelo_seleccionado" id="modelo_seleccionado" value="false" style="float: left;" checked data-toggle="toggle" data-on="UY" data-off="AR" data-onstyle="success" data-offstyle="info">
               </div>
-              
-              <form action="{% url 'herramientas:herramientas_import_file_cierre_pedidos' %}" method="post" enctype="multipart/form-data">
+              <form action="{% url 'herramientas:herramientas_import_file_anular_pedidos_uy' %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="card-body">
                     <div class="form-group">
@@ -179,9 +178,9 @@
     // loading.style.opacity = '0';
   }
   $('#modelo_seleccionado').change(function(){
-      if(this.checked) {
-        window.location.href = '/../Herramientas/import_file_cierrePedidosUY';
-      }
+      
+        window.location.href = '/../Herramientas/import_file_anularPedidos';
+      
       var loading = document.getElementById('spiner');
       loading.style.visibility = 'visible';
     }) 

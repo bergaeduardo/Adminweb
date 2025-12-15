@@ -86,7 +86,7 @@
 {% if request.user|has_group:"admin" or request.user|has_group:"Abastecimiento" or request.user|has_group:"Abastecimiento_Sup" or request.user|group_id:"16" or request.user|has_group:"Gerencia_Adm" %}
           <!-- accesos del area aqui -->
   <li class="nav-item">
-    <a href="/../Herramientas/import_file_cierrePedidos" class="nav-link {% if 'import_file_cierrePedidos' in request.path %} active {% endif %}">
+    <a href="/../Herramientas/import_file_anularPedidos" class="nav-link {% if 'import_file_anularPedidos' in request.path %} active {% endif %}">
       <i class="nav-icon fas fa-trash-restore-alt"></i>
       <p>Anulacion de pedidos</p>
     </a>

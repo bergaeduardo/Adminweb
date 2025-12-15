@@ -1090,7 +1090,7 @@ def upload_file_artEtiquetas(path_filname):
         cargar_articulo(articulo,descripcion)
 
 @login_required(login_url="/login/")
-def import_file_cierrePedidos(request):
+def import_file_anularPedidos(request):
     nombre_db='LAKER_SA'
     settings.DATABASES['mi_db_2']['NAME'] = nombre_db
     print('Cambiando base de datos a ' + nombre_db)
@@ -1107,7 +1107,7 @@ def import_file_cierrePedidos(request):
             if  not extension[1] == '.xlsx':
                 error_extension = 'El formato del archivo debe ser de tipo .xlsx'
                 os.remove(filesys.path(uploadfilename))
-                return render(request,'appConsultasTango/importFilePedidosCierre.html',{'mensaje_error':error_extension})
+                return render(request,'appConsultasTango/importFilePedidosAnular.html',{'mensaje_error':error_extension})
 
             uploaded_url = filesys.url(uploadfilename)  #Ruta donde se guardo el archivo
             uploaded_url = os.path.normpath(uploaded_url)
@@ -1159,7 +1159,7 @@ def import_file_cierrePedidos(request):
             # print('path_filname: ' + path_filname)
             wb.save(path_filname)
             if not(mensaje_error):
-                upload_file_CierrePedidos(path_filname) #Ejecuta ejuste en base de datos
+                upload_file_AnularPedidos(path_filname) #Ejecuta ejuste en base de datos
                 mensaje_Success = 'Articulos cargados correctamente'
                 os.remove(filesys.path(uploadfilename))
                 
@@ -1167,15 +1167,15 @@ def import_file_cierrePedidos(request):
                 os.remove(filesys.path(uploadfilename))
 
             
-            return render(request, 'appConsultasTango/importFilePedidosCierre.html' ,{'enc_data':enc_data,'excel_data':excel_data,'mensaje_Success':mensaje_Success,'mensaje_error':mensaje_error})
+            return render(request, 'appConsultasTango/importFilePedidosAnular.html' ,{'enc_data':enc_data,'excel_data':excel_data,'mensaje_Success':mensaje_Success,'mensaje_error':mensaje_error})
 
 
     except Exception as identifier:            
         print(identifier)
-    return render(request,'appConsultasTango/importFilePedidosCierre.html',{})
+    return render(request,'appConsultasTango/importFilePedidosAnular.html',{})
 
 @login_required(login_url="/login/")
-def import_file_cierrePedidosUY(request):
+def import_file_anularPedidosUY(request):
     nombre_db='TASKY_SA'
     settings.DATABASES['mi_db_2']['NAME'] = nombre_db
     print('Cambiando base de datos a ' + nombre_db)
@@ -1192,7 +1192,7 @@ def import_file_cierrePedidosUY(request):
             if  not extension[1] == '.xlsx':
                 error_extension = 'El formato del archivo debe ser de tipo .xlsx'
                 os.remove(filesys.path(uploadfilename))
-                return render(request,'appConsultasTango/importFilePedidosCierreUY.html',{'mensaje_error':error_extension})
+                return render(request,'appConsultasTango/importFilePedidosAnularUY.html',{'mensaje_error':error_extension})
 
             uploaded_url = filesys.url(uploadfilename)  #Ruta donde se guardo el archivo
             uploaded_url = os.path.normpath(uploaded_url)
@@ -1244,7 +1244,7 @@ def import_file_cierrePedidosUY(request):
             # print('path_filname: ' + path_filname)
             wb.save(path_filname)
             if not(mensaje_error):
-                upload_file_CierrePedidos(path_filname) #Ejecuta ejuste en base de datos
+                upload_file_AnularPedidos(path_filname) #Ejecuta ejuste en base de datos
                 mensaje_Success = 'Pedidos anulados correctamente'
                 os.remove(filesys.path(uploadfilename))
                 
@@ -1252,14 +1252,14 @@ def import_file_cierrePedidosUY(request):
                 os.remove(filesys.path(uploadfilename))
 
             
-            return render(request, 'appConsultasTango/importFilePedidosCierreUY.html' ,{'enc_data':enc_data,'excel_data':excel_data,'mensaje_Success':mensaje_Success,'mensaje_error':mensaje_error})
+            return render(request, 'appConsultasTango/importFilePedidosAnularUY.html' ,{'enc_data':enc_data,'excel_data':excel_data,'mensaje_Success':mensaje_Success,'mensaje_error':mensaje_error})
 
 
     except Exception as identifier:            
         print(identifier)
-    return render(request,'appConsultasTango/importFilePedidosCierreUY.html',{})
+    return render(request,'appConsultasTango/importFilePedidosAnularUY.html',{})
 
-def upload_file_CierrePedidos(path_filname):
+def upload_file_AnularPedidos(path_filname):
     excel_file =path_filname
     empexceldata = pd.read_excel(excel_file, engine='openpyxl')
     dbframe = empexceldata
@@ -1274,7 +1274,7 @@ def upload_file_CierrePedidos(path_filname):
         #     pedido = numero_pedido
         #     print('Dato sin concatenar')
         
-        cerrar_pedido(talon_pedido,numero_pedido)
+        anular_pedido(talon_pedido,numero_pedido)
 
 
 @login_required(login_url="/login/")

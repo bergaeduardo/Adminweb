@@ -115,9 +115,9 @@ def validar_pedidoAsignado(pedido):
         # print(resulatado[0])
     return int(resulatado[0])
 
-def cerrar_pedido(talon_pedido,pedido):
+def anular_pedido(talon_pedido,pedido):
     with connections['mi_db_2'].cursor() as cursor:
-        sql = '''EXEC RO_CERRAR_PEDIDOS '''+ "'" + talon_pedido + "','" + pedido + "'"
+        sql = '''EXEC RO_ANULAR_PEDIDOS '''+ "'" + talon_pedido + "','" + pedido + "'"
         # print(sql)
         cursor.execute(sql) # Guarda los cambios en la base de datos
 
