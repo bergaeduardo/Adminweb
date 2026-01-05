@@ -60,7 +60,7 @@ DIR_REPORTES = {
     # Administracion
     'VentasXmedio_pago':SERVIDOR['production'] + 'administracion/controlSucursales/resumenVentas.php',
     'consultaGastos':SERVIDOR['production'] + 'administracion/contabilidad/consultaGastos.php',
-    'ventaVsCobranza':SERVIDOR['production'] + 'administracion/controlSucursales/ventaVsCobranza.php',
+    'integridadVentas':SERVIDOR['production'] + 'administracion/controlSucursales/integridadVentas/index.php',
     'Controlcajasmensual':SERVIDOR['production'] + 'administracion/controlSucursales/controlMensualCajaSucursales.php',
     'CargaGastosTesoreria':SERVIDOR['production'] + 'administracion/controlSucursales/cargaGastosTesoreria.php',
     'DetalleContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/contratos/detalleContratosAlquiler.php',

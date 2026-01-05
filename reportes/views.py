@@ -218,9 +218,9 @@ def Consultagastos(request):
     return redirect(dir_iframe)
 
 @login_required(login_url="/login/")
-def VentaVscobranza(request):
-    Nombre='Venta Vs cobranza'
-    dir_iframe = DIR_REPORTES['ventaVsCobranza']
+def integridadVentas(request):
+    Nombre='Integridad de Ventas'
+    dir_iframe = DIR_REPORTES['integridadVentas']
     return redirect(dir_iframe)
 
 @login_required(login_url="/login/")

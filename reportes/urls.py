@@ -59,7 +59,7 @@ urlpatterns = [
     # Administracion
     path('Administracion/VentasXmedio_pago', views.VentasXmedio_pago, name='reportes_administracion_ventas_por_medio_pago'),
     path('Administracion/Consultagastos', views.Consultagastos, name='reportes_administracion_consulta_gastos'),
-    path('Administracion/VentaVscobranza', views.VentaVscobranza, name='reportes_administracion_venta_vs_cobranza'),
+    path('Administracion/integridadVentas', views.integridadVentas, name='reportes_administracion_integridad_ventas'),
     path('Administracion/Controlcajasmensual', views.Controlcajasmensual, name='reportes_administracion_control_cajas_mensual'),
     path('Administracion/CargaGastosTesoreria', views.CargaGastosTesoreria, name='reportes_administracion_carga_gastos_tesoreria'),
     path('Administracion/DetalleContratosDeAlquiler', views.DetalleContratosDeAlquiler, name='reportes_administracion_detalle_contratos_alquiler'),
