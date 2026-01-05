@@ -197,13 +197,7 @@
             <p>Resumen de Ventas</p>
           </a>
         </li>
-        <li class="nav-item">
-          {# Updated href for Integridad de Ventas (assuming Administracion section) #}
-          <a href="/Reportes/Administracion/integridadVentas" class="nav-link {% if 'integridadVentas' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Integridad de Ventas</p>
-          </a>
-        </li>
+
         <li class="nav-item">
           {# Updated href for Control cajas Mensual (assuming Administracion section) #}
           <a href="/Reportes/Administracion/Controlcajasmensual" class="nav-link {% if 'Controlcajasmensual' in request.path %} active {% endif %}">
@@ -248,11 +242,11 @@
           </a>
         </li>
         <li class="nav-item">
-          {# Updated href for Contratos Alquiler Fr (assuming Administracion section) #}
-          <a href="/Reportes/Administracion/controlVentasSucursales"
-            class="nav-link {% if 'controlVentasSucursales' in request.path %} active {% endif %}">
+          {# Updated href for Control Integral Ventas Fr (assuming Administracion section) #}
+          <a href="/Reportes/administracion/integridadVentas"
+            class="nav-link {% if 'integridadVentas' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
-            <p>Control Ventas Sucursales</p>
+            <p>Control Integral Ventas</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>

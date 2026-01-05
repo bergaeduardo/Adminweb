@@ -217,11 +217,6 @@ def Consultagastos(request):
     dir_iframe = DIR_REPORTES['consultaGastos']
     return redirect(dir_iframe)
 
-@login_required(login_url="/login/")
-def integridadVentas(request):
-    Nombre='Integridad de Ventas'
-    dir_iframe = DIR_REPORTES['integridadVentas']
-    return redirect(dir_iframe)
 
 @login_required(login_url="/login/")
 def Controlcajasmensual(request):
@@ -249,9 +244,9 @@ def GastosSupervision(request):
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 @login_required(login_url="/login/")
-def controlVentasSucursales(request):
-    Nombre='Control Ventas Sucursales'
-    dir_iframe = DIR_REPORTES['controlVentasSucursales']
+def integridadVentas(request):
+    Nombre='Control Integral Ventas'
+    dir_iframe = DIR_REPORTES['integridadVentas']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 @login_required(login_url="/login/")
