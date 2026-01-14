@@ -59,14 +59,13 @@ urlpatterns = [
     # Administracion
     path('Administracion/VentasXmedio_pago', views.VentasXmedio_pago, name='reportes_administracion_ventas_por_medio_pago'),
     path('Administracion/Consultagastos', views.Consultagastos, name='reportes_administracion_consulta_gastos'),
-    path('Administracion/VentaVscobranza', views.VentaVscobranza, name='reportes_administracion_venta_vs_cobranza'),
     path('Administracion/Controlcajasmensual', views.Controlcajasmensual, name='reportes_administracion_control_cajas_mensual'),
     path('Administracion/CargaGastosTesoreria', views.CargaGastosTesoreria, name='reportes_administracion_carga_gastos_tesoreria'),
     path('Administracion/DetalleContratosDeAlquiler', views.DetalleContratosDeAlquiler, name='reportes_administracion_detalle_contratos_alquiler'),
     path('Administracion/FacturaManualLista', viewsApp.facturas_por_fecha, name='reportes_administracion_factura_manual_lista'), # View not found in source
     path('Administracion/ContratosFranquicias', views.ContratosFranquicias, name='reportes_administracion_contratos_franquicias'),
     path('Administracion/GastosSupervision', views.GastosSupervision, name='reportes_administracion_gastos_supervision'),
-    path('Administracion/controlVentasSucursales', views.controlVentasSucursales, name='reportes_administracion_control_ventas_sucursales'),
+    path('Administracion/integridadVentas', views.integridadVentas, name='reportes_administracion_integridad_ventas'),
     path('Administracion/saldoCaja', views.saldoCaja, name='saldo_caja_tesoreria'),
     path('Administracion/costoOcupacion', views.costoOcupacion, name='costo_ocupacion'),
     path('Administracion/cuentasParticulares', views.cuentasParticulares, name='cuentas_particulares'),

@@ -197,13 +197,7 @@
             <p>Resumen de Ventas</p>
           </a>
         </li>
-        <li class="nav-item">
-          {# Updated href for Venta Vs cobranza (assuming Administracion section) #}
-          <a href="/Reportes/Administracion/VentaVscobranza" class="nav-link {% if 'VentaVscobranza' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Venta Vs cobranza</p>
-          </a>
-        </li>
+
         <li class="nav-item">
           {# Updated href for Control cajas Mensual (assuming Administracion section) #}
           <a href="/Reportes/Administracion/Controlcajasmensual" class="nav-link {% if 'Controlcajasmensual' in request.path %} active {% endif %}">
@@ -248,12 +242,12 @@
           </a>
         </li>
         <li class="nav-item">
-          {# Updated href for Contratos Alquiler Fr (assuming Administracion section) #}
-          <a href="/Reportes/Administracion/controlVentasSucursales"
-            class="nav-link {% if 'controlVentasSucursales' in request.path %} active {% endif %}">
+          {# Updated href for Control Integral Ventas Fr (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/integridadVentas"
+            class="nav-link {% if 'integridadVentas' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
-            <p>Control Ventas Sucursales</p>
-            <!-- <span class="badge badge-info right">New</span> -->
+            <p>Control Integral Ventas</p>
+            <span class="badge badge-info right">New</span>
           </a>
         </li>
         {% endif %}
@@ -418,7 +412,7 @@
         </li>
 
         {% endif %}
-        {% if request.user|has_group:"Comercial_may" or request.user|has_group:"e-commerce" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Abastecimiento"  or request.user|has_group:"Produccion" %}
+        {% if request.user|has_group:"Comercial_may" or request.user|has_group:"e-commerce" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Abastecimiento"  or request.user|has_group:"Produccion" or request.user|has_group:"Gerencia" %}
         <!-- accesos del area aqui -->
         <li class="nav-item">
           {# Updated href for Ventas por canal (assuming Comercial section) #}
@@ -428,6 +422,8 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
+        {% endif %}
+        {% if request.user|has_group:"Comercial_may" or request.user|has_group:"e-commerce" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Abastecimiento"  or request.user|has_group:"Produccion" %}
         <li class="nav-item">
           {# Updated href for Stock Sucursales (assuming Comercial section) #}
           <a href="/Reportes/Comercial/stockSucursalesLakers" class="nav-link {% if 'stockSucursalesLakers' in request.path %} active {% endif %}">

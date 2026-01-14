@@ -172,13 +172,6 @@
           </a>
         </li>
         <li class="nav-item">
-          {# Administracion/VentaVscobranza Link - Apply active if 'VentaVscobranza' is in request.path #}
-          <a href="/Reportes/Administracion/VentaVscobranza" class="nav-link {% if 'VentaVscobranza' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Venta Vs cobranza</p>
-          </a>
-        </li>
-        <li class="nav-item">
           {# Administracion/Controlcajasmensual Link - Apply active if 'Controlcajasmensual' is in request.path #}
           <a href="/Reportes/Administracion/Controlcajasmensual" class="nav-link {% if 'Controlcajasmensual' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
@@ -231,11 +224,11 @@
           </a>
         </li>
         <li class="nav-item">
-          {# Administracion/FacturaManualLista Link - Apply active if 'FacturaManualLista' is in request.path #}
-          <a href="/Reportes/Administracion/controlVentasSucursales"
-            class="nav-link {% if 'controlVentasSucursales' in request.path %} active {% endif %}">
+          {# administracion/controlSucursales/integridadVentas/ - Apply active if 'integridadVentas' is in request.path #}
+          <a href="/Reportes/Administracion/integridadVentas"
+            class="nav-link {% if 'integridadVentas' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
-            <p>Comparar Ventas Propios</p>
+            <p>Control Integral Ventas</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
