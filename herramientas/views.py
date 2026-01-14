@@ -483,7 +483,7 @@ def categoria_create(request):
         if form.is_valid():
             crear_categoria(form.cleaned_data['nombre'], form.cleaned_data['codigo'], form.cleaned_data['PalabrasClave'])
             messages.success(request, 'Categoría creada exitosamente.')
-            return redirect('herramientas:categoria_list') # Updated redirect
+            return redirect('herramientas:herramientas_categoria_list') # Updated redirect
     else:
         form = CategoriaForm()
     return render(request, 'appConsultasTango/ecommerce/categorias/categoria_create.html', {'form': form})
@@ -493,13 +493,13 @@ def categoria_update(request, id_categoria):
     categoria = obtener_categoria(id_categoria)
     if not categoria:
         messages.error(request, 'Categoría no encontrada.')
-        return redirect('herramientas:categoria_list') # Updated redirect
+        return redirect('herramientas:herramientas_categoria_list') # Updated redirect
     if request.method == 'POST':
         form = CategoriaForm(request.POST)
         if form.is_valid():
             editar_categoria(id_categoria, form.cleaned_data['nombre'], form.cleaned_data['codigo'], form.cleaned_data['PalabrasClave'])
             messages.success(request, 'Categoría actualizada exitosamente.')
-            return redirect('herramientas:categoria_list') # Updated redirect
+            return redirect('herramientas:herramientas_categoria_list') # Updated redirect
     else:
         form = CategoriaForm(initial={'nombre': categoria[1], 'codigo': categoria[2], 'PalabrasClave': categoria[3]})
     return render(request, 'appConsultasTango/ecommerce/categorias/categoria_update.html', {'form': form, 'id_categoria': id_categoria})
@@ -509,11 +509,11 @@ def categoria_delete(request, id_categoria):
     categoria = obtener_categoria(id_categoria)
     if not categoria:
         messages.error(request, 'Categoría no encontrada.')
-        return redirect('herramientas:categoria_list') # Updated redirect
+        return redirect('herramientas:herramientas_categoria_list') # Updated redirect
     if request.method == 'POST':
          eliminar_categoria(id_categoria)
          messages.success(request, 'Categoría eliminada exitosamente.')
-         return redirect('herramientas:categoria_list') # Updated redirect
+         return redirect('herramientas:herramientas_categoria_list') # Updated redirect
     return render(request, 'appConsultasTango/ecommerce/categorias/categoria_delete.html', {'categoria': categoria})
 
 # --- Subcategorías ---
@@ -534,7 +534,7 @@ def subcategoria_create(request):
             crear_subcategoria(form.cleaned_data['codigo'], form.cleaned_data['nombre'],
                                form.cleaned_data['Keywords'], form.cleaned_data['id_categoria_VtxAr'],form.cleaned_data['id_categoria_Tango'])
             messages.success(request, 'Subcategoría creada exitosamente.')
-            return redirect('herramientas:subcategoria_list') # Updated redirect
+            return redirect('herramientas:herramientas_subcategoria_list') # Updated redirect
     else:
         form = SubcategoriaForm()
     return render(request, 'appConsultasTango/ecommerce/subcategorias/subcategoria_create.html', {'form': form})
@@ -544,7 +544,7 @@ def subcategoria_update(request, id_subcategoria):
     subcategoria = obtener_subcategoria(id_subcategoria)
     if not subcategoria:
         messages.error(request, 'Subcategoría no encontrada.')
-        return redirect('herramientas:subcategoria_list') # Updated redirect
+        return redirect('herramientas:herramientas_subcategoria_list') # Updated redirect
     if request.method == 'POST':
         form = SubcategoriaForm(request.POST)
         if form.is_valid():
@@ -552,7 +552,7 @@ def subcategoria_update(request, id_subcategoria):
                                form.cleaned_data['Keywords'], form.cleaned_data['id_categoria_VtxAr'],form.cleaned_data['id_categoria_Tango'])
 
              messages.success(request, 'Subcategoría actualizada exitosamente.')
-             return redirect('herramientas:subcategoria_list') # Updated redirect
+             return redirect('herramientas:herramientas_subcategoria_list') # Updated redirect
     else:
           form = SubcategoriaForm(initial={'codigo': subcategoria[1],'nombre': subcategoria[2],'Keywords': subcategoria[3],'id_categoria_VtxAr': subcategoria[4],'id_categoria_Tango': subcategoria[5]})
     return render(request, 'appConsultasTango/ecommerce/subcategorias/subcategoria_update.html', {'form': form, 'id_subcategoria': id_subcategoria})
@@ -562,11 +562,11 @@ def subcategoria_delete(request, id_subcategoria):
     subcategoria = obtener_subcategoria(id_subcategoria)
     if not subcategoria:
         messages.error(request, 'Subcategoría no encontrada.')
-        return redirect('herramientas:subcategoria_list') # Updated redirect
+        return redirect('herramientas:herramientas_subcategoria_list') # Updated redirect
     if request.method == 'POST':
          eliminar_subcategoria(id_subcategoria)
          messages.success(request, 'Subcategoría eliminada exitosamente.')
-         return redirect('herramientas:subcategoria_list') # Updated redirect
+         return redirect('herramientas:herramientas_subcategoria_list') # Updated redirect
     return render(request, 'appConsultasTango/ecommerce/subcategorias/subcategoria_delete.html', {'subcategoria': subcategoria})
 
 # --- Relaciones ---
@@ -585,7 +585,7 @@ def relacion_create(request):
         if form.is_valid():
             crear_relacion(form.cleaned_data['id_categoria_Tango'], form.cleaned_data['id_subCat_VtxAr'])
             messages.success(request, 'Relación creada exitosamente.')
-            return redirect('herramientas:relacion_list') # Updated redirect
+            return redirect('herramientas:herramientas_relacion_list') # Updated redirect
     else:
         form = RelacionForm()
     return render(request, 'appConsultasTango/ecommerce/relaciones/relacion_create.html', {'form': form})
@@ -596,13 +596,13 @@ def relacion_update(request, id_categoria_tango,id_subcategoria):
     relacion = obtener_relacion(id_categoria_tango,id_subcategoria)
     if not relacion:
         messages.error(request, 'Relación no encontrada.')
-        return redirect('herramientas:relacion_create') # Updated redirect
+        return redirect('herramientas:herramientas_relacion_create') # Updated redirect
     if request.method == 'POST':
         form = RelacionForm(request.POST)
         if form.is_valid():
              editar_relacion(id_categoria_tango,id_subcategoria,form.cleaned_data['id_categoria_Tango'], form.cleaned_data['id_subCat_VtxAr'])
              messages.success(request, 'Relación actualizada exitosamente.')
-             return redirect('herramientas:relacion_list') # Updated redirect
+             return redirect('herramientas:herramientas_relacion_list') # Updated redirect
     else:
         form = RelacionForm(initial={'id_categoria_Tango': relacion[0], 'id_subCat_VtxAr': relacion[1]})
     return render(request, 'appConsultasTango/ecommerce/relaciones/relacion_update.html', {'form': form, 'id_categoria_tango': id_categoria_tango,'id_subcategoria':id_subcategoria})
@@ -613,11 +613,11 @@ def relacion_delete(request, id_categoria_tango, id_subcategoria):
     relacion = obtener_relacion(id_categoria_tango,id_subcategoria)
     if not relacion:
         messages.error(request, 'Relación no encontrada.')
-        return redirect('herramientas:relacion_list') # Updated redirect
+        return redirect('herramientas:herramientas_relacion_list') # Updated redirect
     if request.method == 'POST':
         eliminar_relacion(id_categoria_tango, id_subcategoria)
         messages.success(request, 'Relación eliminada exitosamente.')
-        return redirect('herramientas:relacion_list') # Updated redirect
+        return redirect('herramientas:herramientas_relacion_list') # Updated redirect
     return render(request, 'appConsultasTango/ecommerce/relaciones/relacion_delete.html', {'relacion': relacion,'id_categoria_tango': id_categoria_tango, 'id_subcategoria': id_subcategoria})
 
 @login_required(login_url="/login/")
