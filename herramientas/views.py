@@ -460,9 +460,9 @@ def gestionKits(request):
 
 # Mayoristas
 @login_required(login_url="/login/")
-def Adm_Pedido(request):
-    Nombre = 'Adm Pedido'
-    dir_iframe = DIR_HERAMIENTAS['Adm_Pedido']
+def gestionPedidos(request):
+    Nombre = 'Gestión de Pedidos Mayoristas'
+    dir_iframe = DIR_HERAMIENTAS['gestionPedidos']
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
 
 # Ecommerce

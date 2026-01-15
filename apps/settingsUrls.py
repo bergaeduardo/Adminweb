@@ -111,7 +111,7 @@ DIR_HERAMIENTAS = {
     'ObjetivosVentaFranquicias':SERVIDOR['production']  + 'comercial/franquicias/objetivosVenta/',
     'gestionKits':SERVIDOR['production']  + 'comercial/producto/gestionKits.php',
     # Mayoristas
-    'Adm_Pedido':SERVIDOR['production']  + 'sistemas/despachoMayorista/index.php',
+    'gestionPedidos':SERVIDOR['production']  + 'comercial/mayoristas/gestionPedidos/',
     # Ecommerce
     'Control_pedidos': SERVIDOR['production'] + 'logistica/ecommerce/',
     'StockSegVtex': SERVIDOR['production'] + 'ecommerce/stockSeguridad/stockSeguridad.php',

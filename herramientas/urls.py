@@ -50,7 +50,7 @@ urlpatterns = [
     path('ObjetivosVentaFranquicias', views.ObjetivosVentaFranquicias, name='herramientas_objetivos_venta_franquicias'),
     path('gestionKits', views.gestionKits, name='herramientas_gestion_kits'),
     # Mayoristas
-    path('Adm_Pedido', views.Adm_Pedido, name='herramientas_adm_pedido'),
+    path('gestionPedidos', views.gestionPedidos, name='herramientas_gestion_pedidos'),
     # Ecommerce
     path('Control_pedidos', views.Control_pedidos, name='herramientas_control_pedidos'),
     path('StockSegVtex', views.StockSegVtex, name='herramientas_stock_seguridad_vtex'),
