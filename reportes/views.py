@@ -394,27 +394,56 @@ def stockcentral_pivotUY(request):
 def stockcUY(request):
     myFilter=None
     parametro=''
-    Nombre=''
+    Nombre='Stock Central Uruguay'
     nombre_db='TASKY_SA'
     parametro = 'mi_db_2'
-    cambiar_conexion(parametro,nombre_db)
-    print('Se establecio la conexion por medio de ' + parametro + ' a la base de datos ' + nombre_db)
-    stock = StockCentral.objects.all()
-    consulta = Utilidades.filtroDepo(parametro)
-    filtroDepo = Utilidades.itemsFil(consulta)
-    consulta = Utilidades.filtroTemp(parametro)
-    filtroTemp = Utilidades.itemsFil(consulta)
-    consulta = Utilidades.filtroRub(parametro)
-    filtroRub = Utilidades.itemsFil(consulta)
-    myFilter = OrderFilter(filtroDepo,filtroTemp,filtroRub,request.GET, queryset=stock)
+    
+    try:
+        cambiar_conexion(parametro,nombre_db)
+        print('Se establecio la conexion por medio de ' + parametro + ' a la base de datos ' + nombre_db)
+        
+        # Obtener stock
+        print('Consultando stock...')
+        stock = StockCentral.objects.using('mi_db_2').all()
+        print(f'Stock consultado: {stock.count()} registros')
+        
+        # Obtener filtros
+        print('Consultando filtros de deposito...')
+        consulta = Utilidades.filtroDepo(parametro)
+        filtroDepo = Utilidades.itemsFil(consulta)
+        print(f'Filtro deposito: {len(filtroDepo)} items')
+        
+        print('Consultando filtros de temporada...')
+        consulta = Utilidades.filtroTemp(parametro)
+        filtroTemp = Utilidades.itemsFil(consulta)
+        print(f'Filtro temporada: {len(filtroTemp)} items')
+        
+        print('Consultando filtros de rubro...')
+        consulta = Utilidades.filtroRub(parametro)
+        filtroRub = Utilidades.itemsFil(consulta)
+        print(f'Filtro rubro: {len(filtroRub)} items')
+        
+        print('Creando OrderFilter...')
+        myFilter = OrderFilter(filtroDepo,filtroTemp,filtroRub,request.GET, queryset=stock)
+        print('OrderFilter creado exitosamente')
 
+        if request.GET and any(request.GET.values()):
+            print('Usando filtros de request.GET')
+            datos = myFilter
+        else:
+            print('Usando filtro por defecto (deposito=05)')
+            datos = StockCentral.objects.using('mi_db_2').filter(deposito='05')
 
-    if request.GET:
-        datos = myFilter
-    else:
-        datos = StockCentral.objects.filter(deposito='05')
-
-    return render(request,'appConsultasTango/StockUY.html',{'myFilter':myFilter,'articulos':datos,'Nombre':Nombre})
+        print('Renderizando template...')
+        return render(request,'appConsultasTango/StockUY.html',{'myFilter':myFilter,'articulos':datos,'Nombre':Nombre})
+    
+    except Exception as e:
+        print(f'ERROR en stockcUY: {str(e)}')
+        import traceback
+        traceback.print_exc()
+        # Retornar mensaje de error al usuario
+        from django.http import HttpResponse
+        return HttpResponse(f'<h1>Error en Stock Uruguay</h1><p><strong>Error:</strong> {str(e)}</p><p>Revisa la consola del servidor para más detalles.</p>', status=500)
 
 @login_required(login_url="/login/")
 def stockcentral_ecommerce(request):
