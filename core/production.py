@@ -30,7 +30,6 @@ ALLOWED_HOSTS = ['192.168.1.127', 'localhost']
 # }
 
 DATABASES = {
-    # Base de administracion de roles
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'postgres',
@@ -39,7 +38,6 @@ DATABASES = {
         'HOST': 'localhost',
         'DATABASE_PORT': '5432',
     },
-    # Base de Tango
     'mi_db_2':{
             'ENGINE': 'mssql',
             'NAME': 'LAKER_SA',
@@ -53,38 +51,6 @@ DATABASES = {
             },
             
     },
-    # Base Sistema de Ubicaciones
-    'mi_db_3':{
-            'ENGINE': 'mssql',
-            'NAME': 'UbicacionesStockMvc',
-            'USER': 'sa',
-            'PASSWORD': 'Axoft1988',
-            # ----Produccion----
-            'HOST': '192.168.0.226\SQL2016',
-
-            # ----Testing----
-            # 'HOST': '192.168.0.227',
-
-            'PORT': '1433',
-            'OPTIONS': {
-                'driver': 'ODBC Driver 13 for SQL Server',
-            },
-            
-    },
-    # Base LOCALES_LAKERS
-    'mi_db_4':{
-            'ENGINE': 'mssql',
-            'NAME': 'LOCALES_LAKERS',
-            'USER': 'sa',
-            'PASSWORD': 'Axoft',
-            'HOST': 'LAKERBIS',
-            'PORT': '1433',
-
-            'OPTIONS': {
-                'driver': 'ODBC Driver 13 for SQL Server',
-            },
-            
-    },
 }
 
-DATABASE_ROUTERS = ['consultasTango.routers.MiApp2Router','consultasLakersBis.routers.MiApp4Router','consultasWMS.routers.MiApp3Router']
+DATABASE_ROUTERS = ['consultasTango.routers.MiApp2Router']
