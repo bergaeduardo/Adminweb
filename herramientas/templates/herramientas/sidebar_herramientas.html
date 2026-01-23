@@ -325,7 +325,7 @@
     </li>
     {% endif %}
     <!-- Administracion_CE   ***Comercio Exterior*** -->
-    {% if request.user|has_any_group:"admin,AdministracionSup,Administracion_CE" %}
+    {% if request.user|has_any_group:"admin,AdministracionSup,Administracion_CE" or request.user.id == 92 %}
     <li class="nav-item">
       <a href="/../Herramientas/Cargarcontenedor"
         class="nav-link {% if 'Cargarcontenedor' in request.path %} active {% endif %}">
