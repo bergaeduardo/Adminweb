@@ -413,6 +413,16 @@
         </li>
 
         {% endif %}
+
+        <li class="nav-item">
+          {# Updated href for Gestion de Objetivos Locales (assuming Comercial section) #}
+          <a href="/Reportes/Comercial/gestionObjetivosLocales/" class="nav-link {% if 'gestionObjetivosLocales' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Gestión de Objetivos Locales</p>
+            <span class="badge badge-danger right">New</span>
+          </a>
+        </li>
+
         {% if request.user|has_group:"Comercial_may" or request.user|has_group:"e-commerce" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Abastecimiento"  or request.user|has_group:"Produccion" or request.user|has_group:"Gerencia" %}
         <!-- accesos del area aqui -->
         <li class="nav-item">

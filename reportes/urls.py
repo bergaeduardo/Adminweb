@@ -36,6 +36,8 @@ urlpatterns = [
     path('Comercial/compararVentas/', views.compararVentas, name='reportes_comercial_comparar_ventas'),
     path('Comercial/PresupuestoComercial/', views.PresupuestoComercial, name='reportes_comercial_presupuesto_comercial'),
     path('Comercial/auditoriaDiferenciaPrecio/', views.auditoriaDiferenciaPrecio, name='reportes_comercial_auditoria_diferencia_precio'),
+    path('Comercial/gestionObjetivosLocales/', views.gestionObjetivosLocales, name='reportes_comercial_gestion_objetivos_locales'),
+
 
     # Mayoristas
     path('Mayoristas/Tracking_pedidos_mayoristas', views.Tracking_pedidos_mayoristas, name='reportes_mayoristas_tracking_pedidos_mayoristas'),

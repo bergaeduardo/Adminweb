@@ -142,6 +142,12 @@ def auditoriaDiferenciaPrecio(request):
     dir_iframe = DIR_REPORTES['auditoriaDiferenciaPrecio']
     return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def gestionObjetivosLocales(request):
+    Nombre='Gestión de Objetivos Locales'
+    dir_iframe = DIR_REPORTES['gestionObjetivosLocales']
+    return redirect(dir_iframe)
+
 
 # Mayoristas
 
