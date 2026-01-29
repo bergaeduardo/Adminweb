@@ -496,7 +496,15 @@
         <p>Gestión de Kits</p>
         <!-- <span class="badge badge-info right">New</span> -->
       </a>
-    </li>    
+    </li>
+    <li class="nav-item">
+      <a href="/../Herramientas/conversorCSV"
+        class="nav-link {% if 'conversorCSV' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Conversor CSV</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>
     {% endif %}
     {% if request.user|has_any_group:"admin,Comercial_may,Comercial_fr,Comercial_suc,Comercial_sup" %}
     <!-- accesos del area aqui -->

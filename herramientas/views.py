@@ -458,6 +458,12 @@ def gestionKits(request):
     dir_iframe = DIR_HERAMIENTAS['gestionKits'] #+ UserName
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
 
+@login_required(login_url="/login/")
+def conversorCSV(request):
+    Nombre = 'Conversor CSV'
+    dir_iframe = DIR_HERAMIENTAS['conversorCSV'] #+ UserName
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+
 # Mayoristas
 @login_required(login_url="/login/")
 def gestionPedidos(request):

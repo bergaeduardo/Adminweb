@@ -48,6 +48,7 @@ DIR_REPORTES = {
     'PresupuestoComercial':'https://192.168.0.13:3000/home/',
     'auditoriaDiferenciaPrecio':SERVIDOR['production']  + 'comercial/auditoria/ingreso_asistente.php',
     'gestionObjetivosLocales':SERVIDOR['production']  + 'ppp/objetivos/gestion.php',
+
     # Mayoristas
     'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'comercial/mayoristas/despacho/tracking.php',
     # Ecommerce
@@ -111,6 +112,7 @@ DIR_HERAMIENTAS = {
     'UsuariosFranquicias':SERVIDOR['production']  + 'usuariosFranquicias/',
     'ObjetivosVentaFranquicias':SERVIDOR['production']  + 'comercial/franquicias/objetivosVenta/',
     'gestionKits':SERVIDOR['production']  + 'comercial/producto/gestionKits.php',
+    'conversorCSV':'https://192.168.0.13:3000/conversor-csv',
     # Mayoristas
     'gestionPedidos':SERVIDOR['production']  + 'comercial/mayoristas/gestionPedidos/',
     # Ecommerce
