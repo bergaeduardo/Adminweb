@@ -469,7 +469,7 @@ def conversorCSV(request):
 def gestionPedidos(request):
     Nombre = 'Gestión de Pedidos Mayoristas'
     dir_iframe = DIR_HERAMIENTAS['gestionPedidos']
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
+    return redirect(dir_iframe)
 
 # Ecommerce
 
