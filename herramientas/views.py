@@ -346,6 +346,13 @@ def ImpRemEcom(request):
     # return redirect(dir_iframe)
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
 
+@login_required(login_url="/login/")
+def SistemaReclamos(request):
+    Nombre = 'Sistema de Reclamos'
+    dir_iframe = DIR_HERAMIENTAS['SistemaReclamos']
+    return redirect(dir_iframe)
+
+
 
 # Abastecimiento
 
