@@ -343,11 +343,7 @@
                 itemHtml += '<i class="nav-icon fas fa-circle" style="font-size: 0.5rem;"></i>';
                 itemHtml += '<p>';
                 
-                // Si es subitem, mostrar el padre
-                if (result.isSubItem && result.parentText) {
-                    itemHtml += '<span style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">' + result.parentText + ' / </span>';
-                }
-                
+                // Solo mostrar el texto coincidente, sin la categoría
                 itemHtml += highlightedText;
                 itemHtml += '</p>';
                 itemHtml += '</a>';
