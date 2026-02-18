@@ -46,7 +46,7 @@
     </li>
     {% endif %}    
     <!-- inicio Logistica -->
-    {% if request.user|has_any_group:"admin,Logistica" %}
+    {% if request.user|has_any_group:"admin,Logistica" or request.user.id == 21 %}
     <li>
       <a href="/../Herramientas/SistemaReclamos"
         class="nav-link {% if 'SistemaReclamos' in request.path %} active {% endif %}">
