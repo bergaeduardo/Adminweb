@@ -1108,7 +1108,7 @@ def import_file_anularPedidos(request):
     settings.DATABASES['mi_db_2']['NAME'] = nombre_db
     print('Cambiando base de datos a ' + nombre_db)
     try:
-        if request.method == 'POST' and request.FILES['excel_file']:
+        if request.method == 'POST' and request.FILES.get('excel_file'):
             pfile = request.FILES['excel_file']
             filesys =FileSystemStorage()
             # Obtener el nombre del archivo sin espacios en blanco
@@ -1118,73 +1118,105 @@ def import_file_anularPedidos(request):
             uploadfilename = filesys.save(filename, pfile)
             extension = os.path.splitext(uploadfilename)
             if  not extension[1] == '.xlsx':
-                error_extension = 'El formato del archivo debe ser de tipo .xlsx'
+                error_extension = '❌ El archivo debe ser formato .xlsx (Excel). Formato recibido: ' + extension[1]
                 os.remove(filesys.path(uploadfilename))
                 return render(request,'appConsultasTango/importFilePedidosAnular.html',{'mensaje_error':error_extension})
 
-            uploaded_url = filesys.url(uploadfilename)  #Ruta donde se guardo el archivo
-            uploaded_url = os.path.normpath(uploaded_url)
-            # print("uploaded_url: " + uploaded_url)
-            ruta_actual = os.path.join(os.getcwd()) #Ruta del proyecto
-            # print('Ruta actual: ' + ruta_actual)
-            path_filname = ruta_actual + uploaded_url
+            # Obtener la ruta completa del archivo
+            path_filname = filesys.path(uploadfilename)
+            print(f'Ruta del archivo: {path_filname}')
+            
             wb = openpyxl.load_workbook(path_filname) #Abrimos el archivo
             worksheet = wb.active
             excel_data = list()
             enc_data = list()
+            pedidos_data = list()  # Lista estructurada de pedidos
             mensaje_error = ''
-            mensaje_Success = ''
-            # iterando sobre las filas y obteniendo
-            # valor de cada celda en la fila
-            for row in worksheet.iter_rows():
-                fila = row[0].row   #Numero de fila
-                row_data = list()
-                talon_pedido = 0
-                i = 1
-                if worksheet.cell(row=fila, column=1).value is None: #Frena el loop al llegar al final de la lista
+            mensaje_info = ''
+            pedidos_validos = 0
+            pedidos_invalidos = 0
+            
+            # Buscar índices de columnas
+            col_nro_pedido = None
+            col_talon_ped = None
+            for i, cell in enumerate(worksheet[1], start=1):
+                if cell.value == 'NRO_PEDIDO':
+                    col_nro_pedido = i
+                elif cell.value == 'TALON_PED':
+                    col_talon_ped = i
+            
+            if not col_nro_pedido or not col_talon_ped:
+                os.remove(filesys.path(uploadfilename))
+                return render(request,'appConsultasTango/importFilePedidosAnular.html',{
+                    'mensaje_error': '❌ El archivo debe contener las columnas NRO_PEDIDO y TALON_PED'
+                })
+            
+            # Procesar filas
+            for row in worksheet.iter_rows(min_row=2):
+                if not row[0].value:  # Fila vacía
                     break
                 
-                for cell in row:
-                    if fila == 1:
-                        enc_data.append(str(cell.value))
-                    else:
-                        if worksheet.cell(row=1, column=i).value == 'NRO_PEDIDO':
-                            if fila > 1:
-                                pedido = worksheet.cell(row=fila, column=i).value
-                                if worksheet.cell(row=1, column=6).value == 'TALON_PED':
-                                    talon_pedido = worksheet.cell(row=fila, column=6).value
-
-                                ped_valido= validar_pedido(pedido,str(talon_pedido))
-                                # print('ped_valido: ' + str(ped_valido))
-                                if ped_valido == 0:
-                                    mensaje_error = 'Los Pedidos NO EXISTEN  o NO ESTAN PENDIENTES'
-                                    row_data.append('*' + str(cell.value) + '*')
-                                    i += 1
-                                    continue
-                        if cell.value == None:
-                            row_data.append(str(''))
-                        else:
-                            row_data.append(str(cell.value))                        
-                    i += 1
-
-                excel_data.append(row_data)
-
-            # print('path_filname: ' + path_filname)
-            wb.save(path_filname)
-            if not(mensaje_error):
-                upload_file_AnularPedidos(path_filname) #Ejecuta ejuste en base de datos
-                mensaje_Success = 'Articulos cargados correctamente'
-                os.remove(filesys.path(uploadfilename))
+                nro_pedido = row[col_nro_pedido - 1].value
+                talon_ped = row[col_talon_ped - 1].value
                 
-            else:
-                os.remove(filesys.path(uploadfilename))
-
+                if nro_pedido is None or talon_ped is None:
+                    continue
+                
+                # Validar pedido
+                ped_valido = validar_pedido(nro_pedido, str(talon_ped))
+                estado = 'válido' if ped_valido > 0 else 'inválido'
+                
+                pedido_info = {
+                    'nro_pedido': str(nro_pedido),
+                    'talon_ped': str(talon_ped),
+                    'estado': estado,
+                    'valido': ped_valido > 0
+                }
+                pedidos_data.append(pedido_info)
+                
+                if ped_valido > 0:
+                    pedidos_validos += 1
+                else:
+                    pedidos_invalidos += 1
             
-            return render(request, 'appConsultasTango/importFilePedidosAnular.html' ,{'enc_data':enc_data,'excel_data':excel_data,'mensaje_Success':mensaje_Success,'mensaje_error':mensaje_error})
-
+            os.remove(filesys.path(uploadfilename))
+            
+            # Preparar mensaje informativo
+            if pedidos_validos > 0 and pedidos_invalidos == 0:
+                mensaje_info = f'📋 Se encontraron {pedidos_validos} pedido(s) válido(s) listo(s) para anular'
+            elif pedidos_validos > 0 and pedidos_invalidos > 0:
+                mensaje_info = f'⚠️ Se encontraron {pedidos_validos} pedido(s) válido(s) y {pedidos_invalidos} inválido(s). Solo se pueden anular los válidos.'
+            elif pedidos_validos == 0:
+                mensaje_error = f'❌ No se encontraron pedidos válidos para anular. Total de pedidos inválidos: {pedidos_invalidos}'
+            
+            # Si es petición AJAX, devolver JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'pedidos_data': pedidos_data,
+                    'pedidos_validos': pedidos_validos,
+                    'pedidos_invalidos': pedidos_invalidos,
+                    'mensaje_info': mensaje_info,
+                    'mensaje_error': mensaje_error
+                })
+            
+            # SOLO PREVISUALIZACIÓN - NO SE ANULA NADA AÚN
+            return render(request, 'appConsultasTango/importFilePedidosAnular.html', {
+                'pedidos_data': pedidos_data,
+                'pedidos_validos': pedidos_validos,
+                'pedidos_invalidos': pedidos_invalidos,
+                'mensaje_info': mensaje_info,
+                'mensaje_error': mensaje_error,
+                'mostrar_preview': True
+            })
 
     except Exception as identifier:            
         print(identifier)
+        mensaje_error = f'❌ Error al procesar el archivo: {str(identifier)}. Verifica que el archivo tenga el formato correcto.'
+        # Si es petición AJAX, devolver JSON de error
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'mensaje_error': mensaje_error})
+        return render(request,'appConsultasTango/importFilePedidosAnular.html',{'mensaje_error': mensaje_error})
     return render(request,'appConsultasTango/importFilePedidosAnular.html',{})
 
 @login_required(login_url="/login/")
@@ -1193,7 +1225,7 @@ def import_file_anularPedidosUY(request):
     settings.DATABASES['mi_db_2']['NAME'] = nombre_db
     print('Cambiando base de datos a ' + nombre_db)
     try:
-        if request.method == 'POST' and request.FILES['excel_file']:
+        if request.method == 'POST' and request.FILES.get('excel_file'):
             pfile = request.FILES['excel_file']
             filesys =FileSystemStorage()
             # Obtener el nombre del archivo sin espacios en blanco
@@ -1203,90 +1235,294 @@ def import_file_anularPedidosUY(request):
             uploadfilename = filesys.save(filename, pfile)
             extension = os.path.splitext(uploadfilename)
             if  not extension[1] == '.xlsx':
-                error_extension = 'El formato del archivo debe ser de tipo .xlsx'
+                error_extension = '❌ El archivo debe ser formato .xlsx (Excel). Formato recibido: ' + extension[1]
                 os.remove(filesys.path(uploadfilename))
                 return render(request,'appConsultasTango/importFilePedidosAnularUY.html',{'mensaje_error':error_extension})
 
-            uploaded_url = filesys.url(uploadfilename)  #Ruta donde se guardo el archivo
-            uploaded_url = os.path.normpath(uploaded_url)
-            # print("uploaded_url: " + uploaded_url)
-            ruta_actual = os.path.join(os.getcwd()) #Ruta del proyecto
-            # print('Ruta actual: ' + ruta_actual)
-            path_filname = ruta_actual + uploaded_url
+            # Obtener la ruta completa del archivo
+            path_filname = filesys.path(uploadfilename)
+            print(f'Ruta del archivo (UY): {path_filname}')
+            
             wb = openpyxl.load_workbook(path_filname) #Abrimos el archivo
             worksheet = wb.active
-            excel_data = list()
-            enc_data = list()
+            pedidos_data = list()  # Lista estructurada de pedidos
             mensaje_error = ''
-            mensaje_Success = ''
-            # iterando sobre las filas y obteniendo
-            # valor de cada celda en la fila
-            for row in worksheet.iter_rows():
-                fila = row[0].row   #Numero de fila
-                row_data = list()
-                talon_pedido = 0
-                i = 1
-                if worksheet.cell(row=fila, column=1).value is None: #Frena el loop al llegar al final de la lista
+            mensaje_info = ''
+            pedidos_validos = 0
+            pedidos_invalidos = 0
+            
+            # Buscar índices de columnas
+            col_nro_pedido = None
+            col_talon_ped = None
+            for i, cell in enumerate(worksheet[1], start=1):
+                if cell.value == 'NRO_PEDIDO':
+                    col_nro_pedido = i
+                elif cell.value == 'TALON_PED':
+                    col_talon_ped = i
+            
+            if not col_nro_pedido or not col_talon_ped:
+                os.remove(filesys.path(uploadfilename))
+                return render(request,'appConsultasTango/importFilePedidosAnularUY.html',{
+                    'mensaje_error': '❌ El archivo debe contener las columnas NRO_PEDIDO y TALON_PED'
+                })
+            
+            # Procesar filas
+            for row in worksheet.iter_rows(min_row=2):
+                if not row[0].value:  # Fila vacía
                     break
                 
-                for cell in row:
-                    if fila == 1:
-                        enc_data.append(str(cell.value))
-                    else:
-                        if worksheet.cell(row=1, column=i).value == 'NRO_PEDIDO':
-                            if fila > 1:
-                                pedido = worksheet.cell(row=fila, column=i).value
-                                if worksheet.cell(row=1, column=6).value == 'TALON_PED':
-                                    talon_pedido = worksheet.cell(row=fila, column=6).value
-
-                                ped_valido= validar_pedido(pedido,str(talon_pedido))
-                                # print('ped_valido: ' + str(ped_valido))
-                                if ped_valido == 0:
-                                    mensaje_error = 'Los Pedidos NO EXISTEN  o NO ESTAN PENDIENTES'
-                                    row_data.append('*' + str(cell.value) + '*')
-                                    i += 1
-                                    continue
-                        if cell.value == None:
-                            row_data.append(str(''))
-                        else:
-                            row_data.append(str(cell.value))                        
-                    i += 1
-
-                excel_data.append(row_data)
-
-            # print('path_filname: ' + path_filname)
-            wb.save(path_filname)
-            if not(mensaje_error):
-                upload_file_AnularPedidos(path_filname) #Ejecuta ejuste en base de datos
-                mensaje_Success = 'Pedidos anulados correctamente'
-                os.remove(filesys.path(uploadfilename))
+                nro_pedido = row[col_nro_pedido - 1].value
+                talon_ped = row[col_talon_ped - 1].value
                 
-            else:
-                os.remove(filesys.path(uploadfilename))
-
+                if nro_pedido is None or talon_ped is None:
+                    continue
+                
+                # Validar pedido
+                ped_valido = validar_pedido(nro_pedido, str(talon_ped))
+                estado = 'válido' if ped_valido > 0 else 'inválido'
+                
+                pedido_info = {
+                    'nro_pedido': str(nro_pedido),
+                    'talon_ped': str(talon_ped),
+                    'estado': estado,
+                    'valido': ped_valido > 0
+                }
+                pedidos_data.append(pedido_info)
+                
+                if ped_valido > 0:
+                    pedidos_validos += 1
+                else:
+                    pedidos_invalidos += 1
             
-            return render(request, 'appConsultasTango/importFilePedidosAnularUY.html' ,{'enc_data':enc_data,'excel_data':excel_data,'mensaje_Success':mensaje_Success,'mensaje_error':mensaje_error})
-
+            os.remove(filesys.path(uploadfilename))
+            
+            # Preparar mensaje informativo
+            if pedidos_validos > 0 and pedidos_invalidos == 0:
+                mensaje_info = f'📋 Se encontraron {pedidos_validos} pedido(s) válido(s) listo(s) para anular (Uruguay)'
+            elif pedidos_validos > 0 and pedidos_invalidos > 0:
+                mensaje_info = f'⚠️ Se encontraron {pedidos_validos} pedido(s) válido(s) y {pedidos_invalidos} inválido(s). Solo se pueden anular los válidos.'
+            elif pedidos_validos == 0:
+                mensaje_error = f'❌ No se encontraron pedidos válidos para anular. Total de pedidos inválidos: {pedidos_invalidos}'
+            
+            # Si es petición AJAX, devolver JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'pedidos_data': pedidos_data,
+                    'pedidos_validos': pedidos_validos,
+                    'pedidos_invalidos': pedidos_invalidos,
+                    'mensaje_info': mensaje_info,
+                    'mensaje_error': mensaje_error
+                })
+            
+            # SOLO PREVISUALIZACIÓN - NO SE ANULA NADA AÚN
+            return render(request, 'appConsultasTango/importFilePedidosAnularUY.html', {
+                'pedidos_data': pedidos_data,
+                'pedidos_validos': pedidos_validos,
+                'pedidos_invalidos': pedidos_invalidos,
+                'mensaje_info': mensaje_info,
+                'mensaje_error': mensaje_error,
+                'mostrar_preview': True,
+                'es_uy': True
+            })
 
     except Exception as identifier:            
         print(identifier)
+        mensaje_error = f'❌ Error al procesar el archivo: {str(identifier)}. Verifica que el archivo tenga el formato correcto.'
+        # Si es petición AJAX, devolver JSON de error
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'mensaje_error': mensaje_error})
+        return render(request,'appConsultasTango/importFilePedidosAnularUY.html',{'mensaje_error': mensaje_error})
     return render(request,'appConsultasTango/importFilePedidosAnularUY.html',{})
 
+@login_required(login_url="/login/")
+def ejecutar_anulacion_pedidos_uy(request):
+    """Vista para ejecutar la anulación de pedidos seleccionados (Uruguay)"""
+    nombre_db='TASKY_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    if request.method == 'POST':
+        try:
+            # Obtener pedidos seleccionados del POST
+            pedidos_seleccionados = request.POST.getlist('pedidos_seleccionados')
+            anular_todos = request.POST.get('anular_todos') == 'true'
+            
+            if not pedidos_seleccionados:
+                return render(request, 'appConsultasTango/importFilePedidosAnularUY.html', {
+                    'mensaje_error': '❌ No se seleccionaron pedidos para anular'
+                })
+            
+            # Procesar anulaciones
+            anulados_exitosos = 0
+            anulados_fallidos = 0
+            
+            for pedido_str in pedidos_seleccionados:
+                try:
+                    # Formato: "nro_pedido|talon_ped"
+                    nro_pedido, talon_ped = pedido_str.split('|')
+                    numero_pedido = ' 0000' + str(nro_pedido)[-9:]
+                    
+                    # Ejecutar anulación
+                    anular_pedido(talon_ped, numero_pedido)
+                    anulados_exitosos += 1
+                except Exception as e:
+                    print(f"Error anulando pedido {pedido_str}: {str(e)}")
+                    anulados_fallidos += 1
+            
+            # Preparar mensaje de resultado
+            if anulados_fallidos == 0:
+                mensaje_success = f'✅ Se anularon exitosamente {anulados_exitosos} pedido(s) (Uruguay)'
+            else:
+                mensaje_success = f'⚠️ Se anularon {anulados_exitosos} pedido(s). Fallaron {anulados_fallidos}.'
+            
+            return render(request, 'appConsultasTango/importFilePedidosAnularUY.html', {
+                'mensaje_Success': mensaje_success
+            })
+            
+        except Exception as e:
+            print(f"Error en ejecutar_anulacion_pedidos_uy: {str(e)}")
+            return render(request, 'appConsultasTango/importFilePedidosAnularUY.html', {
+                'mensaje_error': f'❌ Error al anular pedidos: {str(e)}'
+            })
+    
+    return render(request, 'appConsultasTango/importFilePedidosAnularUY.html', {})
+
+@login_required(login_url="/login/")
+def ejecutar_anulacion_pedidos(request):
+    """Vista para ejecutar la anulación de pedidos seleccionados"""
+    nombre_db='LAKER_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    if request.method == 'POST':
+        try:
+            # Obtener pedidos seleccionados del POST
+            pedidos_seleccionados = request.POST.getlist('pedidos_seleccionados')
+            anular_todos = request.POST.get('anular_todos') == 'true'
+            
+            if not pedidos_seleccionados:
+                return render(request, 'appConsultasTango/importFilePedidosAnular.html', {
+                    'mensaje_error': '❌ No se seleccionaron pedidos para anular'
+                })
+            
+            # Procesar anulaciones
+            anulados_exitosos = 0
+            anulados_fallidos = 0
+            
+            for pedido_str in pedidos_seleccionados:
+                try:
+                    # Formato: "nro_pedido|talon_ped"
+                    nro_pedido, talon_ped = pedido_str.split('|')
+                    numero_pedido = ' 0000' + str(nro_pedido)[-9:]
+                    
+                    # Ejecutar anulación
+                    anular_pedido(talon_ped, numero_pedido)
+                    anulados_exitosos += 1
+                except Exception as e:
+                    print(f"Error anulando pedido {pedido_str}: {str(e)}")
+                    anulados_fallidos += 1
+            
+            # Preparar mensaje de resultado
+            if anulados_fallidos == 0:
+                mensaje_success = f'✅ Se anularon exitosamente {anulados_exitosos} pedido(s)'
+            else:
+                mensaje_success = f'⚠️ Se anularon {anulados_exitosos} pedido(s). Fallaron {anulados_fallidos}.'
+            
+            return render(request, 'appConsultasTango/importFilePedidosAnular.html', {
+                'mensaje_Success': mensaje_success
+            })
+            
+        except Exception as e:
+            print(f"Error en ejecutar_anulacion_pedidos: {str(e)}")
+            return render(request, 'appConsultasTango/importFilePedidosAnular.html', {
+                'mensaje_error': f'❌ Error al anular pedidos: {str(e)}'
+            })
+    
+    return render(request, 'appConsultasTango/importFilePedidosAnular.html', {})
+
+@login_required(login_url="/login/")
+def validar_pedido_individual(request):
+    """Vista para validar un pedido antes de anularlo (AR)"""
+    nombre_db='LAKER_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    if request.method == 'POST':
+        nro_pedido = request.POST.get('nro_pedido', '').strip()
+        talon_ped = request.POST.get('talon_ped', '').strip()
+        
+        if not nro_pedido or not talon_ped:
+            return JsonResponse({
+                'valido': False,
+                'mensaje': '❌ Debes completar ambos campos (Nro. Pedido y Talón)'
+            })
+        
+        try:
+            # Validar usando la función existente
+            resultado = validar_pedido(nro_pedido, talon_ped)
+            
+            if resultado > 0:
+                return JsonResponse({
+                    'valido': True,
+                    'mensaje': f'✅ Pedido {nro_pedido} (Talón {talon_ped}) existe y está en estado PENDIENTE'
+                })
+            else:
+                return JsonResponse({
+                    'valido': False,
+                    'mensaje': f'❌ El pedido {nro_pedido} (Talón {talon_ped}) no existe o no está en estado PENDIENTE'
+                })
+        except Exception as e:
+            return JsonResponse({
+                'valido': False,
+                'mensaje': f'❌ Error al validar pedido: {str(e)}'
+            })
+    
+    return JsonResponse({'valido': False, 'mensaje': 'Método no permitido'})
+
+@login_required(login_url="/login/")
+def validar_pedido_individual_uy(request):
+    """Vista para validar un pedido antes de anularlo (UY)"""
+    nombre_db='TASKY_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    if request.method == 'POST':
+        nro_pedido = request.POST.get('nro_pedido', '').strip()
+        talon_ped = request.POST.get('talon_ped', '').strip()
+        
+        if not nro_pedido or not talon_ped:
+            return JsonResponse({
+                'valido': False,
+                'mensaje': '❌ Debes completar ambos campos (Nro. Pedido y Talón)'
+            })
+        
+        try:
+            # Validar usando la función existente
+            resultado = validar_pedido(nro_pedido, talon_ped)
+            
+            if resultado > 0:
+                return JsonResponse({
+                    'valido': True,
+                    'mensaje': f'✅ Pedido {nro_pedido} (Talón {talon_ped}) existe y está en estado PENDIENTE'
+                })
+            else:
+                return JsonResponse({
+                    'valido': False,
+                    'mensaje': f'❌ El pedido {nro_pedido} (Talón {talon_ped}) no existe o no está en estado PENDIENTE'
+                })
+        except Exception as e:
+            return JsonResponse({
+                'valido': False,
+                'mensaje': f'❌ Error al validar pedido: {str(e)}'
+            })
+    
+    return JsonResponse({'valido': False, 'mensaje': 'Método no permitido'})
+
 def upload_file_AnularPedidos(path_filname):
+    """Función legacy - mantener por compatibilidad"""
     excel_file =path_filname
     empexceldata = pd.read_excel(excel_file, engine='openpyxl')
     dbframe = empexceldata
     for df in dbframe.itertuples():
-        
-        numero_pedido = ' 0000' + str(df.NRO_PEDIDO)[-9:]  #Toma los ultimos 9 digitos del numero de pedido
+        numero_pedido = ' 0000' + str(df.NRO_PEDIDO)[-9:]
         talon_pedido = str(df.TALON_PED)
-
-        # if type(numero_pedido) == int:
-        #     pedido = ' 0000' + numero_pedido
-        # else:
-        #     pedido = numero_pedido
-        #     print('Dato sin concatenar')
-        
         anular_pedido(talon_pedido,numero_pedido)
 
 

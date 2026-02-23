@@ -124,7 +124,11 @@ urlpatterns = [
     # --- URLs for views moved from viewsExtras.py ---
     path('import_file_etiquetas', views.import_file_etiquetas, name='herramientas_import_file_etiquetas'),
     path('import_file_anularPedidos', views.import_file_anularPedidos, name='herramientas_import_file_anular_pedidos'),
+    path('ejecutar_anulacion_pedidos', views.ejecutar_anulacion_pedidos, name='herramientas_ejecutar_anulacion_pedidos'),
+    path('validar_pedido_individual', views.validar_pedido_individual, name='herramientas_validar_pedido_individual'),
     path('import_file_anularPedidosUY', views.import_file_anularPedidosUY, name='herramientas_import_file_anular_pedidos_uy'),
+    path('ejecutar_anulacion_pedidos_uy', views.ejecutar_anulacion_pedidos_uy, name='herramientas_ejecutar_anulacion_pedidos_uy'),
+    path('validar_pedido_individual_uy', views.validar_pedido_individual_uy, name='herramientas_validar_pedido_individual_uy'),
     path('import_file_ubi', views.import_file_ubi, name='herramientas_import_file_ubi'),
 
     # EB_sincArt_volumen - URLs específicas PRIMERO (antes de las dinámicas)
