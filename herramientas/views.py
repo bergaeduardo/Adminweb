@@ -994,6 +994,210 @@ def CargaProyecto(request):
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
     # return redirect(dir_iframe)
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Gestión de Usuarios
+# ─────────────────────────────────────────────────────────────────────────────
+from django.contrib.auth.models import User, Group
+
+def _puede_gestionar_usuarios(user):
+    """Retorna True si el usuario puede acceder a la gestión de usuarios."""
+    if not user.is_authenticated:
+        return False
+    return user.groups.filter(name='admin').exists() or \
+           user.groups.filter(name__iendswith='_sup').exists()
+
+
+def _grupos_accesibles(user):
+    """Retorna el queryset de grupos que el usuario puede asignar.
+    Soporta múltiples grupos _sup (ej: Abastecimiento_Sup + Comercial_sup)."""
+    if user.groups.filter(name='admin').exists():
+        return Group.objects.all().order_by('name')
+    from django.db.models import Q
+    sup_groups = user.groups.filter(name__iendswith='_sup')
+    if not sup_groups.exists():
+        return Group.objects.none()
+    q = Q()
+    for sg in sup_groups:
+        prefijo = sg.name[:-4]  # quita '_sup' o '_Sup'
+        q |= Q(name__istartswith=prefijo)
+    return Group.objects.filter(q).exclude(name__iendswith='_sup').order_by('name')
+
+
+def _usuarios_accesibles(user, solo_activos=True):
+    """Retorna el queryset de usuarios que el usuario puede ver/editar.
+    Siempre incluye usuarios activos sin grupos asignados para que cualquier
+    operador pueda asignarles un grupo al momento de darlos de alta.
+    """
+    from django.db.models import Q
+    qs = User.objects.prefetch_related('groups')
+    if solo_activos:
+        qs = qs.filter(is_active=True)
+    if user.groups.filter(name='admin').exists():
+        return qs.order_by('username')
+    grupos = _grupos_accesibles(user)
+    # Usuarios del área del operador + usuarios activos sin ningún grupo asignado
+    return qs.filter(
+        Q(groups__in=grupos) | Q(groups__isnull=True)
+    ).distinct().order_by('username')
+
+
+@login_required(login_url="/login/")
+def gestion_usuarios(request):
+    if not _puede_gestionar_usuarios(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("No tiene permiso para acceder a esta sección.")
+    is_admin = request.user.groups.filter(name='admin').exists()
+    grupos_disponibles = list(_grupos_accesibles(request.user).values('id', 'name'))
+    return render(request, 'herramientas/gestion_usuarios.html', {
+        'is_admin': is_admin,
+        'grupos_disponibles': grupos_disponibles,
+    })
+
+
+@login_required(login_url="/login/")
+def api_usuarios(request):
+    """Retorna lista de usuarios en JSON."""
+    if not _puede_gestionar_usuarios(request.user):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+
+    solo_activos = request.GET.get('activos', 'true') == 'true'
+    qs = _usuarios_accesibles(request.user, solo_activos=solo_activos)
+
+    data = []
+    for u in qs:
+        grupos = [g.name for g in u.groups.all()]
+        data.append({
+            'id': u.id,
+            'username': u.username,
+            'first_name': u.first_name,
+            'last_name': u.last_name,
+            'email': u.email,
+            'is_active': u.is_active,
+            'date_joined': u.date_joined.strftime('%d/%m/%Y'),
+            'last_login': u.last_login.strftime('%d/%m/%Y %H:%M') if u.last_login else '—',
+            'grupos': grupos,
+        })
+    return JsonResponse({'usuarios': data})
+
+
+@login_required(login_url="/login/")
+def api_usuario_detalle(request, user_id):
+    """Retorna detalle de un usuario para edición."""
+    if not _puede_gestionar_usuarios(request.user):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+
+    target = get_object_or_404(User, pk=user_id)
+
+    # Verificar que el solicitante tiene acceso a este usuario
+    accesibles = _usuarios_accesibles(request.user, solo_activos=False)
+    if not accesibles.filter(pk=user_id).exists():
+        return JsonResponse({'error': 'Sin permiso sobre este usuario'}, status=403)
+
+    grupos_usuario = list(target.groups.values_list('id', flat=True))
+    # Grupos que el operador puede gestionar normalmente
+    grupos_accesibles_ids = set(_grupos_accesibles(request.user).values_list('id', flat=True))
+    # Grupos que el usuario tiene pero están fuera del alcance del operador
+    grupos_extra = list(
+        target.groups.exclude(id__in=grupos_accesibles_ids).values('id', 'name').order_by('name')
+    )
+    return JsonResponse({
+        'id': target.id,
+        'username': target.username,
+        'first_name': target.first_name,
+        'last_name': target.last_name,
+        'email': target.email,
+        'is_active': target.is_active,
+        'grupos': grupos_usuario,
+        'grupos_extra': grupos_extra,  # [{id, name}] asignados fuera del área del operador
+    })
+
+
+@login_required(login_url="/login/")
+def api_editar_usuario(request, user_id):
+    """Edita datos personales y grupos de un usuario."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    if not _puede_gestionar_usuarios(request.user):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+
+    target = get_object_or_404(User, pk=user_id)
+    accesibles = _usuarios_accesibles(request.user, solo_activos=False)
+    if not accesibles.filter(pk=user_id).exists():
+        return JsonResponse({'error': 'Sin permiso sobre este usuario'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Datos inválidos'}, status=400)
+
+    first_name = data.get('first_name', target.first_name).strip()
+    last_name = data.get('last_name', target.last_name).strip()
+    email = data.get('email', target.email).strip()
+    is_active = data.get('is_active', target.is_active)
+    if not isinstance(is_active, bool):
+        is_active = bool(is_active)
+    grupos_ids = data.get('grupos', [])
+
+    # Grupos que el operador puede gestionar por su área
+    grupos_permitidos = _grupos_accesibles(request.user)
+    grupos_permitidos_ids = set(grupos_permitidos.values_list('id', flat=True))
+    # Grupos extra: los que el usuario ya tiene asignados fuera del área del operador.
+    # El operador los ve en la UI y puede desasignarlos.
+    grupos_usuario_actuales_ids = set(target.groups.values_list('id', flat=True))
+    grupos_extra_ids = grupos_usuario_actuales_ids - grupos_permitidos_ids
+    # El operador puede manejar: su área normal + los grupos extra ya asignados
+    grupos_manejables_ids = grupos_permitidos_ids | grupos_extra_ids
+    grupos_ids_validos = [int(gid) for gid in grupos_ids if int(gid) in grupos_manejables_ids]
+
+    target.first_name = first_name
+    target.last_name = last_name
+    target.email = email
+    target.is_active = is_active
+    target.save(update_fields=['first_name', 'last_name', 'email', 'is_active'])
+
+    # Preservar solo grupos que el operador no pudo ver en absoluto (ninguno en este caso,
+    # pero se mantiene como red de seguridad por si hubiera grupos no incluidos en la UI).
+    grupos_a_preservar = target.groups.exclude(id__in=grupos_manejables_ids)
+    nuevos_grupos = list(grupos_a_preservar.values_list('id', flat=True)) + grupos_ids_validos
+    target.groups.set(nuevos_grupos)
+
+    return JsonResponse({'ok': True, 'mensaje': f'Usuario {target.username} actualizado correctamente.'})
+
+
+@login_required(login_url="/login/")
+def api_cambiar_password(request, user_id):
+    """Cambia la contraseña de un usuario."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    if not _puede_gestionar_usuarios(request.user):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+
+    target = get_object_or_404(User, pk=user_id)
+    accesibles = _usuarios_accesibles(request.user, solo_activos=False)
+    if not accesibles.filter(pk=user_id).exists():
+        return JsonResponse({'error': 'Sin permiso sobre este usuario'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Datos inválidos'}, status=400)
+
+    nueva_password = data.get('password', '').strip()
+    confirmar_password = data.get('confirmar_password', '').strip()
+
+    if not nueva_password:
+        return JsonResponse({'error': 'La contraseña no puede estar vacía.'}, status=400)
+    if len(nueva_password) < 6:
+        return JsonResponse({'error': 'La contraseña debe tener al menos 6 caracteres.'}, status=400)
+    if nueva_password != confirmar_password:
+        return JsonResponse({'error': 'Las contraseñas no coinciden.'}, status=400)
+
+    target.set_password(nueva_password)
+    target.save(update_fields=['password'])
+
+    return JsonResponse({'ok': True, 'mensaje': f'Contraseña de {target.username} actualizada correctamente.'})
+
+
 # Admin
 
 @login_required(login_url="/login/")

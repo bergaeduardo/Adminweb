@@ -111,6 +111,13 @@ urlpatterns = [
     path('gestionarVendedores', views.gestionarVendedores, name='herramientas_gestionar_vendedores'),
     path('cargaAnticipo', views.CargaAnticipo, name='herramientas_carga_anticipo'),
 
+    # Gestión de usuarios
+    path('gestionUsuarios/', views.gestion_usuarios, name='herramientas_gestion_usuarios'),
+    path('gestionUsuarios/api/usuarios/', views.api_usuarios, name='herramientas_api_usuarios'),
+    path('gestionUsuarios/api/usuario/<int:user_id>/', views.api_usuario_detalle, name='herramientas_api_usuario_detalle'),
+    path('gestionUsuarios/api/usuario/<int:user_id>/editar/', views.api_editar_usuario, name='herramientas_api_editar_usuario'),
+    path('gestionUsuarios/api/usuario/<int:user_id>/password/', views.api_cambiar_password, name='herramientas_api_cambiar_password'),
+
     # Tesoreria
     path('ControlDeEfectivo', views.ControlDeEfectivo, name='herramientas_control_efectivo'),
     path('PagosDirectores', views.PagosDirectores, name='herramientas_pagos_directores'),

@@ -143,6 +143,16 @@
   </li>
 {% endif %}
 
+<!-- Gestión de Usuarios (solo admin o grupos _sup) -->
+{% if request.user|has_sup_group %}
+<li class="nav-item">
+  <a href="/../Herramientas/gestionUsuarios/" class="nav-link {% if 'gestionUsuarios' in request.path %} active {% endif %}">
+    <i class="fas fa-users-cog nav-icon"></i>
+    <p>Usuarios</p>
+  </a>
+</li>
+{% endif %}
+
 
 
 {% endwith %}
