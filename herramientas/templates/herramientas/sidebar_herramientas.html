@@ -206,7 +206,7 @@
     <!-- Fin 	Gestión de Volúmenes -->
 
     <!-- inicio 	Administracion -->
-    {% if request.user|has_any_group:"admin,AdministracionSup" %}
+    {% if request.user|has_any_group:"admin,Administracion_Sup" %}
     <li class="nav-item">
       <a href="/../Herramientas/Controlgastos"
         class="nav-link {% if 'Controlgastos' in request.path %} active {% endif %}">
@@ -226,7 +226,7 @@
 
     
     {% endif %}
-    {% if request.user|has_any_group:"admin,AdministracionSup,Administracion" %}
+    {% if request.user|has_any_group:"admin,Administracion_Sup,Administracion" %}
     <li class="nav-item">
       <a href="/../Herramientas/ControlGastosSupervision"
         class="nav-link {% if 'ControlGastosSupervision' in request.path %} active {% endif %}">
@@ -318,7 +318,7 @@
     </li>
     
     {% endif %}
-    {% if request.user|has_any_group:"admin,AdministracionSup,Administracion,Tesoreria" %}
+    {% if request.user|has_any_group:"admin,Administracion_Sup,Administracion,Tesoreria" %}
     <li class="nav-item">
       <a href="/../Herramientas/EgresosCajaTesoreria"
         class="nav-link {% if 'EgresosCajaTesoreria' in request.path %} active {% endif %}">
@@ -337,7 +337,7 @@
     </li>
     {% endif %}
     <!-- Administracion_CE   ***Comercio Exterior*** -->
-    {% if request.user|has_any_group:"admin,AdministracionSup,Administracion_CE,Gerencia" or request.user.id == 92 %}
+    {% if request.user|has_any_group:"admin,Administracion_Sup,Administracion_CE,Gerencia" or request.user.id == 92 %}
     <li class="nav-item">
       <a href="/../Herramientas/Cargarcontenedor"
         class="nav-link {% if 'Cargarcontenedor' in request.path %} active {% endif %}">
@@ -349,7 +349,7 @@
     {% endif %}
     <!-- Fin Administracion_CE ***Comercio Exterior*** -->
 
-    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento,AdministracionSup,Administracion" %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento,Administracion_Sup,Administracion" %}
     <li class="nav-item">
       <a href="/../Herramientas/MedidasLocales"
         class="nav-link {% if 'MedidasLocales' in request.path %} active {% endif %}">
@@ -587,7 +587,7 @@
     <!-- Fin 	Tesoreria -->
 
     <!-- inicio 	Supervisores -->
-    {% if request.user|has_any_group:"admin,Comercial_sup,e-commerce_sup,AdministracionSup,Logistica_Sup" or request.user.id == 63 %}
+    {% if request.user|has_any_group:"admin,Comercial_sup,e-commerce_sup,Administracion_Sup,Logistica_Sup" or request.user.id == 63 %}
     <li class="nav-item">
       <a href="/../Herramientas/CargaProyecto" class="nav-link {% if  'CargaProyecto' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
