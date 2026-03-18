@@ -467,9 +467,47 @@ def gestionKits(request):
 
 @login_required(login_url="/login/")
 def conversorCSV(request):
-    Nombre = 'Conversor CSV'
-    dir_iframe = DIR_HERAMIENTAS['conversorCSV'] #+ UserName
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+    if request.method == 'POST':
+        uploaded = request.FILES.get('excel_file')
+        if not uploaded:
+            return render(request, 'herramientas/conversor_csv.html', {'error': 'No se recibió ningún archivo.'})
+
+        separator = request.POST.get('separator', ';')
+        encoding  = request.POST.get('encoding', 'utf-8-sig')
+        sheet     = request.POST.get('sheet_name', 0)  # 0 = primera hoja
+
+        try:
+            df = pd.read_excel(uploaded, sheet_name=sheet, dtype=str)
+        except Exception as e:
+            return render(request, 'herramientas/conversor_csv.html', {'error': f'Error al leer el archivo: {e}'})
+
+        import io
+        buffer = io.StringIO()
+        df.to_csv(buffer, sep=separator, index=False, encoding=encoding)
+        csv_content = buffer.getvalue()
+
+        # Nombre del archivo de salida
+        base = uploaded.name.rsplit('.', 1)[0]
+        response = HttpResponse(csv_content.encode(encoding), content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{base}.csv"'
+        return response
+
+    return render(request, 'herramientas/conversor_csv.html')
+
+
+@login_required(login_url="/login/")
+def conversorCSV_sheets(request):
+    """Devuelve la lista de hojas de un archivo Excel (llamada AJAX)."""
+    if request.method == 'POST':
+        uploaded = request.FILES.get('excel_file')
+        if not uploaded:
+            return JsonResponse({'sheets': []})
+        try:
+            xl = pd.ExcelFile(uploaded)
+            return JsonResponse({'sheets': xl.sheet_names})
+        except Exception:
+            return JsonResponse({'sheets': []})
+    return JsonResponse({'sheets': []})
 
 # Mayoristas
 @login_required(login_url="/login/")

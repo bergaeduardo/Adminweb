@@ -51,6 +51,7 @@ urlpatterns = [
     path('ObjetivosVentaFranquicias', views.ObjetivosVentaFranquicias, name='herramientas_objetivos_venta_franquicias'),
     path('gestionKits', views.gestionKits, name='herramientas_gestion_kits'),
     path('conversorCSV', views.conversorCSV, name='herramientas_conversor_csv'),
+    path('conversorCSV/sheets', views.conversorCSV_sheets, name='herramientas_conversor_csv_sheets'),
     # Mayoristas
     path('gestionPedidos', views.gestionPedidos, name='herramientas_gestion_pedidos'),
     # Ecommerce
