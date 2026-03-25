@@ -25,6 +25,15 @@
               <p>Comparar Ventas Propios</p>
             </a>
           </li>
+          <li class="nav-item">
+            {# Updated href for Gestion Horarios (assuming RRHH section) #}
+            <a href="/Reportes/RRHH/gestionHorarios"
+              class="nav-link {% if 'gestionHorarios' in request.path %} active {% endif %}">
+              <i class="far fa-circle nav-icon"></i>
+              <p>Gestión Horarios</p>
+            </a>
+          </li>
+        
         {% endif %}
         {% if request.user|has_any_group:"RRHH,admin" or request.user.id == 20 %}
           <li class="nav-item">

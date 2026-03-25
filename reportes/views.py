@@ -29,8 +29,14 @@ def reporteAnticipos(request):
 
 @login_required(login_url="/login/")
 def gestionClientes(request):
-    Nombre=''
+    Nombre='Gestión de Clientes'
     dir_iframe = DIR_REPORTES['gestionClientes']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
+@login_required(login_url="/login/")
+def gestionHorarios(request):
+    Nombre='Gestión de Horarios'
+    dir_iframe = DIR_REPORTES['gestionHorarios']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 # Logistica
