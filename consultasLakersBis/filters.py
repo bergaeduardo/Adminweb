@@ -62,6 +62,21 @@ def filtroGrupoEmpresario():
             lista.append(c[0])
     return lista
 
+def filtroProvincias():
+    with connections['mi_db_4'].cursor() as cursor:
+        cursor.execute('''
+            SELECT PROVINCIA FROM DIRECCIONARIO
+            WHERE NRO_SUC_MADRE IS NULL
+            AND PROVINCIA IS NOT NULL AND PROVINCIA != ''
+            GROUP BY PROVINCIA
+            ORDER BY PROVINCIA
+        ''')
+        consulta = cursor.fetchall()
+        lista = []
+        for c in consulta:
+            lista.append(c[0])
+    return lista
+
 def filtroRubro():
     with connections['mi_db_4'].cursor() as cursor:
         cursor.execute('''

@@ -77,7 +77,7 @@ DIR_REPORTES = {
     'DetalleRemitos599':SERVIDOR['production']  + 'finanzas/599/consultaderemitos.php?userName=',
     'ChequesRecibidos':SERVIDOR['production']  + 'finanzas/599/reportedecheques.php?userName=',
     # RRHH
-    'ReporteAnticipos':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/reporteAnticipos.php',
+    'ReporteAnticipos':SERVIDOR['production'] + 'recursosHumanos/anticipoSueldos/reporteAnticipos.php',
     'gestionClientes':SERVIDOR['production'] + 'recursosHumanos/clientes/index.php',
     'gestionHorarios':SERVIDOR['production'] + 'comercial/horarios/rrhh.php',
     # Supervisores
@@ -148,11 +148,11 @@ DIR_HERAMIENTAS = {
     'RegistroPagoServicios':SERVIDOR['production'] + 'administracion/tesoreria/cajaDirectores/formPagoServicios.php',
     # RRHH
     # 'adminEmpleados':SERVIDOR['production'] + 'administracion/recursosHumanos/controlHorarios/controlHorario.php',
-    'altaVendedores':SERVIDOR['production'] + 'administracion/recursoshumanos/altaVendedores/altaVendedores.php',
-    'listarGrupos':SERVIDOR['production'] + 'administracion/recursosHumanos/altaVendedores/listarGrupos.php',
-    'gestionarVendedores':SERVIDOR['production'] + 'administracion/recursosHumanos/altaVendedores/gestionarVendedores.php',
-    'CargaAnticipoGrupo':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/cargaAnticipoGrupo.php',
-    'CargaAnticipo':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/cargaAnticipo.php',
+    'altaVendedores':SERVIDOR['production'] + 'recursoshumanos/altaVendedores/altaVendedores.php',
+    'listarGrupos':SERVIDOR['production'] + 'recursoshumanos/altaVendedores/listarGrupos.php',
+    'gestionarVendedores':SERVIDOR['production'] + 'recursoshumanos/altaVendedores/gestionarVendedores.php',
+    'CargaAnticipoGrupo':SERVIDOR['production'] + 'recursoshumanos/anticipoSueldos/cargaAnticipoGrupo.php',
+    'CargaAnticipo':SERVIDOR['production'] + 'recursoshumanos/anticipoSueldos/cargaAnticipo.php',
     
     # Tesoreria
     'ControlDeEfectivo':SERVIDOR['production'] + 'administracion/controlSucursales/controlRecepcionEfectivo.php',

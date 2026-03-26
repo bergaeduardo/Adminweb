@@ -1,438 +1,273 @@
-{% extends "layouts/base.html" %}
+﻿{% extends "layouts/base.html" %}
 {% load has_group %}
 
-{% block title %} {{Nombre}} {% endblock %} 
+{% block title %} {{ Nombre }} {% endblock %}
 
-<!-- Element injected in the BODY element -->
-{% block body_class %} sidebar-mini layout-navbar-fixed {% endblock body_class %} 
+{% block body_class %} sidebar-mini layout-navbar-fixed {% endblock body_class %}
 
-<!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
-
-  <!-- Google Font: Source Sans Pro -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Google Fonts: Sora + DM Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
-  <!-- Ionicons -->
-  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-  <!-- Theme style -->
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.min.css">
+  <!-- AdminLTE theme -->
   <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
   <!-- SweetAlert2 -->
   <link rel="stylesheet" href="/static/assets/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
-  <!-- Boton Flotante -->
-  <link rel="stylesheet" href="/static/assets/css/direccionario/BotonFlotante2.css">
-  <!-- Toastr -->
-  <link href="/static/assets/plugins/toastr/toastr.css" rel="stylesheet"/>
-  <style>
-    .category_item{
-      text-align: left;
-      border-color:gray;
-    }
-    .filter-toggle-btn {
-      cursor: pointer;
-      transition: all 0.3s ease;
-      padding: 10px;
-      border-radius: 50%;
-      border: none;
-      width: 45px;
-      height: 45px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 15px auto;
-      font-size: 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    .filter-toggle-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    }
-    .filter-toggle-btn.inactive {
-      background: #6c757d;
-      color: white;
-    }
-    .filter-toggle-btn.active {
-      background: #28a745;
-      color: white;
-    }
-    .filter-alert {
-      position: fixed;
-      top: 70px;
-      right: 20px;
-      z-index: 9999;
-      min-width: 300px;
-      animation: slideIn 0.3s ease;
-    }
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-  </style>
+  <!-- Direccionario custom CSS -->
+  <link rel="stylesheet" href="/static/assets/css/direccionario/direccionario.css">
 {% endblock stylesheets %}
 
 {% block content %}
-<div class="content-wrapper">
-  <section class="content"></section>
-    <div class="content-header">
-      <div class="container">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1 class="m-0 text-dark"> {{Nombre}} </h1>
-          </div>
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="/">Home</a></li>
-              <li class="breadcrumb-item active">{{Nombre}}</li>
-            </ol>
-          </div>
+<div class="content-wrapper dir-wrapper">
+
+  <!-- ============ SIDEBAR FILTROS ============ -->
+  <aside class="dir-sidebar" id="dir-sidebar">
+    <div class="dir-sidebar-inner">
+
+      <!-- Branding -->
+      <div class="dir-brand">
+        <i class="bi bi-geo-alt-fill"></i>
+        <span>Direccionario</span>
+        <button class="dir-sidebar-close d-md-none" id="dir-sidebar-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="dir-search-wrap">
+        <div class="dir-search-inner">
+          <i class="fas fa-search dir-search-icon"></i>
+          <input type="search" id="dir-search" class="dir-search-input" placeholder="Buscar sucursal, localidad...">
+          <button id="dir-clear-search" class="dir-clear-btn" title="Limpiar busqueda">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
       </div>
-    </div>
-    <div class="container">
-      {% if messages %}
-          {% for message in messages %}
-          <div class="panel-footer {% if message.tags == 'success' %}toastrDefaultSuccess {% else %}toastrDefaultSuccess{% endif %}"></div>
+
+      <!-- Canal Filter -->
+      <div class="dir-filter-section">
+        <button class="dir-filter-title" data-toggle="collapse" data-target="#filter-canal" aria-expanded="false">
+          <span><i class="bi bi-broadcast-pin"></i> Canal</span>
+          <i class="fas fa-chevron-down dir-chevron"></i>
+        </button>
+        <div id="filter-canal" class="collapse dir-filter-list">
+          <button class="dir-filter-btn active" data-canal="" data-filter="canal">
+            <span>Todos los canales</span>
+            <span class="dir-filter-count">{{ canales|length }}</span>
+          </button>
+          {% for c in canales %}
+          <button class="dir-filter-btn" data-canal="{{ c }}" data-filter="canal">
+            <span>{{ c }}</span>
+          </button>
           {% endfor %}
-      {% endif %}
-      <div class="row">
-        
-        <div class="card-widget col-sm-3">
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">FILTROS</h3>
-              <div class="input-group">
-                <input type="search" class="form-control form-control-lg input-search" placeholder="Buscar">
-                <div class="input-group-append">
-                    <button type="submit" class="btn btn-lg btn-default btn-filtrar">
-                        <i class="fa fa-search"></i>
-                    </button>
-                </div>
-              </div>
-            </div>
-            <!-- /.card-header -->
-            <div class="card-body">
-              <!-- we are adding the accordion ID so Bootstrap's collapse plugin detects it -->
-              <div id="accordion" class="category_list">
-                <button type="button" class="btn btn-block btn-outline-secondary category_item_all" style="margin-bottom: 15px; text-align: left;" cat="all">TODOS</button>
-                <div class="card card-info">
-                  <div class="card-header">
-                    <h4 class="card-title w-100">
-                      <a class="d-block w-100 " data-toggle="collapse" href="#collapseOne">
-                        CANAL
-                      </a>
-                    </h4>
-                  </div>
-                  <div id="collapseOne" class="collapse" data-parent="#accordion">
-                    <div class="card-body">
-                      <ul class="list-group category_list">
-                          {% for c in canal %}
-                          <button type="button" class="btn btn-light btn-block category_item" category='{{ c }}'>{{ c }}</button>
-                          {% endfor %}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                <div class="card card-olive">
-                  <div class="card-header">
-                    <h4 class="card-title w-100">
-                      <a class="d-block w-100 " data-toggle="collapse" href="#collapseThree">
-                        TIPO PDV
-                      </a>
-                    </h4>
-                  </div>
-                  <div id="collapseThree" class="collapse" data-parent="#accordion">
-                    <div class="card-body">
-                      <ul class="list-group category_list">
-                        {% for local in tipo_local %}
-                          <button type="button" class="btn btn-light btn-block category_item" tipoLocal='{{ local }}'>{{ local }}</button>
-                        {% endfor %}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                <div class="card card-secondary">
-                  <div class="card-header">
-                    <h4 class="card-title w-100">
-                      <a class="d-block w-100" data-toggle="collapse" href="#collapseTwo">
-                        GRUPO
-                      </a>
-                    </h4>
-                  </div>
-                  <div id="collapseTwo" class="collapse" data-parent="#accordion">
-                    <div class="card-body">
-                      <ul class="list-group category_list">
-                        {% for G in grupo %}
-                          <button type="button" class="btn btn-light btn-block category_item" grupo='{{ G }}'>{{ G }}</button>
-                        {% endfor %}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                {% if request.user|has_group:"admin" or request.user|has_group:"Sistemas" %}
-                <!-- Botón de filtro sucursal madre -->
-                <div class="text-center mt-3">
-                  <button type="button" id="filter-toggle" class="filter-toggle-btn {% if mostrar_todos %}active{% else %}inactive{% endif %}" title="{% if mostrar_todos %}Filtro activado - Mostrando todas las sucursales. Click para ver solo principales{% else %}Filtro desactivado - Solo sucursales principales. Click para ver todas{% endif %}">
-                    <i class="fas fa-tools"></i>
-                  </button>
-                  <div class="text-muted small">
-                    <small>{% if mostrar_todos %}Mostrar Principales{% else %}Mostrar Todas{% endif %}</small>
-                  </div>
-                </div>
-                {% endif %}
-              </div>
-            </div>
-            <!-- /.card-body -->
-          </div>
-        </div>
-        <div class="col-sm-9">
-          <div class="row products-list">
-            {% for dato in datos %}
-            <div class="col-4 col-sm-6 product-item" category='{{ dato.canal }}' sucursal='{{ dato.nro_sucursal }}' tipoLocal='{{ dato.tipo_local }}' grupo='{{ dato.grupo_empresario }}'>
-              <div class="card card-widget collapsed-card">
-                <div class="card-header">
-                  <div class="user-block">
-                    <span class="username" sucursal="3"><a>({{ dato.nro_sucursal }}){{ dato.cod_client }}-{{ dato.desc_sucursal }}</a></span>
-                    <span class="description"><i class="fas fa-phone"></i><b> Telefono:</b> {{ dato.telefono }}</span>
-                    <span class="description">
-                      <button type="button" class="btn btn-tool copy_to_clipboard swalDefaultSuccess" address="{{ dato.mail }}">
-                        <i class="fas fa-envelope"></i>
-                      </button>
-                      <b> Local:</b> 
-                      {{ dato.mail|default_if_none:"" }}
-                    </span>
-                    {% if dato.mails_empresa %}
-                    <span class="description">
-                      <button type="button" class="btn btn-tool copy_to_clipboard swalDefaultSuccess" address="{{ dato.mails_empresa }}">
-                        <i class="fas fa-envelope"></i>
-                      </button>
-                      <b> Empresa:</b> 
-                      {% for mail in dato.mails_empresa %}
-                        <br>{{ mail }}
-                      {% endfor %}
-                    </span>
-                    {% endif %}
-                    <span class="mensaje" id="mensaje"></span>
-                    <!-- <a class="text-secondary"> Conexion: <b id="copy_to_clipboard">{{ dato.conexion_dns }} </b></a>
-                        <button type="button" class="btn btn-tool copy_to_clipboard swalDefaultSuccess" address="{{ dato.conexion_dns }}">
-                          <i class="fa fa-copy"></i>
-                        </button>
-                        <span class="mensaje" id="mensaje"></span> -->
-                  </div>
-                  <!-- /.user-block -->
-                  <div class="card-tools">
-                    {% if request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_may" %}
-                    <a title="Editar" name="" id="" class="fas fa-pencil-alt btn-tool" href="/../Extras/direccionario/editarSucursal/{{ dato.nro_sucursal }}" role="button"></a>
-                    {% endif %}
-                    {% if request.user|has_group:"admin" or request.user|has_group:"Sistemas" or request.user.is_superuser %}
-                    <a title="Editar" name="" id="" class="fas fa-pencil-alt btn-tool" href="/../Extras/direccionario/editarSucursalCompleta/{{ dato.nro_sucursal }}" role="button"></a>
-                    {% endif %}
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                      <i class="fas fa-plus"></i>
-                    </button>
-                    <button type="button" class="btn btn-tool" data-card-widget="remove">
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <h5><b>Datos adicionales 
-                  </b></h5>
-                  <ul class="list-unstyled">
-                    <!-- <span class="description"><i class="fas fa-building"></i><b> Direccion:</b> {{ dato.direccion }}<br>{{ dato.localidad }} - {{ dato.provincia }}</span> -->
-                    <li>
-                      <a class="text-secondary"> Direccion: <b>{{ dato.direccion }}<br>{{ dato.localidad }} - {{ dato.provincia }}</b></a>
-                    </li>
-                    <li>
-                      <a class="text-secondary"> Atencion: <b>{{ dato.horario }}</b></a>
-                    </li>
-                    <li>
-                      <a class="text-secondary"> Canal: <b>{{ dato.canal }}</b></a>
-                    </li>
-                    <li>
-                      <a class="btn-link text-secondary"> Tipo de Local: <b>{{ dato.tipo_local }}</b></a>
-                    </li>
-                    <li>
-                      <a class="btn-link text-secondary"> Tienda: <b>{{ dato.tienda }}</b></a>
-                    </li>
-                    <li>
-                      <a class="text-secondary"> Tango: <b>{{ dato.tango }}</b></a>
-                    </li>
-                    <li>
-                      <a class="text-secondary"> Integra vtex: <b>{{ dato.integra_vtex }}</b></a>
-                    </li>
-                    <li>
-                      <a class="text-secondary"> Deposito: <b>{{ dato.deposito }}</b></a>
-                    </li>
-                    <li>
-                      <a class="text-secondary"> Retiro Expres: <b>{{ dato.retiro_expres }}</b></a>
-                    </li>
-                    <li>
-                      <a class="btn-link text-secondary"> Suc. Ferreteria: <b>{{ dato.nro_sucursal_madre|default_if_none:"" }}</b></a>
-                    </li>
-                    <li>
-                      <a class="btn-link text-secondary"> Suc. Anterior: <b>{{ dato.nro_sucursal_anterior|default_if_none:"" }}</b></a>
-                    </li>
-                  </ul>
-                </div>
-                {% if request.user|has_group:"admin" or request.user|has_group:"soporteExt" %}
-                <!-- /.card-body -->
-                <div class="card-footer card-comments">
-                  <div class="card-comment">
-                    <ul class="list-unstyled">
-                      <li>
-                        <a class="text-secondary"> Base: <b>{{ dato.base_nombre|default_if_none:"" }}</b></a>
-                      </li>
-                      <li>
-                        <a class="text-secondary"> Conexion: <b id="copy_to_clipboard">{{ dato.conexion_dns|default_if_none:"" }} </b></a>
-                        <button type="button" class="btn btn-tool copy_to_clipboard swalDefaultSuccess" address="{{ dato.conexion_dns }}">
-                          <i class="fa fa-copy"></i>
-                        </button>
-                        <span class="mensaje" id="mensaje"></span>
-                      </li>
-                      <li>
-                        <a class="text-secondary"> Llave Tango: <b id="copy_to_clipboard">{{ dato.n_llave_tango|default_if_none:"" }} </b></a>
-                        <button type="button" class="btn btn-tool copy_to_clipboard swalDefaultSuccess" address="{{ dato.n_llave_tango }}">
-                          <i class="fa fa-copy"></i>
-                        </button>
-                        <span class="mensaje" id="mensaje"></span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <!-- /.card-footer -->
-                {% endif %}
-              </div>
-            </div>
-            {% endfor %}
-          </div>
         </div>
       </div>
+
+      <!-- Tipo PDV Filter -->
+      <div class="dir-filter-section">
+        <button class="dir-filter-title" data-toggle="collapse" data-target="#filter-tipo-local" aria-expanded="false">
+          <span><i class="bi bi-shop"></i> Tipo PDV</span>
+          <i class="fas fa-chevron-down dir-chevron"></i>
+        </button>
+        <div id="filter-tipo-local" class="collapse dir-filter-list">
+          <button class="dir-filter-btn active" data-tlocal="" data-filter="tipo_local">
+            <span>Todos los tipos</span>
+          </button>
+          {% for t in tipo_local %}
+          {% if t %}
+          <button class="dir-filter-btn" data-tlocal="{{ t }}" data-filter="tipo_local">
+            <span>{{ t }}</span>
+          </button>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Grupo Filter -->
+      <div class="dir-filter-section">
+        <button class="dir-filter-title" data-toggle="collapse" data-target="#filter-grupo" aria-expanded="false">
+          <span><i class="bi bi-people-fill"></i> Grupo</span>
+          <i class="fas fa-chevron-down dir-chevron"></i>
+        </button>
+        <div id="filter-grupo" class="collapse dir-filter-list">
+          <button class="dir-filter-btn active" data-grupo="" data-filter="grupo">
+            <span>Todos los grupos</span>
+          </button>
+          {% for g in grupo %}
+          {% if g %}
+          <button class="dir-filter-btn" data-grupo="{{ g }}" data-filter="grupo">
+            <span>{{ g }}</span>
+          </button>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Provincia Filter -->
+      <div class="dir-filter-section">
+        <button class="dir-filter-title" data-toggle="collapse" data-target="#filter-prov" aria-expanded="false">
+          <span><i class="bi bi-map"></i> Provincia</span>
+          <i class="fas fa-chevron-down dir-chevron"></i>
+        </button>
+        <div id="filter-prov" class="collapse dir-filter-list">
+          <button class="dir-filter-btn active" data-prov="" data-filter="provincia">
+            <span>Todas las provincias</span>
+            <span class="dir-filter-count">{{ provincias|length }}</span>
+          </button>
+          {% for p in provincias %}
+          <button class="dir-filter-btn" data-prov="{{ p }}" data-filter="provincia">
+            <span>{{ p }}</span>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Reset -->
+      <div class="dir-sidebar-footer">
+        {% if request.user|has_group:"admin" or request.user|has_group:"Sistemas" or request.user.is_superuser %}
+        <div class="dir-toggle-todas-wrap">
+          <button id="dir-toggle-todas"
+                  class="dir-toggle-todas-btn"
+                  title="Mostrando solo sucursales principales — click para ver todas">
+            <i class="fas fa-tools"></i>
+          </button>
+          <span id="dir-toggle-todas-label" class="dir-toggle-todas-lbl">Ver todas</span>
+        </div>
+        {% endif %}
+        <button id="dir-reset-all" class="dir-reset-btn">
+          <i class="fas fa-undo"></i> Ver todas
+        </button>
+      </div>
+
     </div>
-  </section>
+  </aside>
+  <!-- Overlay para mobile -->
+  <div class="dir-overlay" id="dir-overlay"></div>
+
+  <!-- ============ CONTENIDO PRINCIPAL ============ -->
+  <main class="dir-main" id="dir-main">
+
+    <!-- Header -->
+    <div class="dir-main-header">
+      <div class="dir-header-left">
+        <button class="dir-hamburger d-md-none" id="dir-hamburger">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div>
+          <h1 class="dir-page-title">{{ Nombre }}</h1>
+          <span id="dir-count" class="dir-count-text">Cargando...</span>
+        </div>
+      </div>
+      <div class="dir-header-actions">
+        <div class="dir-view-toggle" role="group">
+          <button id="dir-toggle-cards" class="dir-view-btn active" title="Vista tarjetas">
+            <i class="fas fa-th-large"></i>
+          </button>
+          <button id="dir-toggle-list" class="dir-view-btn" title="Vista lista">
+            <i class="fas fa-list"></i>
+          </button>
+        </div>
+        <button id="dir-export-excel" class="dir-action-btn dir-excel-btn" title="Exportar Excel">
+          <i class="fas fa-file-excel"></i> <span>Exportar</span>
+        </button>
+        {% if request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_may" %}
+        <a href="/../Extras/direccionario/AltaSucursal" class="dir-action-btn dir-new-btn" title="Alta sucursal">
+          <i class="fas fa-plus"></i> <span>Nueva</span>
+        </a>
+        {% endif %}
+        <a href="/../Extras/direccionarioTabla" class="dir-action-btn" title="Vista tabla avanzada">
+          <i class="fas fa-table"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <ol class="breadcrumb dir-breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item active">{{ Nombre }}</li>
+    </ol>
+
+    <!-- Loading -->
+    <div id="dir-loading" class="dir-loading-state">
+      <div class="dir-spinner-wrap">
+        <div class="dir-spinner"></div>
+        <p>Cargando sucursales...</p>
+      </div>
+    </div>
+
+    <!-- Contenido dinamico -->
+    <div id="dir-content" style="display:none;">
+
+      <!-- Empty state -->
+      <div id="dir-empty" class="dir-empty-state" style="display:none;">
+        <i class="bi bi-shop-window dir-empty-icon"></i>
+        <h5>Sin resultados</h5>
+        <p>No se encontraron sucursales con los filtros aplicados.</p>
+        <button class="btn btn-outline-secondary" id="dir-reset-empty">
+          <i class="fas fa-undo"></i> Limpiar filtros
+        </button>
+      </div>
+
+      <!-- Vista Tarjetas -->
+      <div id="dir-view-cards">
+        <div id="dir-cards-grid" class="dir-cards-grid"></div>
+      </div>
+
+      <!-- Vista Lista -->
+      <div id="dir-view-list" style="display:none;">
+        <div class="table-responsive dir-table-wrap">
+          <table class="table table-hover dir-table">
+            <thead>
+              <tr>
+                <th>Sucursal</th>
+                <th>Nombre</th>
+                <th>Canal</th>
+                <th>Localidad</th>
+                <th>Provincia</th>
+                <th>Direccion</th>
+                <th>Telefono</th>
+                <th>Email</th>
+                <th>Horario</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="dir-list-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
 </div>
-<div id="container-floating">
-  {% if request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_may" %}
-  <div class="nd3 nds"><img class="reminder">
-    <a href="/../Extras/direccionario/AltaSucursal">
-      <img class="reminder" src="/static/assets/img/lapiz.png" />
-    </a>
-  </div>
-  {% endif %}
-  <div class="nd1 nds">
-    <a href="/../Extras/direccionarioTabla">
-      <img class="reminder" src="/static/assets/img/excel.png" />
-    </a>
-  </div>
-  <div id="floating-button">
-    <p class="plus">+</p>
-    <img class="edit" src="/static/assets/img/flechaarriba3.png">
-  </div>
-</div>
+
+{% csrf_token %}
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
-
   <!-- jQuery -->
   <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
   <!-- Bootstrap 4 -->
   <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
   <!-- AdminLTE App -->
   <script src="/static/assets/js/adminlte.min.js"></script>
-  <!-- AdminLTE for demo purposes -->
-  <script src="/static/assets/js/demo.js"></script>
-  <!-- Scripts personalizados -->
-  <script src="/static/assets/js/scripts.js"></script>
   <!-- SweetAlert2 -->
   <script src="/static/assets/plugins/sweetalert2/sweetalert2.min.js"></script>
-  <!-- Toastr -->
-  <script src="/static/assets/plugins/toastr/toastr.min.js"></script>
-  <!-- Boton Flotante -->
-  <script src="/static/assets/css/direccionario/BotonFlotante.js"></script>
-
+  <!-- SheetJS (export Excel) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Direccionario JS -->
+  <script src="/static/assets/js/direccionario/direccionario.js"></script>
   <script>
-  $(function() {
-    var Toast = Swal.mixin({
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 3000
-    });
-    $('.copy_to_clipboard').click(function(){
-      let str = $(this).attr('address');
-      const el = document.createElement('textarea');
-
-      el.value = str;
-      el.setAttribute('readonly', '');
-      el.style.position = 'absolute';
-      el.style.left = '-9999px';
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-
-      Toast.fire({
-        icon: 'success',
-        title: 'Texto copiado.',
-        timer: 10000
-      });
-    })
-
-    // Control del filtro de sucursal madre
-    $('#filter-toggle').click(function() {
-      const currentUrl = new URL(window.location.href);
-      const mostrarTodos = currentUrl.searchParams.get('mostrar_todos');
-      
-      let mensaje, tipo;
-      
-      // Toggle del parámetro y definir mensaje
-      if (mostrarTodos === 'true') {
-        currentUrl.searchParams.set('mostrar_todos', 'false');
-        mensaje = '<strong>Filtro Desactivado:</strong> Mostrando solo sucursales principales';
-        tipo = 'warning';
-      } else {
-        currentUrl.searchParams.set('mostrar_todos', 'true');
-        mensaje = '<strong>Filtro Activado:</strong> Mostrando todas las sucursales';
-        tipo = 'success';
-      }
-      
-      // Mostrar alerta de Bootstrap
-      const alertHtml = `
-        <div class="alert alert-${tipo} alert-dismissible fade show filter-alert" role="alert">
-          ${mensaje}
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-      `;
-      
-      $('body').append(alertHtml);
-      
-      // Auto-cerrar después de 3 segundos
-      setTimeout(function() {
-        $('.filter-alert').fadeOut(300, function() {
-          $(this).remove();
-        });
-      }, 3000);
-      
-      // Recargar la página después de mostrar la notificación
-      setTimeout(function() {
-        window.location.href = currentUrl.toString();
-      }, 800);
-    });
-
-  })
-  $('.toastrDefaultSuccess').each(function() {
-      toastr.success("Se ha guardado con exito")
-  });
-  $('.toastrDefaultError').each(function () {
-    toastr.error("A ocurrido un error, volver a intentarlo")
-  });
-</script>
+    window.DIRECCIONARIO_CONFIG = {
+      ajaxUrl: '/../Extras/buscarSucursales',
+      canEdit: {% if request.user|has_group:"admin" or request.user|has_group:"Sistemas" or request.user.is_superuser %}true{% else %}false{% endif %},
+      canEditBasic: {% if request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_may" %}true{% else %}false{% endif %},
+      canVerTecnico: {% if request.user|has_group:"admin" or request.user|has_group:"soporteExt" or request.user.is_superuser %}true{% else %}false{% endif %},
+    };
+  </script>
 {% endblock javascripts %}

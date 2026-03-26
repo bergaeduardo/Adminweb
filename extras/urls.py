@@ -17,6 +17,7 @@ urlpatterns = [
     # path('import_file_cierrePedidosUY', views.import_file_cierrePedidosUY, name='import_file_cierrePedidosUY'),
     # path('import_file_ubi', views.import_file_ubi, name='import_file_ubi'),
     path('direccionario', views.agenda, name='extras_direccionario'), # Corrected name
+    path('buscarSucursales', views.buscar_sucursales, name='extras_buscar_sucursales'),
     path('direccionario/AltaSucursal', views.registraSucursal, name='altadireccionario'),
     path('direccionario/editarSucursal/<int:id>', views.editarSucursal, name='editarSucursal'),
     path('direccionario/editarSucursalCompleta/<int:id>', views.editarSucursalCompleta, name='extras_editar_sucursal_completa'),

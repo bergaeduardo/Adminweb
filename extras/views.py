@@ -5,7 +5,8 @@ import pprint
 from tkinter.tix import CELL, COLUMN
 from django import template
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.db.models import Q
 from django.template import loader
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -22,7 +23,7 @@ from apps.settingsUrls import *
 # from apps.static.Scripts.getData_Trello import reporte_trello
 import json
 from consultasTango.filters import *
-from consultasLakersBis.filters import filtroCanal,filtroTipoLocal,filtroGrupoEmpresario,DireccionarioFilter
+from consultasLakersBis.filters import filtroCanal,filtroTipoLocal,filtroGrupoEmpresario,DireccionarioFilter,filtroProvincias
 from django.contrib import messages
 # Removed openpyxl and pandas imports as they were only used by moved import functions
 # import openpyxl
@@ -151,40 +152,109 @@ def direccionario(request):
 
 @login_required(login_url="/login/")
 def agenda(request):
-    Nombre='Direccionario'
-    
-    # Verificar si se debe mostrar todos los registros (filtro desactivado)
-    mostrar_todos = request.GET.get('mostrar_todos', 'false') == 'true'
-    
-    if mostrar_todos:
-        # Filtro desactivado: mostrar todos los registros
-        datos = Direccionario.objects.all()
-    else:
-        # Filtro activado (por defecto): mostrar solo sucursales sin sucursal_madre
-        # nro_sucursal_madre es IntegerField, solo filtrar por NULL
-        datos = Direccionario.objects.filter(nro_sucursal_madre__isnull=True)
-    
-    canal = filtroCanal()
+    Nombre = 'Direccionario'
+    canales    = filtroCanal()
+    provincias = filtroProvincias()
     tipo_local = filtroTipoLocal()
-    grupo = filtroGrupoEmpresario()
-
-    for dato in datos:
-        if dato.mail_grupo_emp:
-            # Reemplazar comas y espacios por punto y coma para tener un único delimitador
-            mail_string = dato.mail_grupo_emp.replace(',', ';').replace(' ', ';')
-            # Dividir la cadena y limpiar cada dirección de correo
-            dato.mails_empresa = [mail.strip() for mail in mail_string.split(';') if mail.strip()]
-        else:
-            dato.mails_empresa = []
-
-    return render(request,'appConsultasTango/direccionario2.html',{
-        'datos': datos,
-        'canal':canal,
-        'tipo_local':tipo_local,
-        'grupo':grupo,
-        'Nombre':Nombre,
-        'mostrar_todos': mostrar_todos
+    grupo      = filtroGrupoEmpresario()
+    return render(request, 'appConsultasTango/direccionario2.html', {
+        'Nombre':     Nombre,
+        'canales':    canales,
+        'provincias': provincias,
+        'tipo_local': tipo_local,
+        'grupo':      grupo,
     })
+
+@login_required(login_url="/login/")
+def buscar_sucursales(request):
+    """Endpoint AJAX para búsqueda y filtrado del direccionario."""
+    action = request.POST.get('action') or request.GET.get('action', 'buscar')
+
+    if action == 'getCanales':
+        canales = list(
+            Direccionario.objects.filter(nro_sucursal_madre__isnull=True)
+            .exclude(canal__isnull=True).exclude(canal='')
+            .values_list('canal', flat=True)
+            .distinct().order_by('canal')
+        )
+        return JsonResponse({'canales': canales})
+
+    if action == 'getProvincias':
+        provincias = list(
+            Direccionario.objects.filter(nro_sucursal_madre__isnull=True)
+            .exclude(provincia__isnull=True).exclude(provincia='')
+            .values_list('provincia', flat=True)
+            .distinct().order_by('provincia')
+        )
+        return JsonResponse({'provincias': provincias})
+
+    # action == 'buscar'
+    busqueda      = (request.POST.get('busqueda')      or request.GET.get('busqueda', '')).strip()
+    canal         = (request.POST.get('canal')         or request.GET.get('canal', '')).strip()
+    provincia     = (request.POST.get('provincia')     or request.GET.get('provincia', '')).strip()
+    tipo_local    = (request.POST.get('tipo_local')    or request.GET.get('tipo_local', '')).strip()
+    grupo_empresario = (request.POST.get('grupo_empresario') or request.GET.get('grupo_empresario', '')).strip()
+
+    # mostrar_todos: solo permitido para admin / Sistemas / superuser
+    mostrar_todos_raw = (request.POST.get('mostrar_todos') or request.GET.get('mostrar_todos', 'false'))
+    puede_ver_todo = (
+        request.user.groups.filter(name__in=['admin', 'Sistemas']).exists()
+        or request.user.is_superuser
+    )
+
+    qs = Direccionario.objects.all()
+    if not (puede_ver_todo and mostrar_todos_raw == 'true'):
+        qs = qs.filter(nro_sucursal_madre__isnull=True)
+
+    if busqueda:
+        qs = qs.filter(
+            Q(desc_sucursal__icontains=busqueda) |
+            Q(localidad__icontains=busqueda) |
+            Q(direccion__icontains=busqueda)
+        )
+    if canal:
+        qs = qs.filter(canal=canal)
+    if provincia:
+        qs = qs.filter(provincia=provincia)
+    if tipo_local:
+        qs = qs.filter(tipo_local=tipo_local)
+    if grupo_empresario:
+        qs = qs.filter(grupo_empresario=grupo_empresario)
+
+    data = []
+    puede_ver_tecnico = (
+        request.user.groups.filter(name__in=['admin', 'soporteExt']).exists()
+        or request.user.is_superuser
+    )
+    for d in qs:
+        data.append({
+            'nro_sucursal':        d.nro_sucursal,
+            'cod_client':          d.cod_client or '',
+            'desc_sucursal':       d.desc_sucursal or '',
+            'canal':               d.canal or '',
+            'tipo_local':          d.tipo_local or '',
+            'grupo_empresario':    d.grupo_empresario or '',
+            'direccion':           d.direccion or '',
+            'telefono':            d.telefono or '',
+            'mail':                d.mail or '',
+            'horario':             d.horario or '',
+            'localidad':           d.localidad or '',
+            'provincia':           d.provincia or '',
+            'tango':               d.tango or '',
+            'tienda':              d.tienda or '',
+            'integra_vtex':        d.integra_vtex or '',
+            'deposito':            d.deposito or '',
+            'retiro_expres':       d.retiro_expres or '',
+            'nro_sucursal_madre':   d.nro_sucursal_madre,
+            'nro_sucursal_anterior': d.nro_sucursal_anterior,
+            # Campos sensibles: solo incluidos para admin / soporteExt
+            **({'base_nombre':   d.base_nombre or '',
+                'conexion_dns':  d.conexion_dns or '',
+                'n_llave_tango': d.n_llave_tango or ''}
+               if puede_ver_tecnico else {}),
+        })
+
+    return JsonResponse({'sucursales': data, 'total': len(data)})
 
 @login_required(login_url="/login/")
 def DireccionarioTabla(request):    # <<<----- Direccionario Tabla -->
