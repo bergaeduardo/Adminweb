@@ -269,3 +269,72 @@ def obtener_sucursal_activa():
                  WHERE ACTIVO = 1"""
         cursor.execute(sql)
         return cursor.fetchone()
+
+
+# ---------------------------------------------------------------------------
+# Validación de Artículos (SP_EB_ValidateAllPrereqs_VtxAr_Web)
+# ---------------------------------------------------------------------------
+
+def obtener_filtros_validacion_articulos():
+    """
+    Llama a SP_EB_GetFiltrosValidacion para poblar los selects de filtros.
+    Retorna dict con listas: rubros, proveedores, temporadas, familias.
+    """
+    with connections['mi_db_2'].cursor() as cursor:
+        cursor.execute("EXEC dbo.SP_EB_GetFiltrosValidacion")
+
+        rubros = [row[0] for row in cursor.fetchall() if row[0]]
+
+        cursor.nextset()
+        proveedores = [row[0] for row in cursor.fetchall() if row[0]]
+
+        cursor.nextset()
+        temporadas = [row[0] for row in cursor.fetchall() if row[0]]
+
+        cursor.nextset()
+        familias = [row[0] for row in cursor.fetchall() if row[0]]
+
+    return {
+        'rubros': rubros,
+        'proveedores': proveedores,
+        'temporadas': temporadas,
+        'familias': familias,
+    }
+
+
+def ejecutar_validacion_articulos(filtros):
+    """
+    Llama a SP_EB_ValidateAllPrereqs_VtxAr_Web con los filtros indicados.
+    `filtros` es un dict con claves opcionales:
+        rubro, proveedor, temporada, familia,
+        fecha_desde, fecha_hasta, codigo_articulo, solo_con_errores (bool)
+    Retorna lista de dicts con las columnas del resultado.
+    """
+    with connections['mi_db_2'].cursor() as cursor:
+        sql = """
+            EXEC dbo.SP_EB_ValidateAllPrereqs_VtxAr_Web
+                @Filtro_Rubro           = %s,
+                @Filtro_Proveedor       = %s,
+                @Filtro_Temporada       = %s,
+                @Filtro_Familia         = %s,
+                @Filtro_FechaDesde      = %s,
+                @Filtro_FechaHasta      = %s,
+                @Filtro_CodigoArticulo  = %s,
+                @Filtro_SoloConErrores  = %s
+        """
+        params = [
+            filtros.get('rubro') or None,
+            filtros.get('proveedor') or None,
+            filtros.get('temporada') or None,
+            filtros.get('familia') or None,
+            filtros.get('fecha_desde') or None,
+            filtros.get('fecha_hasta') or None,
+            filtros.get('codigo_articulo') or None,
+            1 if filtros.get('solo_con_errores') else 0,
+        ]
+        cursor.execute(sql, params)
+
+        columns = [col[0] for col in cursor.description]
+        rows = cursor.fetchall()
+
+    return [dict(zip(columns, row)) for row in rows]

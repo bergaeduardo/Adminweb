@@ -2248,3 +2248,197 @@ def gestion_sucursales_ecommerce(request):
             'sucursal_activa': None,
             'titulo': 'Gestión de Sucursales E-commerce'
         })
+
+
+# ---------------------------------------------------------------------------
+# Validación de Artículos
+# ---------------------------------------------------------------------------
+
+@login_required(login_url="/login/")
+def validacion_articulos(request):
+    """
+    GET:  Renderiza el formulario con los dropdowns precargados y Fecha Desde
+          pre-seteada a 24 meses atrás.
+    POST (AJAX, Content-Type application/json):
+          Ejecuta el SP de validación y retorna JsonResponse con la lista de filas.
+    """
+    import json as _json
+    import os as _os
+    from dateutil.relativedelta import relativedelta
+
+    if request.method == 'POST':
+        try:
+            body = _json.loads(request.body)
+            filtros = {
+                'rubro':           body.get('rubro', ''),
+                'proveedor':       body.get('proveedor', ''),
+                'temporada':       body.get('temporada', ''),
+                'familia':         body.get('familia', ''),
+                'fecha_desde':     body.get('fecha_desde', ''),
+                'fecha_hasta':     body.get('fecha_hasta', ''),
+                'codigo_articulo': body.get('codigo_articulo', ''),
+                'solo_con_errores': body.get('solo_con_errores', False),
+            }
+            filas = ejecutar_validacion_articulos(filtros)
+            # Serializar fechas a string
+            for fila in filas:
+                for k, v in fila.items():
+                    if hasattr(v, 'isoformat'):
+                        fila[k] = v.isoformat()
+                    elif v is None:
+                        fila[k] = ''
+            return JsonResponse({'ok': True, 'data': filas})
+        except Exception as exc:
+            return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+
+    # GET — cargar dropdowns y fecha_desde por defecto
+    try:
+        filtros_opciones = obtener_filtros_validacion_articulos()
+    except Exception:
+        filtros_opciones = {'rubros': [], 'proveedores': [], 'temporadas': [], 'familias': []}
+
+    fecha_desde_default = (timezone.now().date() - relativedelta(months=24)).strftime('%Y-%m-%d')
+
+    # Leer configuración de acciones sugeridas desde archivo JSON editable
+    _json_path = _os.path.join(_os.path.dirname(__file__), 'acciones_validacion.json')
+    try:
+        with open(_json_path, encoding='utf-8') as _f:
+            acciones_config = _json.load(_f)
+    except Exception:
+        acciones_config = {}
+
+    return render(request, 'herramientas/validacion_articulos/list.html', {
+        'filtros_opciones': filtros_opciones,
+        'fecha_desde_default': fecha_desde_default,
+        'acciones_config_json': _json.dumps(acciones_config, ensure_ascii=False),
+    })
+
+
+@login_required(login_url="/login/")
+def validacion_articulos_export(request):
+    """
+    POST: Recibe los mismos filtros que validacion_articulos, re-ejecuta el SP
+    y descarga un archivo .xlsx con las filas coloreadas por estado/severidad.
+    """
+    import io
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from openpyxl.utils import get_column_letter
+
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    filtros = {
+        'rubro':           request.POST.get('rubro', ''),
+        'proveedor':       request.POST.get('proveedor', ''),
+        'temporada':       request.POST.get('temporada', ''),
+        'familia':         request.POST.get('familia', ''),
+        'fecha_desde':     request.POST.get('fecha_desde', ''),
+        'fecha_hasta':     request.POST.get('fecha_hasta', ''),
+        'codigo_articulo': request.POST.get('codigo_articulo', ''),
+        'solo_con_errores': request.POST.get('solo_con_errores') == '1',
+    }
+
+    try:
+        filas = ejecutar_validacion_articulos(filtros)
+    except Exception as exc:
+        messages.error(request, f'Error al ejecutar la validación: {str(exc)}')
+        return redirect('herramientas:validacion_articulos')
+
+    # Cargar configuración de Acciones Sugeridas
+    import os as _os
+    import json as _json
+    _json_path = _os.path.join(_os.path.dirname(__file__), 'acciones_validacion.json')
+    try:
+        with open(_json_path, encoding='utf-8') as _f:
+            acciones_cfg = _json.load(_f)
+    except Exception:
+        acciones_cfg = {}
+
+    def _accion_sugerida(codigo_error, campo):
+        codigo = 'OK' if not codigo_error or codigo_error == 'OK' else codigo_error
+        campo  = (campo or '').strip()
+        err_cfg = acciones_cfg.get(codigo) or acciones_cfg.get('*') or {}
+        return err_cfg.get(campo) or err_cfg.get('*') or 'Revisar el error indicado y corregir según corresponda.'
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Validación Artículos'
+
+    # Estilos de encabezado
+    header_font  = Font(bold=True, color='FFFFFF')
+    header_fill  = PatternFill(start_color='2C3E50', end_color='2C3E50', fill_type='solid')
+    header_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
+
+    # Fills por estado / severidad
+    fill_ok   = PatternFill(start_color='D5F5E3', end_color='D5F5E3', fill_type='solid')  # verde
+    fill_crit = PatternFill(start_color='FADBD8', end_color='FADBD8', fill_type='solid')  # rojo
+    fill_adv  = PatternFill(start_color='FDEBD0', end_color='FDEBD0', fill_type='solid')  # naranja
+    fill_info = PatternFill(start_color='D6EAF8', end_color='D6EAF8', fill_type='solid')  # azul
+
+    headers = [
+        'Código Artículo', 'Descripción', 'Rubro', 'Proveedor',
+        'Temporada', 'Familia', 'Fecha Alta',
+        'Tabla Validación', 'Campo Validación', 'Mensaje Validación',
+        'Código Error', 'Nivel Severidad', 'Estado', 'Desc. Severidad',
+        'Acción Sugerida',
+    ]
+    col_keys = [
+        'COD_ARTICU', 'DESCRIPCION', 'RUBRO', 'PROVEEDOR',
+        'TEMPORADA', 'FAMILIA', 'FECHA_ALTA',
+        'TablaValidacion', 'CampoValidacion', 'MensajeValidacion',
+        'CodigoError', 'NivelSeveridad', 'Estado', 'DescripcionSeveridad',
+        '_AccionSugerida',
+    ]
+
+    # Escribir encabezados
+    for col_idx, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_idx, value=header)
+        cell.font   = header_font
+        cell.fill   = header_fill
+        cell.alignment = header_align
+
+    ws.row_dimensions[1].height = 30
+
+    # Escribir datos
+    for row_idx, fila in enumerate(filas, 2):
+        estado     = str(fila.get('Estado', '')).upper()
+        severidad  = fila.get('NivelSeveridad', 1)
+
+        if estado == 'OK':
+            row_fill = fill_ok
+        elif severidad == 3:
+            row_fill = fill_crit
+        elif severidad == 2:
+            row_fill = fill_adv
+        else:
+            row_fill = fill_info
+
+        fila['_AccionSugerida'] = _accion_sugerida(fila.get('CodigoError', ''), fila.get('CampoValidacion', ''))
+
+        for col_idx, key in enumerate(col_keys, 1):
+            val = fila.get(key, '')
+            if hasattr(val, 'isoformat'):
+                val = val.isoformat()
+            cell = ws.cell(row=row_idx, column=col_idx, value=val)
+            cell.fill = row_fill
+
+    # Anchos de columna
+    col_widths = [18, 40, 20, 30, 18, 18, 14, 30, 25, 55, 15, 8, 10, 15, 60]
+    for i, w in enumerate(col_widths, 1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+
+    # Congelar primera fila
+    ws.freeze_panes = 'A2'
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    response = HttpResponse(
+        output.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="ValidacionArticulos.xlsx"'
+    response.set_cookie('va_export_done', '1', max_age=60, path='/')
+    return response
