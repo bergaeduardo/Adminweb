@@ -268,6 +268,7 @@
       canEdit: {% if request.user|has_group:"admin" or request.user|has_group:"Sistemas" or request.user.is_superuser %}true{% else %}false{% endif %},
       canEditBasic: {% if request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_may" %}true{% else %}false{% endif %},
       canVerTecnico: {% if request.user|has_group:"admin" or request.user|has_group:"soporteExt" or request.user.is_superuser %}true{% else %}false{% endif %},
+      canDelete: {% if request.user|has_group:"admin" or request.user|has_group:"Sistemas" or request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_may" or request.user.is_superuser %}true{% else %}false{% endif %},
     };
   </script>
 {% endblock javascripts %}

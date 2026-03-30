@@ -122,6 +122,41 @@
         self._copyToClipboard($(this).data('mail'));
       });
 
+      /* Eliminar sucursal */
+      $(document).on('click', '.dir-delete-btn', function () {
+        var id     = $(this).data('id');
+        var nombre = $(this).data('nombre');
+        Swal.fire({
+          title: '¿Eliminar sucursal?',
+          html: 'Estás por eliminar <strong>#' + id + ' &ndash; ' + nombre + '</strong>.<br>Esta acción no se puede deshacer.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#e53e3e',
+        }).then(function (result) {
+          if (result.isConfirmed) {
+            $.ajax({
+              url: '/../Extras/direccionario/eliminarSucursal/' + id,
+              type: 'POST',
+              data: { csrfmiddlewaretoken: self._getCsrf() },
+              headers: { 'X-Requested-With': 'XMLHttpRequest' },
+              success: function (res) {
+                if (res.ok) {
+                  self._toast(res.mensaje || 'Sucursal eliminada', 'success');
+                  self._fetchData();
+                } else {
+                  self._toast(res.error || 'Error al eliminar', 'error');
+                }
+              },
+              error: function () {
+                self._toast('Error al eliminar la sucursal', 'error');
+              },
+            });
+          }
+        });
+      });
+
       /* Mobile sidebar */
       $('#dir-hamburger').on('click', function () {
         $('#dir-sidebar').addClass('open');
@@ -318,6 +353,15 @@
             + ' class="sc-btn-icon" title="Editar"><i class="fas fa-pencil-alt"></i></a>';
         }
 
+        /* ── Botón eliminar (solo admin/Sistemas) ── */
+        var deleteBtns = '';
+        if (cfg.canDelete) {
+          deleteBtns = '<button class="sc-btn-icon sc-btn-delete dir-delete-btn"'
+            + ' data-id="' + d.nro_sucursal + '"'
+            + ' data-nombre="' + self._esc(d.desc_sucursal) + '"'
+            + ' title="Eliminar sucursal" style="color:#e53e3e"><i class="fas fa-trash-alt"></i></button>';
+        }
+
         /* ── Botón de copiar email ── */
         var copyMailBtn = d.mail
           ? '<button class="sc-btn-icon dir-copy-btn" data-mail="' + self._esc(d.mail) + '" title="Copiar email">'
@@ -356,6 +400,7 @@
           +       '<i class="fas fa-chevron-down sc-chevron"></i>'
           +     '</button>'
           +     editBtns
+          +     deleteBtns
           +   '</div>'
           + '</div>'
 
@@ -385,6 +430,14 @@
         } else if (cfg.canEditBasic) {
           editCell = ' <a href="/../Extras/direccionario/editarSucursal/' + d.nro_sucursal
             + '" class="dir-btn-maps-sm btn btn-sm" title="Editar"><i class="fas fa-pencil-alt"></i></a>';
+        }
+
+        var deleteCell = '';
+        if (cfg.canDelete) {
+          deleteCell = ' <button class="dir-btn-maps-sm btn btn-sm btn-danger dir-delete-btn"'
+            + ' data-id="' + d.nro_sucursal + '"'
+            + ' data-nombre="' + self._esc(d.desc_sucursal) + '"'
+            + ' title="Eliminar"><i class="fas fa-trash-alt"></i></button>';
         }
 
         // Construir el contenido del collapse para la vista lista
@@ -432,6 +485,7 @@
           +     ' data-target="#' + trCollapseId + '" title="Ver más datos">'
           +     '<i class="fas fa-chevron-down dir-chevron"></i></button>'
           +   editCell
+          +   deleteCell
           + '</td>'
           + '</tr>'
           + '<tr class="dir-tr-extra-row">'

@@ -21,6 +21,7 @@ urlpatterns = [
     path('direccionario/AltaSucursal', views.registraSucursal, name='altadireccionario'),
     path('direccionario/editarSucursal/<int:id>', views.editarSucursal, name='editarSucursal'),
     path('direccionario/editarSucursalCompleta/<int:id>', views.editarSucursalCompleta, name='extras_editar_sucursal_completa'),
+    path('direccionario/eliminarSucursal/<int:id>', views.eliminarSucursal, name='extras_eliminar_sucursal'),
     # path('agenda', views.agenda, name='extras_agenda'), # Corrected name
     path('direccionarioTabla', views.DireccionarioTabla, name='extras_direccionario_tabla'), # Corrected name
     path('reporTrello', views.reporTrello, name='extras_reporte_trello'), # Corrected name

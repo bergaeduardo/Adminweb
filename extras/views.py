@@ -43,6 +43,10 @@ def usuario_es_admin_o_sistemas(user):
     """Verifica si el usuario pertenece a los grupos 'admin' o 'Sistemas'"""
     return user.groups.filter(name__in=['admin', 'Sistemas']).exists() or user.is_superuser
 
+def usuario_puede_editar_sucursal(user):
+    """Verifica si el usuario puede editar (completo o básico) o es admin/Sistemas"""
+    return user.groups.filter(name__in=['admin', 'Sistemas', 'Comercial_suc', 'Comercial_sup', 'Comercial_fr', 'Comercial_may']).exists() or user.is_superuser
+
 @login_required(login_url="/login/")
 def runscript(request):
     # script_path = 'ruta_al_script/script.py'
@@ -89,6 +93,20 @@ def editarSucursal(request,id):
         return redirect('extras:extras_direccionario')
 
     return  render(request,'appConsultasTango/editarSucursal.html',{'formulario':sucForm,'Disabled':Disabled})
+
+@login_required(login_url="/login/")
+@user_passes_test(usuario_puede_editar_sucursal, login_url="/login/")
+def eliminarSucursal(request, id):
+    """Elimina una sucursal. Solo accesible para grupos 'admin' y 'Sistemas'."""
+    sucursal = get_object_or_404(SucursalesLakers, nro_sucursal=id)
+    if request.method == 'POST':
+        nombre = f"{sucursal.nro_sucursal} - {sucursal.desc_sucursal}"
+        sucursal.delete()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': True, 'mensaje': f'Sucursal {nombre} eliminada.'})
+        messages.success(request, f'Sucursal {nombre} eliminada exitosamente.')
+        return redirect('extras:extras_direccionario')
+    return JsonResponse({'ok': False, 'error': 'Método no permitido.'}, status=405)
 
 @login_required(login_url="/login/")
 @user_passes_test(usuario_es_admin_o_sistemas, login_url="/login/")
