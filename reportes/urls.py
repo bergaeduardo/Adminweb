@@ -19,13 +19,13 @@ urlpatterns = [
     path('Logistica/ConsultaDestino', views.ConsultaDestino, name='reportes_logistica_consulta_destino'),
 
     # Abastecimiento
-    path('Abastecimiento/Auditoria_orden', views.Auditoria_orden, name='reportes_abastecimiento_auditoria_orden'),
     path('Abastecimiento/CategoriasDeProductos', views.CategoriasDeProductos, name='reportes_abastecimiento_categorias_productos'),
     path('Abastecimiento/HRecodificaciones', views.HRecodificaciones, name='reportes_abastecimiento_historial_recodificaciones'),
     path('Abastecimiento/Eficiencia_pedidos', views.Eficiencia_pedidos, name='reportes_abastecimiento_eficiencia_pedidos'),
     path('Abastecimiento/stockSupply', views.stockcentral_pivot, name='reportes_logistica_stock_supply'),
     path('Abastecimiento/stockSupplyUY', views.stockcentral_pivotUY, name='reportes_logistica_stock_supply_uy'),
     path('Abastecimiento/AnalisisProductos', views.AnalisisProductos, name='reportes_comercial_analisis_productos'),
+    path('Abastecimiento/gestionOrdenesPreventa/', views.gestionOrdenesPreventa, name='reportes_abastecimiento_gestion_ordenes_preventa'),
 
     # Comercial
     path('Comercial/stockSucursalesLakers', views.stockSucursalesLakers, name='reportes_comercial_stock_sucursales_lakers'),
@@ -38,7 +38,6 @@ urlpatterns = [
     path('Comercial/PresupuestoComercial/', views.PresupuestoComercial, name='reportes_comercial_presupuesto_comercial'),
     path('Comercial/auditoriaDiferenciaPrecio/', views.auditoriaDiferenciaPrecio, name='reportes_comercial_auditoria_diferencia_precio'),
     path('Comercial/gestionObjetivosLocales/', views.gestionObjetivosLocales, name='reportes_comercial_gestion_objetivos_locales'),
-
 
     # Mayoristas
     path('Mayoristas/Tracking_pedidos_mayoristas', views.Tracking_pedidos_mayoristas, name='reportes_mayoristas_tracking_pedidos_mayoristas'),

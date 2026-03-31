@@ -68,11 +68,6 @@ def ConsultaDestino(request):
 
 # Abastecimiento
 
-@login_required(login_url="/login/")
-def Auditoria_orden(request):
-    Nombre='Auditoria orden'
-    dir_iframe = DIR_REPORTES['Auditoria_orden']
-    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 @login_required(login_url="/login/")
 def CategoriasDeProductos(request):
@@ -91,6 +86,12 @@ def Eficiencia_pedidos(request):
     Nombre=''
     dir_iframe = DIR_REPORTES['Eficiencia_pedidos']
     return redirect(dir_iframe)
+
+@login_required(login_url="/login/")
+def gestionOrdenesPreventa(request):
+    Nombre='Gestión de Ordenes de Preventa'
+    dir_iframe = DIR_REPORTES['gestionOrdenesPreventa']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 # Comercial
 
@@ -153,6 +154,7 @@ def gestionObjetivosLocales(request):
     Nombre='Gestión de Objetivos Locales'
     dir_iframe = DIR_REPORTES['gestionObjetivosLocales']
     return redirect(dir_iframe)
+
 
 
 # Mayoristas

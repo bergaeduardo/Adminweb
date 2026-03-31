@@ -102,13 +102,6 @@
           </a>
         </li>
         <li class="nav-item">
-          {# Abastecimiento/Auditoria_orden Link - Apply active if 'Auditoria_orden' is in request.path #}
-          <a href="/Reportes/Abastecimiento/Auditoria_orden" class="nav-link {% if 'Auditoria_orden' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Auditoría orden</p>
-          </a>
-        </li>
-        <li class="nav-item">
           {# Abastecimiento/CategoriasDeProductos Link - Apply active if 'CategoriasDeProductos' is in request.path #}
           <a href="/Reportes/Abastecimiento/CategoriasDeProductos" class="nav-link {% if 'CategoriasDeProductos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
@@ -142,6 +135,14 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
+        <li class="nav-item">
+          {# Updated href for Gestión de Ordenes de Preventa (assuming Abastecimiento section) #}
+          <a href="/Reportes/Abastecimiento/gestionOrdenesPreventa" class="nav-link {% if 'gestionOrdenesPreventa' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Gestión de Ordenes de Preventa</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>  
       </ul>
     </li>
 
