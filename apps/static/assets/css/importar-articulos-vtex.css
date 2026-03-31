@@ -1,0 +1,234 @@
+/* ============================================
+   Estilos personalizados para Importar Artículos VTEX
+   ============================================ */
+
+/* Estilos generales del callout */
+.callout.callout-info {
+  border-left-color: #17a2b8;
+  border-left-width: 5px;
+}
+
+/* Estilos para cajas pequeñas (small-box) */
+.small-box {
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.small-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Estilos para tarjetas (cards) */
+.card {
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card-header {
+  border-radius: 10px 10px 0 0 !important;
+}
+
+/* Estilos para tablas */
+.table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #343a40 !important;
+}
+
+/* Estilos para input de archivos */
+.custom-file-label::after {
+  content: "Buscar";
+}
+
+/* Estilos para badges */
+.badge {
+  padding: 5px 10px;
+  font-size: 14px;
+}
+
+/* Estilos para modales */
+.modal-header.bg-info {
+  color: white;
+}
+
+.modal-header .close {
+  color: white;
+  opacity: 0.8;
+}
+
+.modal-header .close:hover {
+  opacity: 1;
+}
+
+/* Estilos para código inline */
+code {
+  background-color: #f4f4f4;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #e83e8c;
+}
+
+/* Estilos para alertas */
+.alert ul {
+  margin-bottom: 0;
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+
+/* Animación para el botón de carga */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(0,123,255,0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(0,123,255,0); }
+  100% { box-shadow: 0 0 0 0 rgba(0,123,255,0); }
+}
+
+#botonCargar:disabled {
+  animation: pulse 2s infinite;
+}
+
+/* Animación para notificación de éxito */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alert-success {
+  animation: slideDown 0.5s ease-out;
+}
+
+.alert-success .btn {
+  transition: all 0.3s ease;
+}
+
+.alert-success .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Efecto de llamada de atención para el botón de descarga */
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 15px 5px rgba(40, 167, 69, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+  }
+}
+
+.btn-success.btn-lg {
+  animation: pulseGlow 2s infinite;
+}
+
+.btn-success.btn-lg:hover {
+  animation: none;
+}
+
+/* Animación del botón de descarga en modal */
+@keyframes pulseScale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.btn-success.btn-block {
+  animation: pulseScale 2s infinite;
+}
+
+.btn-success.btn-block:hover {
+  animation: none;
+  transform: scale(1.08) !important;
+}
+
+/* ============================================
+   ANIMACIÓN PARA BOTÓN DE VALIDACIÓN
+   ============================================ */
+
+/* Efecto de llamada de atención para el botón de validación */
+@keyframes pulseWarning {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 15px 5px rgba(255, 193, 7, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+  }
+}
+
+.btn-validar-articulos {
+  animation: pulseWarning 2s infinite;
+  transition: all 0.3s ease;
+}
+
+.btn-validar-articulos:hover {
+  animation: none;
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.5) !important;
+}
+
+/* ============================================
+   RESPONSIVE PARA MÓVILES
+   ============================================ */
+
+@media (max-width: 768px) {
+  .alert .btn-lg {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  .alert h4 {
+    font-size: 1.2rem;
+  }
+  
+  .alert .d-flex .mr-3 {
+    font-size: 2rem !important;
+  }
+  
+  /* Botón de validación ocupa todo el ancho en móviles */
+  .btn-validar-articulos {
+    width: 100%;
+    margin-top: 10px;
+  }
+}
+
+/* ============================================
+   ESTILOS PARA MODALES FLOTANTES
+   ============================================ */
+
+.modal-content {
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.modal.fade .modal-dialog {
+  transform: scale(0.8);
+  opacity: 0;
+  transition: all 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Efecto backdrop */
+.modal-backdrop.show {
+  opacity: 0.7;
+}
