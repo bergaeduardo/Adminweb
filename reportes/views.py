@@ -68,11 +68,6 @@ def ConsultaDestino(request):
 
 # Abastecimiento
 
-@login_required(login_url="/login/")
-def Auditoria_orden(request):
-    Nombre='Auditoria orden'
-    dir_iframe = DIR_REPORTES['Auditoria_orden']
-    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 @login_required(login_url="/login/")
 def CategoriasDeProductos(request):

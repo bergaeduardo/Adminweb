@@ -34,9 +34,6 @@ urlpatterns = [
 
     # Abastecimiento
     path('Stock_excluido', views.Stock_excluido, name='herramientas_stock_excluido'),
-    path('Carga_de_orden', views.Carga_de_orden, name='herramientas_carga_orden'),
-    path('Activar_orden', views.Activar_orden, name='herramientas_activar_orden'),
-    path('Desactivar_orden', views.Desactivar_orden, name='herramientas_desactivar_orden'),
     path('Recodificacion', views.Recodificacion, name='herramientas_recodificacion'),
     path('MaestroDestinos', views.MaestroDestinos, name='herramientas_maestro_destinos'),
     path('GestionEquivalentes', views.GestionEquivalentes, name='herramientas_gestion_equivalentes'),

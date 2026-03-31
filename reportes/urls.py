@@ -19,7 +19,6 @@ urlpatterns = [
     path('Logistica/ConsultaDestino', views.ConsultaDestino, name='reportes_logistica_consulta_destino'),
 
     # Abastecimiento
-    path('Abastecimiento/Auditoria_orden', views.Auditoria_orden, name='reportes_abastecimiento_auditoria_orden'),
     path('Abastecimiento/CategoriasDeProductos', views.CategoriasDeProductos, name='reportes_abastecimiento_categorias_productos'),
     path('Abastecimiento/HRecodificaciones', views.HRecodificaciones, name='reportes_abastecimiento_historial_recodificaciones'),
     path('Abastecimiento/Eficiencia_pedidos', views.Eficiencia_pedidos, name='reportes_abastecimiento_eficiencia_pedidos'),

@@ -382,27 +382,6 @@ def Stock_excluido(request):
 
 
 @login_required(login_url="/login/")
-def Carga_de_orden(request):
-    Nombre = 'Carga de orden'
-    dir_iframe = DIR_HERAMIENTAS['Carga_de_orden']
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
-
-
-@login_required(login_url="/login/")
-def Activar_orden(request):
-    Nombre = 'Activar orden'
-    dir_iframe = DIR_HERAMIENTAS['Activar_orden']
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
-
-
-@login_required(login_url="/login/")
-def Desactivar_orden(request):
-    Nombre = 'Desactivar orden'
-    dir_iframe = DIR_HERAMIENTAS['Desactivar_orden']
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
-
-
-@login_required(login_url="/login/")
 def MaestroDestinos(request):
     Nombre = 'MaestroDestinos'
     dir_iframe = DIR_HERAMIENTAS['MaestroDestinos']

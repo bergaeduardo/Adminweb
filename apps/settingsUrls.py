@@ -33,7 +33,6 @@ DIR_REPORTES = {
     'Pedidos_pendiente_despacho':SERVIDOR['production'] + 'sistemas/cronoDespacho/pedidos.php',
     'ConsultaDestino':SERVIDOR['production'] + 'sistemas/maestroDestinos/indexMob.php',
     # Abastecimiento
-    'Auditoria_orden': SERVIDOR['production']  + 'sistemas/distriCuero/listOrdenesComercial.php',
     'CategoriasDeProductos':SERVIDOR['production']  + 'comercial/producto/consultaCategoriaProductos.php',
     'HRecodificaciones':SERVIDOR['production']  + 'recodificacion/historialDeRecodificaciones.php',
     'Eficiencia_pedidos': SERVIDOR['production']  + 'comercial/abastecimiento/pedidos/eficienciaPedidos.php',
@@ -100,9 +99,6 @@ DIR_HERAMIENTAS = {
 
     # Abastecimiento
     'Stock_excluido': SERVIDOR['production']  + 'comercial/abastecimiento/stockExcluido/index.php',
-    'Carga_de_orden': SERVIDOR['production']  + 'sistemas/distriCuero/index.php',
-    'Activar_orden': SERVIDOR['production']  + 'sistemas/distriCuero/activaOrdenes.php',
-    'Desactivar_orden': SERVIDOR['production']  + 'sistemas/distriCuero/desactivaOrdenes.php',
     'Recodificacion': SERVIDOR['production']  + 'recodificacion/nuevoProceso.php',
     'MaestroDestinos':SERVIDOR['production']  + 'comercial/abastecimiento/destinos/maestroDestinos.php',
     'GestionEquivalentes':SERVIDOR['production']  + 'comercial/abastecimiento/analisisProducto/gestion_equivalencias.php',
