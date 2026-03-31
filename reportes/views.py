@@ -92,6 +92,12 @@ def Eficiencia_pedidos(request):
     dir_iframe = DIR_REPORTES['Eficiencia_pedidos']
     return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def gestionOrdenesPreventa(request):
+    Nombre='Gestión de Ordenes de Preventa'
+    dir_iframe = DIR_REPORTES['gestionOrdenesPreventa']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 # Comercial
 
 # @login_required(login_url="/login/")
@@ -153,6 +159,7 @@ def gestionObjetivosLocales(request):
     Nombre='Gestión de Objetivos Locales'
     dir_iframe = DIR_REPORTES['gestionObjetivosLocales']
     return redirect(dir_iframe)
+
 
 
 # Mayoristas

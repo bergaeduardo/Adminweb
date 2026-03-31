@@ -37,6 +37,8 @@ DIR_REPORTES = {
     'CategoriasDeProductos':SERVIDOR['production']  + 'comercial/producto/consultaCategoriaProductos.php',
     'HRecodificaciones':SERVIDOR['production']  + 'recodificacion/historialDeRecodificaciones.php',
     'Eficiencia_pedidos': SERVIDOR['production']  + 'comercial/abastecimiento/pedidos/eficienciaPedidos.php',
+    'gestionOrdenesPreventa': SERVIDOR['production']  + 'sistemas/distriCuero/menu.php',
+
     # Comercial
     'Stock_Sucursales': SERVIDOR['production']  + 'sistemas/stockYprecios/stockDepositos.php',
     'Stock_central': SERVIDOR['production']  + 'logistica/stock.php',
