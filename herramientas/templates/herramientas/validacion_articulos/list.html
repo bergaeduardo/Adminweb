@@ -1,0 +1,349 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %} Validación de Artículos {% endblock %}
+
+{% block stylesheets %}
+  <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/static/assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="/static/assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+  <link rel="stylesheet" href="/static/assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+  <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+  <link rel="stylesheet" href="/static/assets/plugins/select2/css/select2.min.css">
+  <link rel="stylesheet" href="/static/assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+  <link rel="stylesheet" href="{% static 'assets/css/validacion_articulos.css' %}">
+{% endblock stylesheets %}
+
+{% block content %}
+
+<!-- Spinner bloqueante -->
+<div id="va-spinner" role="status" aria-live="polite">
+  <div class="va-spin-inner"></div>
+  <p id="va-spinner-msg">Ejecutando validación, por favor espere…<br><small class="text-muted">Esta operación puede demorar varios minutos.</small></p>
+</div>
+
+<div class="content-wrapper">
+  <!-- Encabezado -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1><i class="fas fa-clipboard-check"></i> Validación de Artículos</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="#">Herramientas</a></li>
+            <li class="breadcrumb-item active">Validación de Artículos</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+
+      <!-- ── Panel de filtros ─────────────────────────────────────────── -->
+      <div class="card card-primary card-outline">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fas fa-filter mr-1"></i> Filtros de búsqueda</h3>
+          <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+              <i class="fas fa-minus"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <!-- Mensaje alerta segundo filtro -->
+          <div id="va-alerta-filtro" class="alert alert-warning alert-dismissible">
+            <button type="button" class="close" onclick="document.getElementById('va-alerta-filtro').style.display='none'">
+              <span>&times;</span>
+            </button>
+            <i class="fas fa-exclamation-triangle mr-1"></i>
+            <strong>Filtro adicional requerido.</strong>
+            Debe seleccionar al menos uno de los siguientes filtros además de Fecha Desde:
+            <strong>Rubro, Proveedor, Temporada, Familia</strong> o <strong>Código Artículo</strong>.
+          </div>
+
+          <form id="va-form" novalidate>
+            {% csrf_token %}
+            <div class="row">
+
+              <!-- Fecha Desde -->
+              <div class="col-md-3 col-sm-6">
+                <div class="form-group">
+                  <label for="va-fecha-desde">
+                    <i class="fas fa-calendar-alt mr-1"></i> Fecha Alta Desde
+                    <span class="text-danger" title="Requerido">*</span>
+                  </label>
+                  <input type="date" id="va-fecha-desde" name="fecha_desde"
+                         class="form-control" value="{{ fecha_desde_default }}" required>
+                </div>
+              </div>
+
+              <!-- Fecha Hasta -->
+              <div class="col-md-3 col-sm-6">
+                <div class="form-group">
+                  <label for="va-fecha-hasta">
+                    <i class="fas fa-calendar-alt mr-1"></i> Fecha Alta Hasta
+                  </label>
+                  <input type="date" id="va-fecha-hasta" name="fecha_hasta" class="form-control">
+                </div>
+              </div>
+
+              <!-- Rubro -->
+              <div class="col-md-3 col-sm-6">
+                <div class="form-group">
+                  <label for="va-rubro"><i class="fas fa-tag mr-1"></i> Rubro</label>
+                  <select id="va-rubro" name="rubro" class="form-control select2">
+                    <option value="">— Todos —</option>
+                    {% for r in filtros_opciones.rubros %}
+                      <option value="{{ r }}">{{ r }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Proveedor -->
+              <div class="col-md-3 col-sm-6">
+                <div class="form-group">
+                  <label for="va-proveedor"><i class="fas fa-truck mr-1"></i> Proveedor</label>
+                  <select id="va-proveedor" name="proveedor" class="form-control select2">
+                    <option value="">— Todos —</option>
+                    {% for p in filtros_opciones.proveedores %}
+                      <option value="{{ p }}">{{ p }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Temporada -->
+              <div class="col-md-3 col-sm-6">
+                <div class="form-group">
+                  <label for="va-temporada"><i class="fas fa-snowflake mr-1"></i> Temporada</label>
+                  <select id="va-temporada" name="temporada" class="form-control select2">
+                    <option value="">— Todas —</option>
+                    {% for t in filtros_opciones.temporadas %}
+                      <option value="{{ t }}">{{ t }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Familia -->
+              <div class="col-md-3 col-sm-6">
+                <div class="form-group">
+                  <label for="va-familia"><i class="fas fa-layer-group mr-1"></i> Familia</label>
+                  <select id="va-familia" name="familia" class="form-control select2">
+                    <option value="">— Todas —</option>
+                    {% for f in filtros_opciones.familias %}
+                      <option value="{{ f }}">{{ f }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Código Artículo -->
+              <div class="col-md-3 col-sm-6">
+                <div class="form-group">
+                  <label for="va-cod-art"><i class="fas fa-barcode mr-1"></i> Código Artículo</label>
+                  <input type="text" id="va-cod-art" name="codigo_articulo"
+                         class="form-control" placeholder="Ej: OU-AS">
+                </div>
+              </div>
+
+              <!-- Solo con errores -->
+              <div class="col-md-3 col-sm-6">
+                <div class="form-group">
+                  <label>&nbsp;</label>
+                  <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox"
+                           id="va-solo-errores" name="solo_con_errores">
+                    <label class="form-check-label" for="va-solo-errores">
+                      <i class="fas fa-exclamation-circle text-danger mr-1"></i>
+                      Solo artículos con errores
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /row -->
+
+            <div class="row">
+              <div class="col-12">
+                <button type="submit" id="va-btn-consultar" class="btn btn-primary">
+                  <i class="fas fa-search mr-1"></i> Consultar
+                </button>
+                <button type="button" id="va-btn-limpiar" class="btn btn-secondary ml-2">
+                  <i class="fas fa-times mr-1"></i> Limpiar
+                </button>
+              </div>
+            </div>
+          </form>
+
+        </div><!-- /card-body -->
+      </div><!-- /card filtros -->
+
+      <!-- ── Panel de resultados ──────────────────────────────────────── -->
+      <div id="va-resultado">
+        <div class="card card-outline card-success">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-table mr-1"></i> Resultados
+              <span id="va-total-badge" class="badge badge-secondary ml-2">0 registros</span>
+            </h3>
+            <div class="card-tools">
+              <!-- Formulario oculto para exportar con los mismos filtros -->
+              <form id="va-export-form" method="POST"
+                    action="{% url 'herramientas:validacion_articulos_export' %}">
+                {% csrf_token %}
+                <input type="hidden" name="rubro"            id="exp-rubro">
+                <input type="hidden" name="proveedor"        id="exp-proveedor">
+                <input type="hidden" name="temporada"        id="exp-temporada">
+                <input type="hidden" name="familia"          id="exp-familia">
+                <input type="hidden" name="fecha_desde"      id="exp-fecha-desde">
+                <input type="hidden" name="fecha_hasta"      id="exp-fecha-hasta">
+                <input type="hidden" name="codigo_articulo"  id="exp-cod-art">
+                <input type="hidden" name="solo_con_errores" id="exp-solo-errores">
+                <button type="submit" class="btn btn-sm btn-success">
+                  <i class="fas fa-file-excel mr-1"></i> Exportar .xlsx
+                </button>
+              </form>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table id="va-tabla" class="table table-bordered table-hover table-sm"
+                     style="width:100%">
+                <thead class="thead-dark">
+                  <tr>
+                    <th>Código</th>
+                    <th>Descripción</th>
+                    <th>Rubro</th>
+                    <th>Proveedor</th>
+                    <th>Temporada</th>
+                    <th>Familia</th>
+                    <th>Estado</th>
+                    <th class="text-center" style="width:80px">Detalle</th>
+                  </tr>
+                </thead>
+                <tbody id="va-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div><!-- /va-resultado -->
+
+    </div><!-- /container-fluid -->
+  </section>
+</div><!-- /content-wrapper -->
+
+<!-- ── Modal de detalle de validación ────────────────────────────────── -->
+<div class="modal fade" id="va-modal-detalle" tabindex="-1" role="dialog"
+     aria-labelledby="va-modal-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="va-modal-titulo">
+          <i class="fas fa-info-circle mr-2"></i>
+          Detalle de validación — <span id="va-modal-cod"></span>
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Artículo -->
+        <div class="row mb-3">
+          <div class="col-12">
+            <h6 class="text-muted mb-1"><i class="fas fa-box mr-1"></i> Artículo</h6>
+            <p id="va-modal-descripcion" class="font-weight-bold mb-0"></p>
+          </div>
+        </div>
+
+        <hr class="mt-1 mb-3">
+
+        <!-- Estado -->
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <small class="text-muted d-block">Estado</small>
+            <span id="va-modal-estado"></span>
+          </div>
+          <div class="col-md-4">
+            <small class="text-muted d-block">Fecha Alta</small>
+            <span id="va-modal-fecha"></span>
+          </div>
+          <div class="col-md-4">
+            <small class="text-muted d-block">Código de Error</small>
+            <code id="va-modal-cod-error"></code>
+          </div>
+        </div>
+
+        <!-- Tabla / Campo -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <small class="text-muted d-block">Tabla Validación</small>
+            <span id="va-modal-tabla"></span>
+          </div>
+          <div class="col-md-6">
+            <small class="text-muted d-block">Campo Validación</small>
+            <span id="va-modal-campo"></span>
+          </div>
+        </div>
+
+        <!-- Mensaje -->
+        <div class="callout callout-warning mb-3" id="va-modal-bloque-mensaje">
+          <h6><i class="fas fa-comment-dots mr-1"></i> Mensaje de Validación</h6>
+          <p id="va-modal-mensaje" class="mb-0"></p>
+        </div>
+
+        <!-- Acción Sugerida -->
+        <div class="callout callout-info" id="va-modal-bloque-accion">
+          <h6><i class="fas fa-lightbulb mr-1"></i> Acción Sugerida</h6>
+          <p id="va-modal-accion" class="mb-0"></p>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          <i class="fas fa-times mr-1"></i> Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+  <!-- Base scripts (requeridos) -->
+  <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+  <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/assets/js/adminlte.min.js"></script>
+
+  <!-- DataTables -->
+  <script src="/static/assets/plugins/datatables/jquery.dataTables.min.js"></script>
+  <script src="/static/assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+  <script src="/static/assets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+  <script src="/static/assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+  <script src="/static/assets/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+  <script src="/static/assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+
+  <!-- Select2 -->
+  <script src="/static/assets/plugins/select2/js/select2.full.min.js"></script>
+
+  <!-- Configuración dinámica pasada desde el servidor -->
+  <script>
+    var VA_CONFIG = {
+      accionesConfig:    {{ acciones_config_json|safe }},
+      urlValidacion:     "{% url 'herramientas:validacion_articulos' %}",
+      fechaDesdeDefault: "{{ fecha_desde_default }}",
+    };
+  </script>
+  <script src="{% static 'assets/js/validacion_articulos.js' %}"></script>
+
+
+{% endblock javascripts %}

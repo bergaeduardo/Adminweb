@@ -147,6 +147,10 @@ urlpatterns = [
     path('eb-sinc-art-volumen/<str:cod_articulo>/edit/', views.eb_sinc_art_volumen_edit, name='eb_sinc_art_volumen_edit'),
     path('eb-sinc-art-volumen/<str:cod_articulo>/delete/', views.eb_sinc_art_volumen_delete, name='eb_sinc_art_volumen_delete'),
     
+    # Validación de Artículos
+    path('validacion-articulos/', views.validacion_articulos, name='validacion_articulos'),
+    path('validacion-articulos/export/', views.validacion_articulos_export, name='validacion_articulos_export'),
+
     # Vista de prueba para Excel
     path('test-excel/', views.test_excel_download, name='test_excel_download'),
     path('test-plantilla-step/', views.test_plantilla_step_by_step, name='test_plantilla_step'),
