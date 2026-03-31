@@ -45,6 +45,10 @@ def validar_articulo(articulo):
         cursor.execute(sql)
         esKit = cursor.fetchone()
 
+    # Validar que esKit no sea None antes de acceder a índices
+    if esKit is None:
+        return 'ERROR'
+    
     if esKit[0] == 'P':
         with connections['mi_db_2'].cursor() as cursor:
             sql = '''SELECT COALESCE(
@@ -63,6 +67,11 @@ def validar_articulo(articulo):
                     'ERROR') AS RESULT'''
             cursor.execute(sql)
             resultado = cursor.fetchone()
+    
+    # Validar que resultado no sea None antes de acceder a índices
+    if resultado is None:
+        return 'ERROR'
+    
     return resultado[0]
 
 def obtenerInformacionArticulo(CodigoArt,DescripcionMetaTag):
@@ -72,6 +81,12 @@ def obtenerInformacionArticulo(CodigoArt,DescripcionMetaTag):
         # print(sql)
         resulatado = cursor.fetchone()
         # print(resulatado[0])
+    
+    # Validar que resulatado no sea None antes de acceder a índices
+    if resulatado is None:
+        print(f"Error: No se pudo obtener información para el artículo {CodigoArt}")
+        return None
+    
     return resulatado[0]
 
 def cargar_articulo(articulo, descripcion):

@@ -742,8 +742,32 @@ def import_art_vtex(request):
 
                 excel_data.append(row_data)
                 if len(row_data) > 0:
-                    resultado = json.loads(obtenerInformacionArticulo(row_data[0], row_data[2]))
-                    crear_archivo_excel(resultado, nombre_archivo)
+                    # Validar que row_data tenga suficientes elementos
+                    if len(row_data) >= 3:
+                        resultado_json = obtenerInformacionArticulo(row_data[0], row_data[2])
+                        if resultado_json is not None:
+                            try:
+                                resultado = json.loads(resultado_json)
+                                # Validar que el resultado no sea None y sea una lista válida
+                                if resultado is not None and isinstance(resultado, list) and len(resultado) > 0:
+                                    crear_archivo_excel(resultado, nombre_archivo)
+                                else:
+                                    print(f"El stored procedure devolvió datos inválidos para artículo {row_data[0]}: {resultado_json}")
+                                    if not mensaje_error:
+                                        mensaje_error = f'El stored procedure devolvió datos inválidos para el artículo {row_data[0]}'
+                            except json.JSONDecodeError as e:
+                                print(f"Error decodificando JSON para artículo {row_data[0]}: {str(e)}")
+                                print(f"Contenido recibido: {resultado_json}")
+                                if not mensaje_error:
+                                    mensaje_error = 'Error procesando algunos artículos. Revisar datos de entrada.'
+                        else:
+                            print(f"No se pudo obtener información para el artículo: {row_data[0]}")
+                            if not mensaje_error:
+                                mensaje_error = 'Error obteniendo información de algunos artículos.'
+                    else:
+                        print(f"Fila con datos insuficientes: {row_data}")
+                        if not mensaje_error:
+                            mensaje_error = 'Algunas filas del archivo tienen datos insuficientes.'
 
             wb.save(path_filname)
             if not(mensaje_error):
@@ -756,13 +780,26 @@ def import_art_vtex(request):
 
 
     except Exception as identifier:
-        print(identifier)
+        print(f"Error en import_art_vtex: {str(identifier)}")
+        mensaje_error = f"Error procesando el archivo: {str(identifier)}"
+        return render(request, 'appConsultasTango/importFileArtVtex.html', {
+            'mensaje_error': mensaje_error
+        })
     return render(request,'appConsultasTango/importFileArtVtex.html',{})
 
 import xlwt
 import xlrd
 
 def crear_archivo_excel(tempJson, nombre_archivo):
+    # Validar que tempJson no sea None y sea una lista válida
+    if tempJson is None:
+        print(f"Error: tempJson es None - no se puede crear el archivo {nombre_archivo}")
+        return
+    
+    if not isinstance(tempJson, list) or len(tempJson) == 0:
+        print(f"Error: tempJson no es una lista válida o está vacía - no se puede crear el archivo {nombre_archivo}")
+        return
+
     # Construir la ruta absoluta del archivo
     ruta_archivo = os.path.join(settings.MEDIA_ROOT, nombre_archivo)
 
