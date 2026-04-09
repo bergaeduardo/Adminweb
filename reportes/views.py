@@ -155,6 +155,12 @@ def gestionObjetivosLocales(request):
     dir_iframe = DIR_REPORTES['gestionObjetivosLocales']
     return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def auditoriasPromocionesVTEX(request):
+    Nombre='Auditoría de Promociones VTEX'
+    dir_iframe = DIR_REPORTES['auditoriasPromocionesVTEX']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 
 
 # Mayoristas

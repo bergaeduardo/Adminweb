@@ -49,6 +49,7 @@ DIR_REPORTES = {
     'PresupuestoComercial':'http://192.168.0.13:3000/home/',
     'auditoriaDiferenciaPrecio':SERVIDOR['production']  + 'comercial/auditoria/ingreso_asistente.php',
     'gestionObjetivosLocales':SERVIDOR['production']  + 'ppp/objetivos/gestion.php',
+    'auditoriasPromocionesVTEX':SERVIDOR['production']  + 'comercial/auditoria/promociones/index.php',
 
     # Mayoristas
     'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'comercial/mayoristas/despacho/tracking.php',

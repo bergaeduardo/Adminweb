@@ -399,6 +399,14 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
+        <li class="nav-item">
+          {# Updated href for Auditorias Promociones VTEX (assuming Comercial section) #}
+          <a href="/Reportes/Comercial/auditoriasPromocionesVTEX/" class="nav-link {% if 'auditoriasPromocionesVTEX' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Auditorías Promociones VTEX</p>
+             <span class="badge badge-info right">New</span>
+          </a>
+        </li>
         
         {# Presupuesto Comercial - Solo usuario ID 40 #}
         {% if request.user.id == 40 %}
