@@ -76,6 +76,9 @@ urlpatterns = [
     # Supervisores
     path('Supervisores/Proyectos', views.Proyectos, name='reportes_supervisores_proyectos'),
 
+    # Admin
+    path('Admin/comparador_tablas', views.comparador_tablas, name='reportes_admin_comparador_tablas'),
+
     # Handle the root /Reportes/ path if needed, maybe redirect or show a landing page
     # path('', views.reportes_index, name='reportes_index'), # Example: add a view for the root
 ]

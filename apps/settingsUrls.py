@@ -84,6 +84,9 @@ DIR_REPORTES = {
     'gestionHorarios':SERVIDOR['production'] + 'comercial/horarios/rrhh.php',
     # Supervisores
     'Proyectos':SERVIDOR['production'] + 'projects/adminProyectos/index.php',
+    # Admin
+    'comparador_tablas':SERVIDOR['production'] + 'controlgestion/checker',
+
 
 }
 

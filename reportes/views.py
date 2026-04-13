@@ -527,4 +527,9 @@ def Proyectos(request):
     dir_iframe = DIR_REPORTES['Proyectos']
     return redirect(dir_iframe)
 
-
+# Admin
+@login_required(login_url="/login/")
+def comparador_tablas(request):
+    Nombre='Comparador de Tablas'
+    dir_iframe = DIR_REPORTES['comparador_tablas']
+    return redirect(dir_iframe)
