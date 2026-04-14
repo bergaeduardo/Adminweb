@@ -891,11 +891,6 @@ def CargaFacturasSuc(request):
     dir_iframe = DIR_HERAMIENTAS['CargaFacturasSuc'] #+ UserName
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
 
-@login_required(login_url="/login/")
-def CargaContratosFr(request):
-    Nombre = 'Carga Contratos Franquicias'
-    dir_iframe = DIR_HERAMIENTAS['CargaContratosFr'] #+ UserName
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
 
 @login_required(login_url="/login/")
 def ControlGastosSupervision(request):

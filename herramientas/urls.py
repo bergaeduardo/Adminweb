@@ -88,7 +88,7 @@ urlpatterns = [
     path('ControlMasivoCobranza', views.ControlMasivoCobranza, name='herramientas_control_masivo_cobranza'),
     path('CargarContratosDeAlquiler', views.CargarContratosDeAlquiler, name='herramientas_cargar_contratos_alquiler'),
     path('RelacionesCtaCont', views.RelacionesCtaCont, name='herramientas_relaciones_cuenta_contable'),
-    path('ContratosFrCarga', views.CargaContratosFr, name='herramientas_carga_contratos_franquicias'),
+  
     path('CargaFacturasSuc', views.CargaFacturasSuc, name='herramientas_carga_facturas_sucursales'),
     path('EgresosCajaTesoreria', views.EgresosCajaTesoreria, name='herramientas_egresos_caja_tesoreria'),
     path('GestionDeProveedores',views.GestionDeProveedores, name='herramientas_gestion_proveedores'),

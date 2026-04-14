@@ -220,12 +220,6 @@ def Auditoria_Prisma(request):
 # Administracion
 
 @login_required(login_url="/login/")
-def ContratosFranquicias(request):
-    Nombre='Contratos Franquicias'
-    dir_iframe = DIR_REPORTES['ContratosFranquicias']
-    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
-
-@login_required(login_url="/login/")
 def VentasXmedio_pago(request):
     Nombre='Resumen de Ventas'
     dir_iframe = DIR_REPORTES['VentasXmedio_pago']
@@ -285,6 +279,12 @@ def costoOcupacion(request):
 def cuentasParticulares(request):
     Nombre='Cuentas Particulares'
     dir_iframe = DIR_REPORTES['cuentasParticulares']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
+@login_required(login_url="/login/")
+def alquileresFranquicias(request):
+    Nombre='Gestión Contratos Franquicias'
+    dir_iframe = DIR_REPORTES['alquileresFranquicias']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 # Gerencia

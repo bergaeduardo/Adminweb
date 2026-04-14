@@ -229,15 +229,6 @@
           </a>
         </li>
         <li class="nav-item">
-          {# Administracion/ContratosFranquicias Link - Apply active if 'ContratosFranquicias' is in request.path #}
-          <a href="/Reportes/Administracion/ContratosFranquicias"
-            class="nav-link {% if 'ContratosFranquicias' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Contratos Alquiler Fr</p>
-            <!-- <span class="badge badge-info right">New</span> -->
-          </a>
-        </li>
-        <li class="nav-item">
           {# Administracion/FacturaManualLista Link - Apply active if 'FacturaManualLista' is in request.path #}
           <a href="/Reportes/Administracion/FacturaManualLista"
             class="nav-link {% if 'FacturaManualLista' in request.path %} active {% endif %}">
@@ -262,6 +253,15 @@
             <i class="far fa-circle nav-icon"></i>
             <p>Costo de Ocupación</p>
             <!-- <span class="badge badge-info right">New</span> -->
+          </a>
+        </li>
+        <li class="nav-item">
+          {# Updated href for Gestión Contratos Franquicias (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/alquileresFranquicias"
+            class="nav-link {% if 'alquileresFranquicias' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Gestión Contratos Franquicias</p>
+             <span class="badge badge-info right">New</span>
           </a>
         </li>
         <li class="nav-item">

@@ -66,12 +66,12 @@ urlpatterns = [
     path('Administracion/CargaGastosTesoreria', views.CargaGastosTesoreria, name='reportes_administracion_carga_gastos_tesoreria'),
     path('Administracion/DetalleContratosDeAlquiler', views.DetalleContratosDeAlquiler, name='reportes_administracion_detalle_contratos_alquiler'),
     path('Administracion/FacturaManualLista', viewsApp.facturas_por_fecha, name='reportes_administracion_factura_manual_lista'), # View not found in source
-    path('Administracion/ContratosFranquicias', views.ContratosFranquicias, name='reportes_administracion_contratos_franquicias'),
     path('Administracion/GastosSupervision', views.GastosSupervision, name='reportes_administracion_gastos_supervision'),
     path('Administracion/integridadVentas', views.integridadVentas, name='reportes_administracion_integridad_ventas'),
     path('Administracion/saldoCaja', views.saldoCaja, name='saldo_caja_tesoreria'),
     path('Administracion/costoOcupacion', views.costoOcupacion, name='costo_ocupacion'),
     path('Administracion/cuentasParticulares', views.cuentasParticulares, name='cuentas_particulares'),
+    path('Administracion/alquileresFranquicias', views.alquileresFranquicias, name='reportes_administracion_alquileres_franquicias'),
 
     # Supervisores
     path('Supervisores/Proyectos', views.Proyectos, name='reportes_supervisores_proyectos'),

@@ -67,13 +67,13 @@ DIR_REPORTES = {
     'Controlcajasmensual':SERVIDOR['production'] + 'administracion/controlSucursales/controlMensualCajaSucursales.php',
     'CargaGastosTesoreria':SERVIDOR['production'] + 'administracion/controlSucursales/cargaGastosTesoreria.php',
     'DetalleContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/contratos/detalleContratosAlquiler.php',
-    'ContratosFranquicias':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias/detalleContratosAlquiler.php',
     'GastosSupervision':SERVIDOR['production'] + 'comercial/supervision/presupuesto/dashboard.php',
     'integridadVentas':SERVIDOR['production'] + 'administracion/controlSucursales/integridadVentas/index.php',
     'saldoCaja':SERVIDOR['production'] + 'administracion/tesoreria/saldoCaja.php',
     'costoOcupacion':SERVIDOR['production'] + 'administracion/impuestos/alquileres/costoOcupacion/index.php',
     'FacturasDirectores':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/proveedores.php',
     'cuentasParticulares':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/contabilidad.php',
+    'alquileresFranquicias':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias',
 
     # Gerencia
     'DetalleRemitos599':SERVIDOR['production']  + 'finanzas/599/consultaderemitos.php?userName=',
@@ -141,7 +141,6 @@ DIR_HERAMIENTAS = {
     'ControlMasivoCobranza':SERVIDOR['production'] + 'administracion/controlSucursales/controlMasivoCaja.php',
     'CargarContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/contratos/cargaContratoAlquileres.php',
     'RelacionesCtaCont':SERVIDOR['production'] + 'administracion/contabilidad/gestionRelacionesCuenta.php',
-    'CargaContratosFr':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias/cargaContratosAlquileres.php',
     'CargaFacturasSuc':SERVIDOR['production'] + 'administracion/controlSucursales/cargaFacturaSucursales.php',
     'EgresosCajaTesoreria':SERVIDOR['production'] + 'administracion/tesoreria/cargaGastos.php',
     'GestionDeProveedores':'https://proveedores.xl.com.ar/administracion/dashboard/',
