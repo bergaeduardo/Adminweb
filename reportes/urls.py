@@ -17,6 +17,7 @@ urlpatterns = [
     path('Logistica/pendiente_despacho', views.Pedidos_pendiente_despacho, name='reportes_logistica_pedidos_pendiente_despacho'),
     path('Logistica/MovimientosWms', views.MovimientosWms, name='reportes_logistica_movimientos_wms'),
     path('Logistica/ConsultaDestino', views.ConsultaDestino, name='reportes_logistica_consulta_destino'),
+    path('Logistica/GestionTransferencias', views.GestionTransferencias, name='reportes_logistica_gestion_transferencias'),
 
     # Abastecimiento
     path('Abastecimiento/CategoriasDeProductos', views.CategoriasDeProductos, name='reportes_abastecimiento_categorias_productos'),
@@ -72,6 +73,7 @@ urlpatterns = [
     path('Administracion/costoOcupacion', views.costoOcupacion, name='costo_ocupacion'),
     path('Administracion/cuentasParticulares', views.cuentasParticulares, name='cuentas_particulares'),
     path('Administracion/alquileresFranquicias', views.alquileresFranquicias, name='reportes_administracion_alquileres_franquicias'),
+    path('Administracion/SolicitudesTransferencias', views.SolicitudesTransferencias, name='reportes_administracion_solicitudes_transferencias'),
 
     # Supervisores
     path('Supervisores/Proyectos', views.Proyectos, name='reportes_supervisores_proyectos'),

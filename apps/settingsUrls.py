@@ -32,6 +32,7 @@ DIR_REPORTES = {
     # Logistica
     'Pedidos_pendiente_despacho':SERVIDOR['production'] + 'sistemas/cronoDespacho/pedidos.php',
     'ConsultaDestino':SERVIDOR['production'] + 'sistemas/maestroDestinos/indexMob.php',
+    'GestionTransferencias':SERVIDOR['production'] + 'comercial/SolicitudesTransferencias/public/logistica',
     # Abastecimiento
     'CategoriasDeProductos':SERVIDOR['production']  + 'comercial/producto/consultaCategoriaProductos.php',
     'HRecodificaciones':SERVIDOR['production']  + 'recodificacion/historialDeRecodificaciones.php',
@@ -74,6 +75,7 @@ DIR_REPORTES = {
     'FacturasDirectores':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/proveedores.php',
     'cuentasParticulares':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/contabilidad.php',
     'alquileresFranquicias':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias',
+    'SolicitudesTransferencias':SERVIDOR['production'] + 'comercial/SolicitudesTransferencias',
 
     # Gerencia
     'DetalleRemitos599':SERVIDOR['production']  + 'finanzas/599/consultaderemitos.php?userName=',

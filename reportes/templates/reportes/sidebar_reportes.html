@@ -100,6 +100,14 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
+        <li class="nav-item">
+          {# Updated href for Gestión de Transferencias (assuming Logistica section) #}
+          <a href="/Reportes/Logistica/GestionTransferencias" class="nav-link {% if 'GestionTransferencias' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Gestión de Transferencias</p>
+          <span class="badge badge-info right">New</span>
+          </a>
+
 
 
         {% endif %}
@@ -271,6 +279,19 @@
           </a>
         </li>
         {% endif %}
+        {% if request.user|has_group:"gerencia_adm"%}
+        <li class="nav-item">
+          {# Updated href for Solicitudes de Transferencias (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/SolicitudesTransferencias"
+            class="nav-link {% if 'SolicitudesTransferencias' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Solicitudes de Transferencias</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>
+        {% endif %}
+
+
       <!-- Fin 	Administracion -->
 
       <!-- inicio 	e-commerce -->

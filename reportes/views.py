@@ -66,6 +66,12 @@ def ConsultaDestino(request):
     dir_iframe = DIR_REPORTES['ConsultaDestino']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
+@login_required(login_url="/login/")
+def GestionTransferencias(request):
+    Nombre='Gestión de Transferencias'
+    dir_iframe = DIR_REPORTES['GestionTransferencias']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 # Abastecimiento
 
 
@@ -285,6 +291,12 @@ def cuentasParticulares(request):
 def alquileresFranquicias(request):
     Nombre='Gestión Contratos Franquicias'
     dir_iframe = DIR_REPORTES['alquileresFranquicias']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
+@login_required(login_url="/login/")
+def SolicitudesTransferencias(request):
+    Nombre='Solicitudes de Transferencias'
+    dir_iframe = DIR_REPORTES['SolicitudesTransferencias']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 # Gerencia
