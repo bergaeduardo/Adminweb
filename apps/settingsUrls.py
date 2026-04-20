@@ -88,6 +88,7 @@ DIR_REPORTES = {
     'Proyectos':SERVIDOR['production'] + 'projects/adminProyectos/index.php',
     # Admin
     'comparador_tablas':SERVIDOR['production'] + 'controlgestion/checker',
+    'adminNotificaciones':SERVIDOR['production'] + 'sistemas/adminNotificaciones/',
 
 
 }
