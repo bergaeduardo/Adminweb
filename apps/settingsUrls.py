@@ -47,7 +47,7 @@ DIR_REPORTES = {
     'AnalisisProductos':SERVIDOR['production']  + 'comercial/abastecimiento/analisisProducto/listado.php',
     'compararStock':SERVIDOR['production']  + 'controlGestion/compararStock/',
     'compararVentas':SERVIDOR['production']  + 'controlGestion/compararVentas/',
-    'PresupuestoComercial':'https://192.168.0.13:3000/home/',
+    'PresupuestoComercial':'https://192.168.0.9:3000/home/',
     'auditoriaDiferenciaPrecio':SERVIDOR['production']  + 'comercial/auditoria/ingreso_asistente.php',
     'gestionObjetivosLocales':SERVIDOR['production']  + 'ppp/objetivos/gestion.php',
     'auditoriasPromocionesVTEX':SERVIDOR['production']  + 'comercial/auditoria/promociones/index.php',
