@@ -299,6 +299,10 @@
           extraRows += '<div class="sc-extra-row"><span class="sc-extra-lbl">Grupo</span>'
             + '<span>' + self._esc(d.grupo_empresario) + '</span></div>';
         }
+        if (d.supervisora) {
+          extraRows += '<div class="sc-extra-row"><span class="sc-extra-lbl">Supervisora</span>'
+            + '<span><i class="fas fa-user-tie mr-1 text-muted"></i>' + self._esc(d.supervisora) + '</span></div>';
+        }
         extraRows += '<div class="sc-extra-row">'
           + '<span class="sc-extra-lbl">Tango</span><span>' + boolIcon(d.tango) + '</span>'
           + '<span class="sc-extra-lbl sc-extra-lbl-sep">Tienda</span><span>' + boolIcon(d.tienda) + '</span>'
@@ -450,6 +454,7 @@
         var pills = '';
         if (d.tipo_local)       pills += '<span class="dir-pill"><i class="fas fa-store mr-1"></i>' + self._esc(d.tipo_local) + '</span>';
         if (d.grupo_empresario) pills += '<span class="dir-pill"><i class="fas fa-users mr-1"></i>' + self._esc(d.grupo_empresario) + '</span>';
+        if (d.supervisora)      pills += '<span class="dir-pill"><i class="fas fa-user-tie mr-1"></i>' + self._esc(d.supervisora) + '</span>';
         pills += '<span class="dir-pill">Tango ' + boolIcon(d.tango) + '</span>';
         pills += '<span class="dir-pill">Tienda ' + boolIcon(d.tienda) + '</span>';
         pills += '<span class="dir-pill">Vtex ' + boolIcon(d.integra_vtex) + '</span>';

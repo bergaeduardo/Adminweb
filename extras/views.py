@@ -183,6 +183,21 @@ def agenda(request):
         'grupo':      grupo,
     })
 
+def _get_supervisoras_map():
+    """Retorna un dict {nro_sucursal: nombre_supervisora} para todas las sucursales que tienen supervisora asignada."""
+    from django.db import connections
+    try:
+        with connections['mi_db_4'].cursor() as cursor:
+            cursor.execute("""
+                SELECT s.NRO_SUCURSAL, sv.NOMBRE
+                FROM SUCURSALES_LAKERS s
+                INNER JOIN RO_T_SUPERVISORAS_COMERCIAL sv ON s.ID_SUPERVISORA = sv.ID
+                WHERE s.ID_SUPERVISORA IS NOT NULL AND sv.ACTIVA = 1
+            """)
+            return {row[0]: row[1] for row in cursor.fetchall()}
+    except Exception:
+        return {}
+
 @login_required(login_url="/login/")
 def buscar_sucursales(request):
     """Endpoint AJAX para búsqueda y filtrado del direccionario."""
@@ -244,6 +259,7 @@ def buscar_sucursales(request):
         request.user.groups.filter(name__in=['admin', 'soporteExt']).exists()
         or request.user.is_superuser
     )
+    supervisoras_map = _get_supervisoras_map()
     for d in qs:
         data.append({
             'nro_sucursal':        d.nro_sucursal,
@@ -265,6 +281,7 @@ def buscar_sucursales(request):
             'retiro_expres':       d.retiro_expres or '',
             'nro_sucursal_madre':   d.nro_sucursal_madre,
             'nro_sucursal_anterior': d.nro_sucursal_anterior,
+            'supervisora':           supervisoras_map.get(d.nro_sucursal, ''),
             # Campos sensibles: solo incluidos para admin / soporteExt
             **({'base_nombre':   d.base_nombre or '',
                 'conexion_dns':  d.conexion_dns or '',
