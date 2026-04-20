@@ -279,7 +279,7 @@
           </a>
         </li>
         {% endif %}
-        {% if request.user|has_group:"gerencia_adm"%}
+        {% if request.user|has_group:"Gerencia_Adm" %}
         <li class="nav-item">
           {# Updated href for Solicitudes de Transferencias (assuming Administracion section) #}
           <a href="/Reportes/Administracion/SolicitudesTransferencias"
