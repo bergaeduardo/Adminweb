@@ -110,6 +110,17 @@
         </li>
       </ul>
 
+      <ul class="nav nav-treeview">
+        <li class="nav-item">
+          {# Admin/adminNotificaciones Link - Apply active if 'adminNotificaciones' is in request.path #}
+          <a href="/Reportes/Admin/adminNotificaciones" class="nav-link {% if 'adminNotificaciones' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Admin Notificaciones</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+      </ul>
+    </li>
+
     {# Abastecimiento Section #}
     {# Apply menu-is-opening menu-open if any path in Abastecimiento section is active #}
     <li class="nav-item{% if '/Reportes/Abastecimiento/' in request.path %} menu-is-opening menu-open{% endif %}">

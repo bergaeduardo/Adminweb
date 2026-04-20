@@ -545,3 +545,9 @@ def comparador_tablas(request):
     Nombre='Comparador de Tablas'
     dir_iframe = DIR_REPORTES['comparador_tablas']
     return redirect(dir_iframe)
+
+@login_required(login_url="/login/")
+def adminNotificaciones(request):
+    Nombre='Administrador de Notificaciones'
+    dir_iframe = DIR_REPORTES['adminNotificaciones']
+    return redirect(dir_iframe)
