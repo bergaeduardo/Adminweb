@@ -551,3 +551,9 @@ def adminNotificaciones(request):
     Nombre='Administrador de Notificaciones'
     dir_iframe = DIR_REPORTES['adminNotificaciones']
     return redirect(dir_iframe)
+
+@login_required(login_url="/login/")
+def contadorPersonas(request):
+    Nombre='Admin Contador de Personas'
+    dir_iframe = DIR_REPORTES['contadorPersonas']
+    return redirect(dir_iframe)

@@ -81,6 +81,7 @@ urlpatterns = [
     # Admin
     path('Admin/comparador_tablas', views.comparador_tablas, name='reportes_admin_comparador_tablas'),
     path('Admin/adminNotificaciones', views.adminNotificaciones, name='reportes_admin_reporte_admin_notificaciones'),
+    path('Admin/contadorPersonas', views.contadorPersonas, name='reportes_admin_contador_personas'),
 
     # Handle the root /Reportes/ path if needed, maybe redirect or show a landing page
     # path('', views.reportes_index, name='reportes_index'), # Example: add a view for the root

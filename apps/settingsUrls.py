@@ -89,6 +89,7 @@ DIR_REPORTES = {
     # Admin
     'comparador_tablas':SERVIDOR['production'] + 'controlgestion/checker',
     'adminNotificaciones':SERVIDOR['production'] + 'sistemas/adminNotificaciones/',
+    'contadorPersonas':SERVIDOR['production'] + 'sistemas/contadorPersonas/',
 
 
 }
