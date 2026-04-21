@@ -558,7 +558,7 @@
     <!-- Fin 	Tesoreria -->
 
     <!-- inicio 	Supervisores -->
-    {% if request.user|has_any_group:"admin,Comercial_sup,e-commerce_sup,Administracion_Sup,Logistica_Sup" or request.user.id == 63 %}
+    {% if request.user|has_any_group:"admin,Comercial_sup,e-commerce_sup,Administracion_Sup,Logistica_Sup,RRHH_Sup" or request.user.id == 63 %}
     <li class="nav-item">
       <a href="/../Herramientas/CargaProyecto" class="nav-link {% if  'CargaProyecto' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
