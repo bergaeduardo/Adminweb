@@ -288,7 +288,7 @@
           </a>
         </li>
         {% endif %}
-        {% if request.user|has_group:"admin" or request.user.id == 32 %}
+        {% if request.user|has_group:"admin" or request.user.id == 32 or request.user.id == 104 %}
         <li class="nav-item">
           {# Updated href for Solicitudes de Transferencias (assuming Administracion section) #}
           <a href="/Reportes/Administracion/SolicitudesTransferencias"
