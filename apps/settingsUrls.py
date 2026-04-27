@@ -76,6 +76,9 @@ DIR_REPORTES = {
     'cuentasParticulares':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/contabilidad.php',
     'alquileresFranquicias':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias',
     'SolicitudesTransferencias':SERVIDOR['production'] + 'comercial/SolicitudesTransferencias',
+    'ControlCads':SERVIDOR['production'] + 'comercial/cads',
+    
+        # RRHH
 
     # Gerencia
     'DetalleRemitos599':SERVIDOR['production']  + 'finanzas/599/consultaderemitos.php?userName=',

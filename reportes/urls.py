@@ -74,6 +74,7 @@ urlpatterns = [
     path('Administracion/cuentasParticulares', views.cuentasParticulares, name='cuentas_particulares'),
     path('Administracion/alquileresFranquicias', views.alquileresFranquicias, name='reportes_administracion_alquileres_franquicias'),
     path('Administracion/SolicitudesTransferencias', views.SolicitudesTransferencias, name='reportes_administracion_solicitudes_transferencias'),
+    path('Administracion/ControlCads', views.ControlCads, name='reportes_administracion_control_cads'),
 
     # Supervisores
     path('Supervisores/Proyectos', views.Proyectos, name='reportes_supervisores_proyectos'),
