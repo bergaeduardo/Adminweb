@@ -127,11 +127,11 @@
         var id     = $(this).data('id');
         var nombre = $(this).data('nombre');
         Swal.fire({
-          title: '¿Eliminar sucursal?',
-          html: 'Estás por eliminar <strong>#' + id + ' &ndash; ' + nombre + '</strong>.<br>Esta acción no se puede deshacer.',
+          title: '¿Deshabilitar sucursal?',
+          html: 'Estás por deshabilitar <strong>#' + id + ' &ndash; ' + nombre + '</strong>.<br>Podrá ser habilitada nuevamente en el futuro.',
           icon: 'warning',
           showCancelButton: true,
-          confirmButtonText: 'Sí, eliminar',
+          confirmButtonText: 'Sí, deshabilitar',
           cancelButtonText: 'Cancelar',
           confirmButtonColor: '#e53e3e',
         }).then(function (result) {
@@ -143,14 +143,14 @@
               headers: { 'X-Requested-With': 'XMLHttpRequest' },
               success: function (res) {
                 if (res.ok) {
-                  self._toast(res.mensaje || 'Sucursal eliminada', 'success');
+                  self._toast(res.mensaje || 'Sucursal deshabilitada', 'success');
                   self._fetchData();
                 } else {
-                  self._toast(res.error || 'Error al eliminar', 'error');
+                  self._toast(res.error || 'Error al deshabilitar', 'error');
                 }
               },
               error: function () {
-                self._toast('Error al eliminar la sucursal', 'error');
+                self._toast('Error al deshabilitar la sucursal', 'error');
               },
             });
           }

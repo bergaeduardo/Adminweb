@@ -97,14 +97,15 @@ def editarSucursal(request,id):
 @login_required(login_url="/login/")
 @user_passes_test(usuario_puede_editar_sucursal, login_url="/login/")
 def eliminarSucursal(request, id):
-    """Elimina una sucursal. Solo accesible para grupos 'admin' y 'Sistemas'."""
+    """Deshabilita una sucursal. Solo accesible para grupos permitidos."""
     sucursal = get_object_or_404(SucursalesLakers, nro_sucursal=id)
     if request.method == 'POST':
         nombre = f"{sucursal.nro_sucursal} - {sucursal.desc_sucursal}"
-        sucursal.delete()
+        sucursal.habilitado = False
+        sucursal.save()
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return JsonResponse({'ok': True, 'mensaje': f'Sucursal {nombre} eliminada.'})
-        messages.success(request, f'Sucursal {nombre} eliminada exitosamente.')
+            return JsonResponse({'ok': True, 'mensaje': f'Sucursal {nombre} deshabilitada.'})
+        messages.success(request, f'Sucursal {nombre} deshabilitada exitosamente.')
         return redirect('extras:extras_direccionario')
     return JsonResponse({'ok': False, 'error': 'Método no permitido.'}, status=405)
 
