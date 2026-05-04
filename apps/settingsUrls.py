@@ -51,6 +51,7 @@ DIR_REPORTES = {
     'auditoriaDiferenciaPrecio':SERVIDOR['production']  + 'comercial/auditoria/ingreso_asistente.php',
     'gestionObjetivosLocales':SERVIDOR['production']  + 'ppp/objetivos/gestion.php',
     'auditoriasPromocionesVTEX':SERVIDOR['production']  + 'comercial/auditoria/promociones/index.php',
+    'ControlCads':SERVIDOR['production'] + 'comercial/cads',
 
     # Mayoristas
     'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'comercial/mayoristas/despacho/tracking.php',
@@ -76,7 +77,6 @@ DIR_REPORTES = {
     'cuentasParticulares':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/contabilidad.php',
     'alquileresFranquicias':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias',
     'SolicitudesTransferencias':SERVIDOR['production'] + 'comercial/SolicitudesTransferencias',
-    'ControlCads':SERVIDOR['production'] + 'comercial/cads',
     
         # RRHH
 

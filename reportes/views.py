@@ -167,6 +167,11 @@ def auditoriasPromocionesVTEX(request):
     dir_iframe = DIR_REPORTES['auditoriasPromocionesVTEX']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
+@login_required(login_url="/login/")
+def ControlCads(request):
+    Nombre='Control de CADs'
+    dir_iframe = DIR_REPORTES['ControlCads']
+    return redirect(dir_iframe)
 
 
 # Mayoristas
@@ -299,11 +304,6 @@ def SolicitudesTransferencias(request):
     dir_iframe = DIR_REPORTES['SolicitudesTransferencias']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
-@login_required(login_url="/login/")
-def ControlCads(request):
-    Nombre='Control de CADs'
-    dir_iframe = DIR_REPORTES['ControlCads']
-    return redirect(dir_iframe)
 
 # Gerencia
 

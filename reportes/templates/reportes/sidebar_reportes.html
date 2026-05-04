@@ -256,15 +256,7 @@
              <span class="badge badge-info right">New</span>
           </a>
         </li>
-        <li class="nav-item">
-          {# Updated href for Control Cads (assuming Administracion section) #}
-          <a href="/Reportes/Administracion/ControlCads"
-            class="nav-link {% if 'ControlCads' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Control de CADs</p>
-             <span class="badge badge-info right">New</span>
-          </a>
-        </li>
+        
         {% endif %}
         {% if request.user|has_group:"Administracion" or request.user|has_group:"Administracion_Sup" or request.user|has_group:"admin" or request.user|has_group:"RRHH" %}
         <li class="nav-item">
@@ -436,6 +428,7 @@
              <span class="badge badge-info right">New</span>
           </a>
         </li>
+      
         
         {# Presupuesto Comercial - Solo usuario ID 40 #}
         {% if request.user.id == 40 %}
@@ -457,6 +450,17 @@
           </a>
         </li>
 
+        {% endif %}
+
+        {% if request.user.id == 73 or request.user.id == 28 or request.user.id == 12 or request.user|has_group:"Comercial_sup" %}
+        <li class="nav-item">
+          <a href="/Reportes/Comercial/ControlCads"
+            class="nav-link {% if 'ControlCads' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Control de CADs</p>
+             <span class="badge badge-info right">New</span>
+          </a>
+        </li>
         {% endif %}
 
         <li class="nav-item">

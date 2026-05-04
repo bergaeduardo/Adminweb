@@ -40,6 +40,7 @@ urlpatterns = [
     path('Comercial/auditoriaDiferenciaPrecio/', views.auditoriaDiferenciaPrecio, name='reportes_comercial_auditoria_diferencia_precio'),
     path('Comercial/gestionObjetivosLocales/', views.gestionObjetivosLocales, name='reportes_comercial_gestion_objetivos_locales'),
     path('Comercial/auditoriasPromocionesVTEX/', views.auditoriasPromocionesVTEX, name='reportes_comercial_auditorias_promociones_vtex'),
+    path('Comercial/ControlCads', views.ControlCads, name='reportes_comercial_control_cads'),
 
     # Mayoristas
     path('Mayoristas/Tracking_pedidos_mayoristas', views.Tracking_pedidos_mayoristas, name='reportes_mayoristas_tracking_pedidos_mayoristas'),
