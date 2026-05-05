@@ -135,6 +135,8 @@
         <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
+    {% endif %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento" or request.user.id == 44 %}
     <li class="nav-item">
       <a href="/../Herramientas/Recodificacion"
         class="nav-link {% if 'Recodificacion' in request.path %} active {% endif %}">
@@ -143,6 +145,8 @@
         <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
+    {% endif %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento" %}
     <li class="nav-item">
       <a href="/../Herramientas/MaestroDestinos"
         class="nav-link {% if 'MaestroDestinos' in request.path %} active {% endif %}">
