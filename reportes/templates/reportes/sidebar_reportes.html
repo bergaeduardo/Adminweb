@@ -455,6 +455,14 @@
           </a>
         </li>
 
+        <li class="nav-item">
+          {# Updated href for Stock Franquicias (assuming Comercial section) #}
+          <a href="/Reportes/Comercial/StockFranquicias" class="nav-link {% if 'StockFranquicias' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Stock Franquicias</p>
+             <span class="badge badge-info right">New</span>
+          </a>
+        </li>
         {% endif %}
 
         {% if request.user.id == 73 or request.user.id == 28 or request.user.id == 12 or request.user|has_group:"Comercial_sup" %}

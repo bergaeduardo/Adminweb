@@ -52,6 +52,7 @@ DIR_REPORTES = {
     'gestionObjetivosLocales':SERVIDOR['production']  + 'ppp/objetivos/gestion.php',
     'auditoriasPromocionesVTEX':SERVIDOR['production']  + 'comercial/auditoria/promociones/index.php',
     'ControlCads':SERVIDOR['production'] + 'comercial/cads',
+    'StockFranquicias':SERVIDOR['production'] + 'comercial/franquicias/stock/index.php',
 
     # Mayoristas
     'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'comercial/mayoristas/despacho/tracking.php',
