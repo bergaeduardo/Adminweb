@@ -124,7 +124,6 @@ urlpatterns = [
      path('CargaProyecto', views.CargaProyecto, name='carga_proyecto'),
 
     # Admin
-    path('AdminNotificaciones', views.AdminNotificaciones, name='herramientas_admin_notificaciones'),
 
     # --- URLs for views moved from viewsExtras.py ---
     path('import_file_etiquetas', views.import_file_etiquetas, name='herramientas_import_file_etiquetas'),
