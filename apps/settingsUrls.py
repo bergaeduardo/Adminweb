@@ -100,7 +100,7 @@ DIR_REPORTES = {
 
 DIR_HERAMIENTAS = {
     # Logistica
-    'Gestion_cronograma': SERVIDOR['production'] + 'sistemas/cronoDespacho/index.php',
+    'Gestion_cronograma': SERVIDOR['production'] + 'logistica/cronoDespacho/index.php',
     'Gestion_guias_mayoristas': SERVIDOR['production'] + 'comercial/mayoristas/despacho/index.php',
     'ImpRotulos': SERVIDOR['production'] + 'remapp/index.html',
     'ImportarRemEcommerce': SERVIDOR['production'] + 'ecommerce/abastecimiento/',
