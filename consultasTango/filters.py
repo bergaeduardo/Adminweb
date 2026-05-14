@@ -88,7 +88,7 @@ class Utilidades:
     def filtroRub(parametro):
         with connections[parametro].cursor() as cursor:
             cursor.execute('''
-                            select  ISNULL(RUBRO,'SIN')RUBRO from STOCK_CENTRAL
+                            select RUBRO from RO_ARTICULOS_CON_RUBRO_ACTIVOS
                             group by RUBRO
                             order by RUBRO desc
                             ''')
