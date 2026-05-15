@@ -50,6 +50,7 @@ DIR_REPORTES = {
     'auditoriasPromocionesVTEX':SERVIDOR['production']  + 'comercial/auditoria/promociones/index.php',
     'ControlCads':SERVIDOR['production'] + 'comercial/cads',
     'StockFranquicias':SERVIDOR['production'] + 'comercial/franquicias/stock/index.php',
+    'ActualizacionPrecios':SERVIDOR['production'] + 'comercial/precios/index.php',
 
     # Mayoristas
     'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'comercial/mayoristas/despacho/tracking.php',
