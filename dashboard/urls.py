@@ -13,9 +13,6 @@ urlpatterns = [
     path('Conteos', views.Conteos, name='dashboard_conteos'),
     path('Geodatos', views.Geodatos, name='dashboard_geodatos'),
     path('Notas_de_credito', views.Notas_de_credito, name='dashboard_notas_de_credito'),
-    path('Ventas_Franquicias', views.Ventas_Franquicias, name='dashboard_ventas_franquicias'),
-    path('Ventas_Sucursales', views.Ventas_Sucursales, name='dashboard_ventas_sucursales'),
-    path('Ventas_SucursalesUY', views.Ventas_SucursalesUY, name='dashboard_ventas_sucursales_uy'),
     path('Velocidad_de_Ventas', views.Velocidad_de_Ventas, name='dashboard_velocidad_de_ventas'),
     # Mayoristas
     path('Ventas_Mayoristas', views.Ventas_Mayoristas, name='dashboard_ventas_mayoristas'),
