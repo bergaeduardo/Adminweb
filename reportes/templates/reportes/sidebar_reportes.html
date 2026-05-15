@@ -433,17 +433,7 @@
              <span class="badge badge-info right">New</span>
           </a>
         </li>
-        {# Actualización de Precios - Solo usuario ID 83 #}
-        {% if request.user.id == 83 %}
-        <li class="nav-item">
-          {# Updated href for Actualización de Precios (assuming Comercial section) #}
-          <a href="/Reportes/Comercial/ActualizacionPrecios/" class="nav-link {% if 'ActualizacionPrecios' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Actualización de Precios</p>
-            <!-- <span class="badge badge-info right">New</span> -->
-          </a>
-        </li>
-        {% endif %}
+
         {# Presupuesto Comercial - Solo usuario ID 40 #}
         {% if request.user.id == 40 %}
         <li class="nav-item">

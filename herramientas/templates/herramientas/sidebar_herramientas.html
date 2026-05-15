@@ -492,6 +492,17 @@
         <span class="badge badge-info right">New</span>
       </a>
     </li>
+    {# Actualización de Precios - Solo usuario ID 83 #}
+    {% if request.user|has_any_group:"admin" or request.user.id == 83 %}
+    <li class="nav-item">
+      {# Updated href for Actualización de Precios (assuming Comercial section) #}
+      <a href="/Herramientas/Comercial/ActualizacionPrecios/" class="nav-link {% if 'ActualizacionPrecios' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Actualización de Precios</p>
+        <!-- <span class="badge badge-info right">New</span> -->
+      </a>
+    </li>
+    {% endif %}
     {% endif %}
     {% if request.user|has_any_group:"admin,Comercial_may,Comercial_fr,Comercial_suc,Comercial_sup" %}
     <!-- accesos del area aqui -->

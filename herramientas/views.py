@@ -495,6 +495,11 @@ def gestionPedidos(request):
     dir_iframe = DIR_HERAMIENTAS['gestionPedidos']
     return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def ActualizacionPrecios(request):
+    Nombre='Actualización de Precios'
+    dir_iframe = DIR_HERAMIENTAS['ActualizacionPrecios']
+    return render(request,'home/PlantillaHerramientas.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 # Ecommerce
 
 # --- Categorías ---

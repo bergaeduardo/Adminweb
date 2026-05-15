@@ -179,12 +179,6 @@ def StockFranquicias(request):
     dir_iframe = DIR_REPORTES['StockFranquicias']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
-@login_required(login_url="/login/")
-def ActualizacionPrecios(request):
-    Nombre='Actualización de Precios'
-    dir_iframe = DIR_REPORTES['ActualizacionPrecios']
-    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
-
 # Mayoristas
 
 @login_required(login_url="/login/")

@@ -50,7 +50,7 @@ DIR_REPORTES = {
     'auditoriasPromocionesVTEX':SERVIDOR['production']  + 'comercial/auditoria/promociones/index.php',
     'ControlCads':SERVIDOR['production'] + 'comercial/cads',
     'StockFranquicias':SERVIDOR['production'] + 'comercial/franquicias/stock/index.php',
-    'ActualizacionPrecios':SERVIDOR['production'] + 'comercial/precios/index.php',
+
 
     # Mayoristas
     'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'comercial/mayoristas/despacho/tracking.php',
@@ -124,6 +124,7 @@ DIR_HERAMIENTAS = {
     'ObjetivosVentaFranquicias':SERVIDOR['production']  + 'comercial/franquicias/objetivosVenta/',
     'gestionKits':SERVIDOR['production']  + 'comercial/producto/gestionKits.php',
     'conversorCSV':'http://192.168.0.13:3000/conversor-csv',
+    'ActualizacionPrecios':SERVIDOR['production'] + 'comercial/precios/index.php',
     # Mayoristas
     'gestionPedidos':SERVIDOR['production']  + 'comercial/mayoristas/gestionPedidos/',
     # Ecommerce
