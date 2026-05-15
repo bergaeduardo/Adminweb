@@ -94,6 +94,13 @@ class SucursalesLakers(models.Model):
     mail = models.CharField(db_column='MAIL', max_length=50, blank=True, null=True)  # Field name made lowercase.
     fecha_cierre = models.DateField(db_column='FECHA_CIERRE', blank=True, null=True)  # Field name made lowercase.
     horario = models.CharField(db_column='HORARIO', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    lunes = models.BooleanField(db_column='LUNES', blank=True, null=True)
+    martes = models.BooleanField(db_column='MARTES', blank=True, null=True)
+    miercoles = models.BooleanField(db_column='MIERCOLES', blank=True, null=True)
+    jueves = models.BooleanField(db_column='JUEVES', blank=True, null=True)
+    viernes = models.BooleanField(db_column='VIERNES', blank=True, null=True)
+    sabado = models.BooleanField(db_column='SABADO', blank=True, null=True)
+    domingo = models.BooleanField(db_column='DOMINGO', blank=True, null=True)
     integra_vtex = models.BooleanField(db_column='INTEGRA_VTEX', blank=True, null=True)  # Field name made lowercase.
     retiro_expres = models.BooleanField(db_column='RETIRO_EXPRES', blank=True, null=True) # Field name made lowercase.
     mail_grupo_emp = models.CharField(db_column='MAIL_GRUP_EMP', max_length=200, blank=True, null=True)

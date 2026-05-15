@@ -282,6 +282,10 @@
             + '<span>' + self._esc(d.horario) + '</span>'
             + '</div>';
         }
+        bodyRows += '<div class="sc-info-row">'
+          + '<i class="fas fa-calendar-week"></i>'
+          + '<span>' + self._esc(d.dias_abiertos || 'Cerrado') + '</span>'
+          + '</div>';
 
         /* ── Datos adicionales (colapsable) ── */
         var collapseId = 'sc-extra-' + d.nro_sucursal;

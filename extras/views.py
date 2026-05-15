@@ -199,6 +199,55 @@ def _get_supervisoras_map():
     except Exception:
         return {}
 
+def _to_bool_flag(value):
+    """Convierte valores de DB (bit/int/str) a bool para consumo de frontend."""
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return int(value) == 1
+    if isinstance(value, str):
+        return value.strip().lower() in ['1', 'true', 'si', 's', 'yes']
+    return False
+
+def _dias_abiertos_texto(dias_flags):
+    dias_label = [
+        ('lunes', 'Lun'),
+        ('martes', 'Mar'),
+        ('miercoles', 'Mie'),
+        ('jueves', 'Jue'),
+        ('viernes', 'Vie'),
+        ('sabado', 'Sab'),
+        ('domingo', 'Dom'),
+    ]
+    abiertos = [label for key, label in dias_label if dias_flags.get(key)]
+    return ', '.join(abiertos) if abiertos else 'Cerrado'
+
+def _get_dias_apertura_map():
+    """Retorna un dict con flags de apertura por dia para cada sucursal."""
+    from django.db import connections
+    try:
+        with connections['mi_db_4'].cursor() as cursor:
+            cursor.execute("""
+                SELECT NRO_SUCURSAL, LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO
+                FROM SUCURSALES_LAKERS
+            """)
+            data = {}
+            for row in cursor.fetchall():
+                data[row[0]] = {
+                    'lunes': _to_bool_flag(row[1]),
+                    'martes': _to_bool_flag(row[2]),
+                    'miercoles': _to_bool_flag(row[3]),
+                    'jueves': _to_bool_flag(row[4]),
+                    'viernes': _to_bool_flag(row[5]),
+                    'sabado': _to_bool_flag(row[6]),
+                    'domingo': _to_bool_flag(row[7]),
+                }
+            return data
+    except Exception:
+        return {}
+
 @login_required(login_url="/login/")
 def buscar_sucursales(request):
     """Endpoint AJAX para búsqueda y filtrado del direccionario."""
@@ -261,7 +310,17 @@ def buscar_sucursales(request):
         or request.user.is_superuser
     )
     supervisoras_map = _get_supervisoras_map()
+    dias_apertura_map = _get_dias_apertura_map()
     for d in qs:
+        dias_flags = dias_apertura_map.get(d.nro_sucursal, {
+            'lunes': False,
+            'martes': False,
+            'miercoles': False,
+            'jueves': False,
+            'viernes': False,
+            'sabado': False,
+            'domingo': False,
+        })
         data.append({
             'nro_sucursal':        d.nro_sucursal,
             'cod_client':          d.cod_client or '',
@@ -283,6 +342,14 @@ def buscar_sucursales(request):
             'nro_sucursal_madre':   d.nro_sucursal_madre,
             'nro_sucursal_anterior': d.nro_sucursal_anterior,
             'supervisora':           supervisoras_map.get(d.nro_sucursal, ''),
+            'lunes':                dias_flags['lunes'],
+            'martes':               dias_flags['martes'],
+            'miercoles':            dias_flags['miercoles'],
+            'jueves':               dias_flags['jueves'],
+            'viernes':              dias_flags['viernes'],
+            'sabado':               dias_flags['sabado'],
+            'domingo':              dias_flags['domingo'],
+            'dias_abiertos':        _dias_abiertos_texto(dias_flags),
             # Campos sensibles: solo incluidos para admin / soporteExt
             **({'base_nombre':   d.base_nombre or '',
                 'conexion_dns':  d.conexion_dns or '',
