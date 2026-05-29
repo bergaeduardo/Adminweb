@@ -139,20 +139,20 @@ def editarSucursalCompleta(request, id):
 
 @login_required(login_url="/login/")
 def registraSucursal(request):
-    if request.method=='POST':
-        formulario=sucursalesform(request.POST)
+    if request.method == 'POST':
+        formulario = sucursalesform(request.POST)
         if formulario.is_valid():
-            sucursal = formulario.save(commit=False)
-            sucursal.save()
-            messages.success(request, 'OK')
-            infForm = formulario.cleaned_data
-            # print(infForm)
-            return redirect('extras:extras_direccionario') # Updated redirect
-
+            try:
+                sucursal = formulario.save(commit=False)
+                sucursal.save()
+                messages.success(request, 'Sucursal dada de alta exitosamente.')
+                return redirect('extras:extras_direccionario')
+            except Exception as e:
+                messages.error(request, f'Error al guardar la sucursal: {e}')
     else:
-        formulario=sucursalesform()
+        formulario = sucursalesform()
 
-    return  render(request,'appConsultasTango/registraSucursal.html',{'formulario':formulario})
+    return render(request, 'appConsultasTango/registraSucursal.html', {'formulario': formulario})
 
 # Removed import_file_etiquetas and its helpers
 
@@ -290,11 +290,14 @@ def buscar_sucursales(request):
         qs = qs.filter(nro_sucursal_madre__isnull=True)
 
     if busqueda:
-        qs = qs.filter(
+        q = (
             Q(desc_sucursal__icontains=busqueda) |
             Q(localidad__icontains=busqueda) |
             Q(direccion__icontains=busqueda)
         )
+        if busqueda.isdigit():
+            q |= Q(nro_sucursal=int(busqueda))
+        qs = qs.filter(q)
     if canal:
         qs = qs.filter(canal=canal)
     if provincia:
