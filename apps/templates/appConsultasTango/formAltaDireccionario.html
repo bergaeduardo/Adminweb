@@ -61,6 +61,20 @@
     @media (max-width: 768px) {
         .cont_group .input-group { grid-template-columns: 1fr; }
     }
+    /* Días de apertura */
+    #dias-apertura-group .dias-btn {
+        border-radius: .4rem !important;
+        margin: 2px;
+        min-width: 48px;
+        font-weight: 500;
+        transition: all .15s ease;
+    }
+    #dias-apertura-group .dias-btn.active,
+    #dias-apertura-group .dias-btn:hover {
+        background-color: #4e73df;
+        border-color: #4e73df;
+        color: #fff;
+    }
 </style>
 
 <form enctype="multipart/form-data" method="post" class="needs-validation mt-4" autocomplete="off" novalidate>
@@ -326,24 +340,53 @@
                             </div> 
                             <div>
                                 <label class="label_form_2" for="pwd">{{ formulario.horario.label }}:</label>
-                                <input 
-                                    type="text" 
-                                    class="form-control  input_2 mayusc" 
+                                <input
+                                    type="text"
+                                    class="form-control  input_2 mayusc"
                                     id="{{ formulario.horario.name }}"
                                     name="{{ formulario.horario.name }}"
-                                    placeholder="Ingrese dias y horarios de atencion" 
+                                    placeholder="Ingrese dias y horarios de atencion"
                                     required
                                     value="{{ formulario.horario.value | default:'' }}">
                             </div>
                             <div class="valid-feedback">Valid.</div>
                             <div class="invalid-feedback mt-4">Este campo es obligatorio</div>
-                                                      
+
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
+        <!-- Días de apertura -->
+        <div class="form-group px-3 mt-1 mb-2">
+            <label class="label_form d-block mb-2">Días de apertura:</label>
+            <div class="btn-group btn-group-toggle flex-wrap" data-toggle="buttons" id="dias-apertura-group">
+                <label class="btn btn-outline-secondary btn-sm dias-btn{% if formulario.lunes.value %} active{% endif %}">
+                    <input type="checkbox" name="{{ formulario.lunes.name }}" value="True" autocomplete="off"{% if formulario.lunes.value %} checked{% endif %}> Lun
+                </label>
+                <label class="btn btn-outline-secondary btn-sm dias-btn{% if formulario.martes.value %} active{% endif %}">
+                    <input type="checkbox" name="{{ formulario.martes.name }}" value="True" autocomplete="off"{% if formulario.martes.value %} checked{% endif %}> Mar
+                </label>
+                <label class="btn btn-outline-secondary btn-sm dias-btn{% if formulario.miercoles.value %} active{% endif %}">
+                    <input type="checkbox" name="{{ formulario.miercoles.name }}" value="True" autocomplete="off"{% if formulario.miercoles.value %} checked{% endif %}> Mié
+                </label>
+                <label class="btn btn-outline-secondary btn-sm dias-btn{% if formulario.jueves.value %} active{% endif %}">
+                    <input type="checkbox" name="{{ formulario.jueves.name }}" value="True" autocomplete="off"{% if formulario.jueves.value %} checked{% endif %}> Jue
+                </label>
+                <label class="btn btn-outline-secondary btn-sm dias-btn{% if formulario.viernes.value %} active{% endif %}">
+                    <input type="checkbox" name="{{ formulario.viernes.name }}" value="True" autocomplete="off"{% if formulario.viernes.value %} checked{% endif %}> Vie
+                </label>
+                <label class="btn btn-outline-secondary btn-sm dias-btn{% if formulario.sabado.value %} active{% endif %}">
+                    <input type="checkbox" name="{{ formulario.sabado.name }}" value="True" autocomplete="off"{% if formulario.sabado.value %} checked{% endif %}> Sáb
+                </label>
+                <label class="btn btn-outline-secondary btn-sm dias-btn{% if formulario.domingo.value %} active{% endif %}">
+                    <input type="checkbox" name="{{ formulario.domingo.name }}" value="True" autocomplete="off"{% if formulario.domingo.value %} checked{% endif %}> Dom
+                </label>
+            </div>
+            <small class="form-text text-muted">Seleccioná los días en que la sucursal atiende.</small>
+        </div>
+
         <div class="form-group form-check ml-5">
             <div class="icheck-primary d-inline">
                 <input  

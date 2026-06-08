@@ -42,7 +42,6 @@ urlpatterns = [
     path('Comercial/auditoriasPromocionesVTEX/', views.auditoriasPromocionesVTEX, name='reportes_comercial_auditorias_promociones_vtex'),
     path('Comercial/ControlCads', views.ControlCads, name='reportes_comercial_control_cads'),
     path('Comercial/StockFranquicias', views.StockFranquicias, name='reportes_comercial_stock_franquicias'),
-
     # Mayoristas
     path('Mayoristas/Tracking_pedidos_mayoristas', views.Tracking_pedidos_mayoristas, name='reportes_mayoristas_tracking_pedidos_mayoristas'),
 

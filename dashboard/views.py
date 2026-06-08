@@ -50,23 +50,6 @@ def Notas_de_credito(request):
     dir_iframe = DIR_PBI['Notas_de_credito']
     return render(request,'home/PlantillaDash_PBI.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
-@login_required(login_url="/login/")
-def Ventas_Franquicias(request):
-    Nombre='Ventas Franquicias'
-    dir_iframe = DIR_PBI['Ventas_Franquicias']
-    return render(request,'home/PlantillaDash_PBI.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
-
-@login_required(login_url="/login/")
-def Ventas_Sucursales(request):
-    Nombre='Ventas Sucursales'
-    dir_iframe = DIR_PBI['Ventas_Sucursales']
-    return render(request,'home/PlantillaDash_PBI.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
-
-@login_required(login_url="/login/")
-def Ventas_SucursalesUY(request):
-    Nombre='Ventas Sucursales Uruguay'
-    dir_iframe = DIR_PBI['Ventas_SucursalesUY']
-    return render(request,'home/PlantillaDash_PBI.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 @login_required(login_url="/login/")
 def Velocidad_de_Ventas(request):

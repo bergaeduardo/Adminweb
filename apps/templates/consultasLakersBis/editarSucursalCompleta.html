@@ -200,6 +200,55 @@
                                 {{ formulario.horario }}
                             </div>
                         </div>
+                        <div class="col-md-12">
+                            <div class="form-group mb-2">
+                                <label>Dias abiertos</label>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-check mb-2">
+                                        {{ formulario.lunes }}
+                                        <label class="form-check-label" for="{{ formulario.lunes.id_for_label }}">{{ formulario.lunes.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check mb-2">
+                                        {{ formulario.martes }}
+                                        <label class="form-check-label" for="{{ formulario.martes.id_for_label }}">{{ formulario.martes.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check mb-2">
+                                        {{ formulario.miercoles }}
+                                        <label class="form-check-label" for="{{ formulario.miercoles.id_for_label }}">{{ formulario.miercoles.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check mb-2">
+                                        {{ formulario.jueves }}
+                                        <label class="form-check-label" for="{{ formulario.jueves.id_for_label }}">{{ formulario.jueves.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check mb-2">
+                                        {{ formulario.viernes }}
+                                        <label class="form-check-label" for="{{ formulario.viernes.id_for_label }}">{{ formulario.viernes.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check mb-2">
+                                        {{ formulario.sabado }}
+                                        <label class="form-check-label" for="{{ formulario.sabado.id_for_label }}">{{ formulario.sabado.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check mb-2">
+                                        {{ formulario.domingo }}
+                                        <label class="form-check-label" for="{{ formulario.domingo.id_for_label }}">{{ formulario.domingo.label }}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
