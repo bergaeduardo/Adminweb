@@ -88,9 +88,18 @@ class Utilidades:
     def filtroRub(parametro):
         with connections[parametro].cursor() as cursor:
             cursor.execute('''
-                            select RUBRO from RO_ARTICULOS_CON_RUBRO_ACTIVOS
-                            group by RUBRO
-                            order by RUBRO desc
+                            select A.RUBRO from 
+                                (
+                                SELECT B.IDFOLDER, A.CODE COD_ARTICU, C.SINONIMO, C.DESCRIPCIO, B.DESCRIP RUBRO FROM STA11ITC A WITH (NOLOCK)            
+                                INNER JOIN STA11FLD B ON A.IDFOLDER = B.IDFOLDER      
+                                INNER JOIN STA11 C ON A.CODE = C.COD_ARTICU  
+                                WHERE A.IDFOLDER NOT IN ('3','31') AND NOT B.DESCRIP LIKE 'PROMO VILLA%' AND B.DESCRIP NOT LIKE '[_]%'  
+                                AND C.USA_ESC != 'B'   
+                                AND A.CODE LIKE '[XO]%'  
+                                AND C.PERFIL != 'N' 
+                                )A
+                            group by A.RUBRO
+                            order by A.RUBRO desc
                             ''')
             row = list(cursor.fetchall())
         return row
