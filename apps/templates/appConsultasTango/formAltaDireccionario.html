@@ -313,31 +313,48 @@
                                     value="{{ formulario.cod_deposi.value | default:'' }}">
                             </div>
                             <div class="pb-2 ml-5 boton-check">
-                                <label class="label_form">Ferreteria</label>
-                                {{ navigation }}
-                                <input 
-                                    id="{{ formulario.empresa_ferreteria.name }}"
-                                    name="{{ formulario.empresa_ferreteria.name }}"
-                                    type="checkbox" 
-                                    data-toggle="toggle" 
-                                    data-style="ios" 
-                                    data-height="10"
-                                    unchecked
-                                    data-on="SI" 
-                                    data-off="NO"
-                                    value="{{ formulario.empresa_ferreteria.value | default:'true' }}">
+                                <div class="d-flex align-items-center mb-2" style="gap:.75rem;">
+                                    <label class="label_form mb-0">Ferreteria</label>
+                                    <input
+                                        id="{{ formulario.empresa_ferreteria.name }}"
+                                        name="{{ formulario.empresa_ferreteria.name }}"
+                                        type="checkbox"
+                                        data-toggle="toggle"
+                                        data-style="ios"
+                                        data-height="10"
+                                        unchecked
+                                        data-on="SI"
+                                        data-off="NO"
+                                        value="{{ formulario.empresa_ferreteria.value | default:'true' }}">
+                                </div>
+                                <div class="d-flex align-items-center mb-2" style="gap:.75rem;">
+                                    <label class="label_form mb-0">Sucursal Madre</label>
+                                    <input
+                                        id="{{ formulario.suc_madre.name }}"
+                                        name="{{ formulario.suc_madre.name }}"
+                                        type="checkbox"
+                                        data-toggle="toggle"
+                                        data-style="ios"
+                                        data-height="10"
+                                        unchecked
+                                        data-on="SI"
+                                        data-off="NO"
+                                        value="{{ formulario.suc_madre.value | default:'true' }}">
+                                </div>
+                                <div>
+                                    <label class="label_form">N° sucursal madre:</label>
+                                    <input
+                                        type="text"
+                                        class="form-control input_1 soloNum"
+                                        oninput="validarTextoEntrada(this, '[0-9]')"
+                                        id="{{ formulario.nro_suc_madre.name }}"
+                                        name="{{ formulario.nro_suc_madre.name }}"
+                                        placeholder="Ingrese número"
+                                        value="{{ formulario.nro_suc_madre.value | default:'' }}"
+                                        disabled>
+                                </div>
                                 <div id="console-event"></div>
-                                <label class="label_form">N° sucursal madre:</label>
-                                <input 
-                                    type="text" 
-                                    class="form-control input_1 soloNum" 
-                                    oninput="validarTextoEntrada(this, '[0-9]')"
-                                    id="{{ formulario.nro_suc_madre.name }}" 
-                                    name="{{ formulario.nro_suc_madre.name }}"
-                                    placeholder="Ingrese número"
-                                    value="{{ formulario.nro_suc_madre.value | default:'' }}"
-                                    disabled>                
-                            </div> 
+                            </div>
                             <div>
                                 <label class="label_form_2" for="pwd">{{ formulario.horario.label }}:</label>
                                 <input
@@ -460,8 +477,8 @@
 <script>
 window.onload = function(){
     $(document).ready(function(){
-        // Mantener nro_suc_madre habilitado solo cuando el checkbox esté encendido
         var ferreteriaId = "{{ formulario.empresa_ferreteria.name }}";
+        // nro_suc_madre se habilita solo cuando Ferreteria está en SI
         $(document).on('change', "#"+ferreteriaId, function(){
             $("#nro_suc_madre").prop('disabled', !this.checked);
         });
@@ -513,6 +530,7 @@ window.onload = function(){
         console.log('guardar')
     })
     var ferreteria = "{{ formulario.empresa_ferreteria.value }}"
+    var suc_madre = "{{ formulario.suc_madre.value }}"
     var tango = "{{ formulario.tango.value }}"
     var dashboard_bi = "{{ formulario.dashboard_bi.value }}"
     var habilitado = "{{ formulario.habilitado.value  }}"
@@ -547,7 +565,7 @@ window.onload = function(){
         $("#"+id).attr("checked","");
     }
 
-    // Forzar estado inicial del toggle según el valor recibido del back
+    // Forzar estado inicial de los toggles según el valor recibido del back
     (function(){
         var ferreteriaId = "{{ formulario.empresa_ferreteria.name }}";
         var raw = String(ferreteria || '').toLowerCase();
@@ -561,6 +579,19 @@ window.onload = function(){
             if (typeof $().bootstrapToggle === 'function') { $chk.bootstrapToggle('off'); }
         }
         $("#nro_suc_madre").prop('disabled', !isOn);
+    })();
+    (function(){
+        var sucMadreId = "{{ formulario.suc_madre.name }}";
+        var raw = String(suc_madre || '').toLowerCase();
+        var isOn = (raw === 'true' || raw === '1' || raw === 'on');
+        var $chk = $("#"+sucMadreId);
+        if (isOn) {
+            $chk.prop('checked', true).change();
+            if (typeof $().bootstrapToggle === 'function') { $chk.bootstrapToggle('on'); }
+        } else {
+            $chk.prop('checked', false).change();
+            if (typeof $().bootstrapToggle === 'function') { $chk.bootstrapToggle('off'); }
+        }
     })();
 };
 

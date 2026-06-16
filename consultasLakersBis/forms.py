@@ -9,7 +9,7 @@ class sucursalesform(forms.ModelForm):
 
         model = SucursalesLakers
         fields = ['id','nro_sucursal','cod_client','desc_sucursal','direccion','telefono','mail','localidad','provincia','canal',
-        'habilitado','dashboard_bi','tango','nro_suc_madre','tipo_local','empresa_ferreteria','horario',
+        'habilitado','dashboard_bi','tango','suc_madre','nro_suc_madre','tipo_local','empresa_ferreteria','horario',
         'lunes','martes','miercoles','jueves','viernes','sabado','domingo',
         'integra_vtex','cod_deposi','retiro_expres','mail_grupo_emp']
 
