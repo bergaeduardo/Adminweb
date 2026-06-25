@@ -1,0 +1,51 @@
+{
+  "_comentario": "Archivo de configuración de Acciones Sugeridas para la página de Validación de Artículos.",
+  "_instrucciones": "Cada clave es un CodigoError. Dentro, cada subclave es un CampoValidacion específico. Use '*' como comodín para cualquier campo no listado. No eliminar la clave 'OK' ni la clave '*' raíz.",
+
+  "OK": {
+    "*": "Artículo listo. Sin acción requerida."
+  },
+
+  "ERR_STA11": {
+    "*": "Verificar que el artículo existe en STA11 y cumple las condiciones requeridas (FECHA_ALTA >= 2019-01-01, USA_ESC = S)."
+  },
+
+  "ERR_STA33": {
+    "*": "Agregar el registro de escala/valor faltante en la tabla STA33."
+  },
+
+  "ERR_STA29": {
+    "*": "Verificar y completar el registro de material correspondiente en STA29."
+  },
+
+  "ERR_VOL": {
+    "*":            "Completar datos faltantes en EB_sincArt_volumen ( https://intranet.xl.com.ar/Herramientas/eb-sinc-art-volumen/ )."
+  },
+
+  "ERR_CAT": {
+    "*": "Crear la categoría faltante en SJ_CATEGORIAS para la combinación SIGLA_RUBRO/SIGLA_CAT del artículo."
+  },
+
+  "ERR_REL": {
+    "id_subCat_VtxAr": "Asignar la subcategoría (id_subCat_VtxAr) en la tabla EB_relacionCat_VtxAr.",
+    "*":               "Crear la relación de categoría en EB_relacionCat_VtxAr para este artículo ( https://intranet.xl.com.ar/Herramientas/relaciones/list )."
+  },
+
+  "ERR_SUBCAT": {
+    "Keywords":           "Completar el campo Keywords en EB_subCat_VtxAr para la subcategoría del artículo.",
+    "id_subCat_VtxAr":    "Crear la subcategoría faltante en EB_subCat_VtxAr.",
+    "id_categoria_VtxAr": "Asignar la categoría VtxAr (id_categoria_VtxAr) en EB_subCat_VtxAr.",
+    "*":                  "Revisar y completar los datos de subcategoría en EB_subCat_VtxAr ( https://intranet.xl.com.ar/Herramientas/subcategorias/list )."
+  },
+
+  "ERR_CATVTX": {
+    "id_Categoria_VtxAr": "Crear la categoría VtxAr faltante en EB_Categoria_VtxAr.",
+    "nombre":             "Completar el campo 'nombre' en EB_Categoria_VtxAr para la categoría VtxAr del artículo.",
+    "codigo":             "Completar el campo 'codigo' en EB_Categoria_VtxAr para la categoría VtxAr del artículo.",
+    "*":                  "Revisar y completar los datos de la categoría VtxAr en EB_Categoria_VtxAr ( https://intranet.xl.com.ar/Herramientas/categorias/list )."
+  },
+
+  "*": {
+    "*": "Revisar el error indicado y corregir según corresponda."
+  }
+}

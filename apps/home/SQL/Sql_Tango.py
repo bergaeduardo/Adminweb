@@ -45,6 +45,10 @@ def validar_articulo(articulo):
         cursor.execute(sql)
         esKit = cursor.fetchone()
 
+    # Validar que esKit no sea None antes de acceder a índices
+    if esKit is None:
+        return 'ERROR'
+    
     if esKit[0] == 'P':
         with connections['mi_db_2'].cursor() as cursor:
             sql = '''SELECT COALESCE(
@@ -63,6 +67,11 @@ def validar_articulo(articulo):
                     'ERROR') AS RESULT'''
             cursor.execute(sql)
             resultado = cursor.fetchone()
+    
+    # Validar que resultado no sea None antes de acceder a índices
+    if resultado is None:
+        return 'ERROR'
+    
     return resultado[0]
 
 def obtenerInformacionArticulo(CodigoArt,DescripcionMetaTag):
@@ -72,6 +81,12 @@ def obtenerInformacionArticulo(CodigoArt,DescripcionMetaTag):
         # print(sql)
         resulatado = cursor.fetchone()
         # print(resulatado[0])
+    
+    # Validar que resulatado no sea None antes de acceder a índices
+    if resulatado is None:
+        print(f"Error: No se pudo obtener información para el artículo {CodigoArt}")
+        return None
+    
     return resulatado[0]
 
 def cargar_articulo(articulo, descripcion):
@@ -115,9 +130,9 @@ def validar_pedidoAsignado(pedido):
         # print(resulatado[0])
     return int(resulatado[0])
 
-def cerrar_pedido(talon_pedido,pedido):
+def anular_pedido(talon_pedido,pedido):
     with connections['mi_db_2'].cursor() as cursor:
-        sql = '''EXEC RO_CERRAR_PEDIDOS '''+ "'" + talon_pedido + "','" + pedido + "'"
+        sql = '''EXEC RO_ANULAR_PEDIDOS '''+ "'" + talon_pedido + "','" + pedido + "'"
         # print(sql)
         cursor.execute(sql) # Guarda los cambios en la base de datos
 
@@ -269,153 +284,3 @@ def obtener_sucursal_activa():
                  WHERE ACTIVO = 1"""
         cursor.execute(sql)
         return cursor.fetchone()
-
-def agregar_estado_no_confirmado():
-    """Agregar estado NO CONFIRMADO a la tabla EstadoTurno si no existe"""
-    with connections['mi_db_2'].cursor() as cursor:
-        # Verificar si ya existe
-        cursor.execute("SELECT id_estado FROM EstadoTurno WHERE nombre = 'NO CONFIRMADO'")
-        resultado = cursor.fetchone()
-        
-        if resultado:
-            return resultado[0]
-        
-        # Insertar nuevo estado
-        sql = """
-        INSERT INTO EstadoTurno 
-        (nombre, descripcion, orden_ejecucion, es_requerido, permite_editar, color, activo, fecha_creacion, fecha_modificacion)
-        VALUES 
-        ('NO CONFIRMADO', 'Turno no confirmado a tiempo (30 min antes)', 99, 0, 0, '#dc3545', 0, GETDATE(), GETDATE())
-        """
-        cursor.execute(sql)
-        
-        # Obtener el ID insertado
-        cursor.execute("SELECT id_estado FROM EstadoTurno WHERE nombre = 'NO CONFIRMADO'")
-        nuevo_id = cursor.fetchone()[0]
-        
-        return nuevo_id
-
-def obtener_estado_por_nombre(nombre_estado):
-    """Obtener un estado por su nombre"""
-    with connections['mi_db_2'].cursor() as cursor:
-        sql = "SELECT id_estado, nombre, orden_ejecucion, permite_editar, activo FROM EstadoTurno WHERE nombre = %s"
-        cursor.execute(sql, [nombre_estado])
-        return cursor.fetchone()
-
-def marcar_turnos_no_confirmados():
-    """
-    Marca turnos RESERVADOS como NO CONFIRMADO si no se confirmaron 30 min antes
-    Retorna cantidad de turnos marcados
-    """
-    from datetime import datetime, timedelta
-    
-    with connections['mi_db_2'].cursor() as cursor:
-        # Obtener IDs de estados
-        cursor.execute("SELECT id_estado FROM EstadoTurno WHERE nombre = 'RESERVADO'")
-        estado_reservado_id = cursor.fetchone()[0]
-        
-        cursor.execute("SELECT id_estado FROM EstadoTurno WHERE nombre = 'NO CONFIRMADO'")
-        estado_no_confirmado_id = cursor.fetchone()[0]
-        
-        # Calcular fecha y hora límite (30 minutos atrás)
-        limite = datetime.now() - timedelta(minutes=30)
-        
-        # Buscar turnos RESERVADOS que ya pasaron el límite
-        sql_buscar = """
-        SELECT id_turno_reserva, codigo_proveedor, fecha, hora_inicio
-        FROM TurnoReserva
-        WHERE id_estado = %s
-        AND DATEADD(MINUTE, 0, CAST(CONCAT(CONVERT(VARCHAR, fecha, 23), ' ', CONVERT(VARCHAR, hora_inicio, 108)) AS DATETIME)) <= %s
-        """
-        cursor.execute(sql_buscar, [estado_reservado_id, limite])
-        turnos_a_marcar = cursor.fetchall()
-        
-        # Actualizar turnos
-        turnos_actualizados = 0
-        for turno in turnos_a_marcar:
-            id_turno = turno[0]
-            
-            # Actualizar estado
-            sql_update = """
-            UPDATE TurnoReserva
-            SET id_estado = %s, estado_actual_desde = GETDATE()
-            WHERE id_turno_reserva = %s
-            """
-            cursor.execute(sql_update, [estado_no_confirmado_id, id_turno])
-            
-            # Registrar en historial
-            sql_historial = """
-            INSERT INTO HistorialEstadoTurno 
-            (id_turno_reserva, id_estado_anterior, id_estado_nuevo, usuario, observaciones, fecha_cambio)
-            VALUES (%s, %s, %s, %s, %s, GETDATE())
-            """
-            cursor.execute(sql_historial, [
-                id_turno,
-                estado_reservado_id,
-                estado_no_confirmado_id,
-                'SISTEMA',
-                'Cambio automático: turno no confirmado 30 min antes del horario'
-            ])
-            
-            turnos_actualizados += 1
-
-
-def obtener_nombre_proveedor_por_codigo(codigo_proveedor):
-    """
-    Obtiene nombre de proveedor desde tabla CPA01 de base Tango (mi_db_2)
-    
-    Args:
-        codigo_proveedor (str): Código del proveedor a buscar
-    
-    Returns:
-        str: Nombre del proveedor o None si no existe
-    """
-    try:
-        with connections['mi_db_2'].cursor() as cursor:
-            sql = "SELECT NOM_PROVEE FROM dbo.CPA01 WHERE COD_CPA01 = %s"
-            cursor.execute(sql, [codigo_proveedor.strip().upper()])
-            resultado = cursor.fetchone()
-            return resultado[0] if resultado else None
-    except Exception as e:
-        print(f"Error al obtener nombre de proveedor: {str(e)}")
-        return None
-
-
-def obtener_ordenes_compra_activas_proveedor(codigo_proveedor):
-    """
-    Obtiene órdenes de compra activas de un proveedor desde tablas de Tango (mi_db_2)
-    
-    Consulta las tablas CPA35 (encabezado OC), CPA36 (detalle OC), CPA01 (proveedores)
-    y ESTADO_ORDEN_COMPRA para obtener OCs activas de los últimos 12 meses
-    
-    Args:
-        codigo_proveedor (str): Código del proveedor
-    
-    Returns:
-        list: Lista de tuplas (numero_oc, fecha_emision, estado_desc)
-              Formato del número de OC: " 0000100012634" (string con espacio inicial)
-    """
-    try:
-        with connections['mi_db_2'].cursor() as cursor:
-            sql = """
-            SELECT DISTINCT
-                oc.N_ORDEN_CO AS NumeroOrdenCompra,
-                oc.FEC_EMISIO AS FechaEmision,
-                est.DESC_ESTADO_ORDEN_COMPRA AS EstadoOrden
-            FROM dbo.CPA35 oc
-            INNER JOIN dbo.CPA01 prov ON oc.ID_CPA01 = prov.ID_CPA01
-            INNER JOIN dbo.ESTADO_ORDEN_COMPRA est ON oc.ID_ESTADO_ORDEN_COMPRA = est.ID_ESTADO_ORDEN_COMPRA
-            INNER JOIN dbo.CPA36 det ON oc.ID_CPA35 = det.ID_CPA35
-            WHERE prov.COD_CPA01 = %s
-              AND oc.ID_ESTADO_ORDEN_COMPRA IN (1, 2, 3, 9)
-              AND det.COD_DEPOSI = '01'
-              AND oc.FEC_EMISIO >= DATEADD(MONTH, -12, GETDATE())
-            ORDER BY oc.FEC_EMISIO DESC
-            """
-            cursor.execute(sql, [codigo_proveedor.strip().upper()])
-            return cursor.fetchall()
-    except Exception as e:
-        print(f"Error al obtener órdenes de compra activas: {str(e)}")
-        return []
-        
-        return turnos_actualizados

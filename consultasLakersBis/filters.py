@@ -6,11 +6,14 @@ from django.db import connections
 def filtroCanal():
     with connections['mi_db_4'].cursor() as cursor:
         cursor.execute('''
-                        select CANAL from DIRECCIONARIO
-                        group by CANAL
+                        SELECT CANAL FROM DIRECCIONARIO
+                        WHERE NRO_SUC_MADRE IS NULL
+                        AND CANAL IS NOT NULL AND CANAL != ''
+                        GROUP BY CANAL
+                        ORDER BY CANAL
                         ''')
         consulta = cursor.fetchall()
-        
+
         lista=[]
         for c in consulta:
             lista.append(c[0])
@@ -28,8 +31,11 @@ def filtroCanal_2():
 def filtroTipoLocal():
     with connections['mi_db_4'].cursor() as cursor:
         cursor.execute('''
-                        select TIPO_LOCAL from DIRECCIONARIO
-                        group by TIPO_LOCAL
+                        SELECT TIPO_LOCAL FROM DIRECCIONARIO
+                        WHERE NRO_SUC_MADRE IS NULL
+                        AND TIPO_LOCAL IS NOT NULL AND TIPO_LOCAL != ''
+                        GROUP BY TIPO_LOCAL
+                        ORDER BY TIPO_LOCAL
                         ''')
         consulta = cursor.fetchall()
 
@@ -50,14 +56,30 @@ def filtroTipoLocal_2():
 def filtroGrupoEmpresario():
     with connections['mi_db_4'].cursor() as cursor:
         cursor.execute('''
-                        select GRUPO_EMPRESARIO from DIRECCIONARIO
-                        where GRUPO_EMPRESARIO != ''
-                        group by GRUPO_EMPRESARIO
-                        order by GRUPO_EMPRESARIO
+                        SELECT GRUPO_EMPRESARIO FROM DIRECCIONARIO
+                        WHERE NRO_SUC_MADRE IS NULL
+                        AND GRUPO_EMPRESARIO IS NOT NULL AND GRUPO_EMPRESARIO != ''
+                        GROUP BY GRUPO_EMPRESARIO
+                        ORDER BY GRUPO_EMPRESARIO
                         ''')
         consulta = cursor.fetchall()
 
         lista=[]
+        for c in consulta:
+            lista.append(c[0])
+    return lista
+
+def filtroProvincias():
+    with connections['mi_db_4'].cursor() as cursor:
+        cursor.execute('''
+            SELECT PROVINCIA FROM DIRECCIONARIO
+            WHERE NRO_SUC_MADRE IS NULL
+            AND PROVINCIA IS NOT NULL AND PROVINCIA != ''
+            GROUP BY PROVINCIA
+            ORDER BY PROVINCIA
+        ''')
+        consulta = cursor.fetchall()
+        lista = []
         for c in consulta:
             lista.append(c[0])
     return lista

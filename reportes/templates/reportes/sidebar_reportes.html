@@ -22,9 +22,18 @@
             <a href="/Reportes/Administracion/controlVentasSucursales"
               class="nav-link {% if 'controlVentasSucursales' in request.path %} active {% endif %}">
               <i class="far fa-circle nav-icon"></i>
-              <p>Ctrl Ventas Sucursales</p>
+              <p>Comparar Ventas Propios</p>
             </a>
           </li>
+          <li class="nav-item">
+            {# Updated href for Gestion Horarios (assuming RRHH section) #}
+            <a href="/Reportes/RRHH/gestionHorarios"
+              class="nav-link {% if 'gestionHorarios' in request.path %} active {% endif %}">
+              <i class="far fa-circle nav-icon"></i>
+              <p>Gestión Horarios</p>
+            </a>
+          </li>
+        
         {% endif %}
         {% if request.user|has_any_group:"RRHH,admin" or request.user.id == 20 %}
           <li class="nav-item">
@@ -91,6 +100,14 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
+        <li class="nav-item">
+          {# Updated href for Gestión de Transferencias (assuming Logistica section) #}
+          <a href="/Reportes/Logistica/GestionTransferencias" class="nav-link {% if 'GestionTransferencias' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Gestión de Transferencias</p>
+          <span class="badge badge-info right">New</span>
+          </a>
+
 
 
         {% endif %}
@@ -110,13 +127,8 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
-        <li class="nav-item">
-          {# Updated href for Auditoría orden (assuming Abastecimiento section) #}
-          <a href="/Reportes/Abastecimiento/Auditoria_orden" class="nav-link {% if 'Auditoria_orden' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Auditoría orden</p>
-          </a>
-        </li>
+        {% endif %}
+        {% if request.user|has_group:"Abastecimiento" or request.user|has_group:"Abastecimiento_Sup" or request.user|has_group:"admin" or request.user.id == 44 %}
         <li class="nav-item">
           {# Updated href for HRecodificaciones (assuming Abastecimiento section) #}
           <a href="/Reportes/Abastecimiento/HRecodificaciones"
@@ -126,6 +138,8 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
+        {% endif %}
+        {% if request.user|has_group:"Abastecimiento" or request.user|has_group:"Abastecimiento_Sup" or request.user|has_group:"admin" %}
         <li class="nav-item">
           {# Updated href for Eficiencia de pedidos (assuming Abastecimiento section - note: also in Logistica) #}
           <a href="/Reportes/Abastecimiento/Eficiencia_pedidos"
@@ -136,17 +150,15 @@
           </a>
         </li>
         <li class="nav-item">
-          {# Updated href for Promos Activas (assuming Abastecimiento section) #}
-          <a href="/Reportes/Abastecimiento/promocionesActivas"
-            class="nav-link {% if 'promocionesActivas' in request.path %} active {% endif %}">
+          {# Updated href for Gestión de Ordenes de Preventa (assuming Abastecimiento section) #}
+          <a href="/Reportes/Abastecimiento/gestionOrdenesPreventa" class="nav-link {% if 'gestionOrdenesPreventa' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
-            <p>Promos Activas</p>
-            <!-- <span class="badge badge-info right">New</span> -->
+            <p>Gestión de Ordenes de Preventa</p>
+            <span class="badge badge-info right">New</span>
           </a>
         </li>
-
         {% endif %}
-        {% if request.user|has_group:"Abastecimiento" or request.user|has_group:"Abastecimiento_Sup" or request.user|has_group:"admin" or request.user|has_group:"Comercial_sup" or request.user|has_group:"Gerencia" or request.user.id == 44 %}
+        {% if request.user|has_group:"Abastecimiento" or request.user|has_group:"Abastecimiento_Sup" or request.user|has_group:"admin" or request.user|has_group:"Comercial_sup" or request.user|has_group:"Gerencia" or request.user|has_group:"e-commerce" or request.user.id == 44 or request.user.id == 88 or request.user.id == 29 %}
         <li class="nav-item">
           {# Updated href for Analisis de Productos (assuming Abastecimiento section) #}
           <a href="/Reportes/Abastecimiento/AnalisisProductos" class="nav-link {% if 'AnalisisProductos' in request.path %} active {% endif %}">
@@ -159,7 +171,7 @@
       <!-- Fin 	Abastecimiento -->
 
       <!-- inicio 	Administracion -->
-        {% if request.user|has_group:"AdministracionSup" or request.user|has_group:"admin" %}
+        {% if request.user|has_group:"Administracion_Sup" or request.user|has_group:"admin" %}
                   <!-- ver solo el supervisor del area aqui -->
         <li class="nav-item">
           {# Updated href for Consulta de gastos (assuming Administracion section) #}
@@ -187,7 +199,7 @@
           </a>
         </li>
         {% endif %}
-        {% if request.user|has_group:"AdministracionSup" or request.user|has_group:"admin" or request.user.id == 68 %}
+        {% if request.user|has_group:"Administracion_Sup" or request.user|has_group:"admin" or request.user.id == 68 or request.user.id == 67 %}
         <li class="nav-item">
           {# Updated href for Dash Gastos Supervision (assuming Administracion section) #}
           <a href="/Reportes/Administracion/GastosSupervision"
@@ -198,19 +210,12 @@
           </a>
         </li>
         {% endif %}
-        {% if request.user|has_group:"Administracion" or request.user|has_group:"AdministracionSup" or request.user|has_group:"admin" %}
+        {% if request.user|has_group:"Administracion" or request.user|has_group:"Administracion_Sup" or request.user|has_group:"admin" %}
         <li class="nav-item">
           {# Updated href for Resumen de Ventas (assuming Administracion section) #}
           <a href="/Reportes/Administracion/VentasXmedio_pago" class="nav-link {% if 'VentasXmedio_pago' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Resumen de Ventas</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          {# Updated href for Venta Vs cobranza (assuming Administracion section) #}
-          <a href="/Reportes/Administracion/VentaVscobranza" class="nav-link {% if 'VentaVscobranza' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Venta Vs cobranza</p>
           </a>
         </li>
         <li class="nav-item">
@@ -248,21 +253,23 @@
           </a>
         </li>
         <li class="nav-item">
-          {# Updated href for Contratos Alquiler Fr (assuming Administracion section) #}
-          <a href="/Reportes/Administracion/ContratosFranquicias"
-            class="nav-link {% if 'ContratosFranquicias' in request.path %} active {% endif %}">
+          {# Updated href for Gestión Contratos Franquicias (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/alquileresFranquicias"
+            class="nav-link {% if 'alquileresFranquicias' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
-            <p>Contratos Alquiler Fr</p>
-            <!-- <span class="badge badge-info right">New</span> -->
+            <p>Gestión Contratos Franquicias</p>
+             <span class="badge badge-info right">New</span>
           </a>
         </li>
+        
+        {% endif %}
+        {% if request.user|has_group:"Administracion" or request.user|has_group:"Administracion_Sup" or request.user|has_group:"admin" or request.user|has_group:"RRHH" or request.user.id == 21 %}
         <li class="nav-item">
-          {# Updated href for Contratos Alquiler Fr (assuming Administracion section) #}
-          <a href="/Reportes/Administracion/controlVentasSucursales"
-            class="nav-link {% if 'controlVentasSucursales' in request.path %} active {% endif %}">
+          {# Updated href for Control Integral Ventas Fr (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/integridadVentas"
+            class="nav-link {% if 'integridadVentas' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
-            <p>Ctrl Ventas Sucursales</p>
-            <!-- <span class="badge badge-info right">New</span> -->
+            <p>Control Integral Ventas</p>
           </a>
         </li>
         {% endif %}
@@ -278,10 +285,23 @@
           </a>
         </li>
         {% endif %}
+        {% if request.user|has_group:"admin" or request.user.id == 32 or request.user.id == 104 or request.user.id == 52 %}
+        <li class="nav-item">
+          {# Updated href for Solicitudes de Transferencias (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/SolicitudesTransferencias"
+            class="nav-link {% if 'SolicitudesTransferencias' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Solicitudes de Transferencias</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>
+        {% endif %}
+
+
       <!-- Fin 	Administracion -->
 
       <!-- inicio 	e-commerce -->
-        {% if request.user|has_group:"e-commerce_sup" or request.user|has_group:"admin"  or request.user|has_group:"AdministracionSup"  %}
+        {% if request.user|has_group:"e-commerce_sup" or request.user|has_group:"admin"  or request.user|has_group:"Administracion_Sup"  %}
                   <!-- ver solo el supervisor del area aqui -->
                   <li class="nav-item">
                     {# Updated href for Auditoría Ecommerce (assuming Ecommerce section) #}
@@ -305,7 +325,7 @@
                     </a>
                   </li>
         {% endif %}
-        {% if request.user|has_group:"Logistica_Sup" or request.user|has_group:"e-commerce" or request.user|has_group:"e-commerce_sup" or request.user|has_group:"admin"  or request.user|has_group:"AdministracionSup" or request.user|has_group:"Administracion" %}
+        {% if request.user|has_group:"Logistica_Sup" or request.user|has_group:"e-commerce" or request.user|has_group:"e-commerce_sup" or request.user|has_group:"admin"  or request.user|has_group:"Administracion_Sup" or request.user|has_group:"Administracion" %}
         <!-- accesos del area aqui -->
         <li class="nav-item">
           {# Updated href for Stock e-commerce (assuming Ecommerce section) #}
@@ -401,11 +421,19 @@
           {# Updated href for Comparar Ventas (assuming Comercial section) #}
           <a href="/Reportes/Comercial/compararVentas/" class="nav-link {% if 'compararVentas' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
-            <p>Comparar Ventas</p>
+            <p>Comparar Ventas Franquicias</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
-        
+        <li class="nav-item">
+          {# Updated href for Auditorias Promociones VTEX (assuming Comercial section) #}
+          <a href="/Reportes/Comercial/auditoriasPromocionesVTEX/" class="nav-link {% if 'auditoriasPromocionesVTEX' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Auditorías Promociones VTEX</p>
+             <span class="badge badge-info right">New</span>
+          </a>
+        </li>
+
         {# Presupuesto Comercial - Solo usuario ID 40 #}
         {% if request.user.id == 40 %}
         <li class="nav-item">
@@ -426,8 +454,37 @@
           </a>
         </li>
 
+        <li class="nav-item">
+          {# Updated href for Stock Franquicias (assuming Comercial section) #}
+          <a href="/Reportes/Comercial/StockFranquicias" class="nav-link {% if 'StockFranquicias' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Stock Franquicias</p>
+             <span class="badge badge-info right">New</span>
+          </a>
+        </li>
         {% endif %}
-        {% if request.user|has_group:"Comercial_may" or request.user|has_group:"e-commerce" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Abastecimiento"  or request.user|has_group:"Produccion" %}
+
+        {% if request.user.id == 73 or request.user.id == 28 or request.user.id == 12 or request.user|has_group:"Comercial_sup" %}
+        <li class="nav-item">
+          <a href="/Reportes/Comercial/ControlCads"
+            class="nav-link {% if 'ControlCads' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Control de CADs</p>
+             <span class="badge badge-info right">New</span>
+          </a>
+        </li>
+        {% endif %}
+
+        <li class="nav-item">
+          {# Updated href for Gestion de Objetivos Locales (assuming Comercial section) #}
+          <a href="/Reportes/Comercial/gestionObjetivosLocales/" class="nav-link {% if 'gestionObjetivosLocales' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Gestión de Objetivos Locales</p>
+            <span class="badge badge-danger right">New</span>
+          </a>
+        </li>
+
+        {% if request.user|has_group:"Comercial_may" or request.user|has_group:"e-commerce" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Abastecimiento"  or request.user|has_group:"Produccion" or request.user|has_group:"Gerencia" %}
         <!-- accesos del area aqui -->
         <li class="nav-item">
           {# Updated href for Ventas por canal (assuming Comercial section) #}
@@ -437,6 +494,8 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
+        {% endif %}
+        {% if request.user|has_group:"Comercial_may" or request.user|has_group:"e-commerce" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin" or request.user|has_group:"Abastecimiento"  or request.user|has_group:"Produccion" %}
         <li class="nav-item">
           {# Updated href for Stock Sucursales (assuming Comercial section) #}
           <a href="/Reportes/Comercial/stockSucursalesLakers" class="nav-link {% if 'stockSucursalesLakers' in request.path %} active {% endif %}">
@@ -473,7 +532,7 @@
       <!-- Fin 	Comercial -->
 
       <!-- inicio 	Supervisores -->
-        {% if request.user|has_any_group:"admin,Comercial_sup,e-commerce_sup,AdministracionSup,Logistica_Sup" or request.user.id == 63 %}
+        {% if request.user|has_any_group:"admin,Comercial_sup,e-commerce_sup,Administracion_Sup,Logistica_Sup" or request.user.id == 63 %}
         <li class="nav-item">
           {# Updated href for Proyectos (assuming Supervisores section) #}
           <a href="/Reportes/Supervisores/Proyectos" class="nav-link {% if 'Proyectos' in request.path %} active {% endif %}">

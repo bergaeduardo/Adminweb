@@ -78,6 +78,55 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
+        <li class="nav-item">
+          {# Updated href for Gestión de Transferencias (assuming Logistica section) #}
+          <a href="/Reportes/Logistica/GestionTransferencias" class="nav-link {% if 'GestionTransferencias' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Gestión de Transferencias</p>
+          <span class="badge badge-info right">New</span>
+          </a>
+      </ul>
+    </li>
+    {# Admin Section #}
+    {# Apply menu-is-opening menu-open if any path in Admin section is active #}
+    <li class="nav-item{% if '/Reportes/Admin/' in request.path %} menu-is-opening menu-open{% endif %}">
+      {# Admin Toggle Link - No active class here #}
+      <a href="#" class="nav-link">
+        <i class="nav-icon fas fa-circle"></i>
+        <p>
+          Admin
+          <i class="right fas fa-angle-left"></i>
+        </p>
+      </a>
+
+      <ul class="nav nav-treeview">
+        <li class="nav-item">
+          {# Admin/Proyectos Link - Apply active if 'Proyectos' is in request.path #}
+          <a href="/Reportes/Admin/comparador_tablas" class="nav-link {% if 'comparador_tablas' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Comparador de Tablas</p>
+            <!-- <span class="badge badge-info right">New</span> -->
+          </a>
+        </li>
+
+        <li class="nav-item">
+          {# Admin/adminNotificaciones Link - Apply active if 'adminNotificaciones' is in request.path #}
+          <a href="/Reportes/Admin/adminNotificaciones" class="nav-link {% if 'adminNotificaciones' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Admin Notificaciones</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          {# Admin/contadorPersonas Link - Apply active if 'contadorPersonas' is in request.path #}
+          <a href="/Reportes/Admin/contadorPersonas" class="nav-link {% if 'contadorPersonas' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Admin Contador de Personas</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>
+
       </ul>
     </li>
 
@@ -99,13 +148,6 @@
             <i class="far fa-circle nav-icon"></i>
             <p>Stock Supply</p>
             <!-- <span class="badge badge-info right">New</span> -->
-          </a>
-        </li>
-        <li class="nav-item">
-          {# Abastecimiento/Auditoria_orden Link - Apply active if 'Auditoria_orden' is in request.path #}
-          <a href="/Reportes/Abastecimiento/Auditoria_orden" class="nav-link {% if 'Auditoria_orden' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Auditoría orden</p>
           </a>
         </li>
         <li class="nav-item">
@@ -135,15 +177,6 @@
           </a>
         </li>
         <li class="nav-item">
-          {# Abastecimiento/promocionesActivas Link - Apply active if 'promocionesActivas' is in request.path #}
-          <a href="/Reportes/Abastecimiento/promocionesActivas"
-            class="nav-link {% if 'promocionesActivas' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Promos Activas</p>
-            <!-- <span class="badge badge-info right">New</span> -->
-          </a>
-        </li>
-        <li class="nav-item">
           {# Abastecimiento/AnalisisProductos Link - Apply active if 'AnalisisProductos' is in request.path #}
           <a href="/Reportes/Abastecimiento/AnalisisProductos" class="nav-link {% if 'AnalisisProductos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
@@ -151,6 +184,14 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
+        <li class="nav-item">
+          {# Updated href for Gestión de Ordenes de Preventa (assuming Abastecimiento section) #}
+          <a href="/Reportes/Abastecimiento/gestionOrdenesPreventa" class="nav-link {% if 'gestionOrdenesPreventa' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Gestión de Ordenes de Preventa</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>  
       </ul>
     </li>
 
@@ -178,13 +219,6 @@
           <a href="/Reportes/Administracion/Consultagastos" class="nav-link {% if 'Consultagastos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Consulta de gastos</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          {# Administracion/VentaVscobranza Link - Apply active if 'VentaVscobranza' is in request.path #}
-          <a href="/Reportes/Administracion/VentaVscobranza" class="nav-link {% if 'VentaVscobranza' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Venta Vs cobranza</p>
           </a>
         </li>
         <li class="nav-item">
@@ -222,15 +256,6 @@
           </a>
         </li>
         <li class="nav-item">
-          {# Administracion/ContratosFranquicias Link - Apply active if 'ContratosFranquicias' is in request.path #}
-          <a href="/Reportes/Administracion/ContratosFranquicias"
-            class="nav-link {% if 'ContratosFranquicias' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Contratos Alquiler Fr</p>
-            <!-- <span class="badge badge-info right">New</span> -->
-          </a>
-        </li>
-        <li class="nav-item">
           {# Administracion/FacturaManualLista Link - Apply active if 'FacturaManualLista' is in request.path #}
           <a href="/Reportes/Administracion/FacturaManualLista"
             class="nav-link {% if 'FacturaManualLista' in request.path %} active {% endif %}">
@@ -240,11 +265,11 @@
           </a>
         </li>
         <li class="nav-item">
-          {# Administracion/FacturaManualLista Link - Apply active if 'FacturaManualLista' is in request.path #}
-          <a href="/Reportes/Administracion/controlVentasSucursales"
-            class="nav-link {% if 'controlVentasSucursales' in request.path %} active {% endif %}">
+          {# administracion/controlSucursales/integridadVentas/ - Apply active if 'integridadVentas' is in request.path #}
+          <a href="/Reportes/Administracion/integridadVentas"
+            class="nav-link {% if 'integridadVentas' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
-            <p>Ctrl Ventas Sucursales</p>
+            <p>Control Integral Ventas</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
@@ -255,6 +280,15 @@
             <i class="far fa-circle nav-icon"></i>
             <p>Costo de Ocupación</p>
             <!-- <span class="badge badge-info right">New</span> -->
+          </a>
+        </li>
+        <li class="nav-item">
+          {# Updated href for Gestión Contratos Franquicias (assuming Administracion section) #}
+          <a href="/Reportes/Administracion/alquileresFranquicias"
+            class="nav-link {% if 'alquileresFranquicias' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Gestión Contratos Franquicias</p>
+             <span class="badge badge-info right">New</span>
           </a>
         </li>
         <li class="nav-item">
@@ -274,6 +308,23 @@
             <p>Dash Gastos Supervision</p>
           </a>
         </li>
+        <li class="nav-item">
+            {# Updated href for Solicitudes de Transferencias (assuming Administracion section) #}
+            <a href="/Reportes/Administracion/SolicitudesTransferencias"
+              class="nav-link {% if 'SolicitudesTransferencias' in request.path %} active {% endif %}">
+              <i class="far fa-circle nav-icon"></i>
+              <p>Solicitudes de Transferencias</p>
+              <span class="badge badge-info right">New</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            {# Updated href for Control de CADs (assuming Comercial section) #}
+            <a href="/Reportes/Comercial/ControlCads"
+              class="nav-link {% if 'ControlCads' in request.path %} active {% endif %}">
+              <i class="far fa-circle nav-icon"></i>
+              <p>Control de CADs</p>
+              <span class="badge badge-info right">New</span>
+            </a>
       </ul>
     </li>
 
@@ -450,7 +501,7 @@
           {# Comercial/compararVentas Link - Apply active if 'compararVentas' is in request.path #}
           <a href="/Reportes/Comercial/compararVentas/" class="nav-link {% if 'compararVentas' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
-            <p>Comparar Ventas</p>
+            <p>Comparar Ventas Franquicias</p>
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
@@ -470,8 +521,33 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
+        <li class="nav-item">
+          {# Updated href for Gestion de Objetivos Locales (new link) #}
+          <a href="/Reportes/Comercial/gestionObjetivosLocales/" class="nav-link {% if 'gestionObjetivosLocales' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Gestión de Objetivos Locales</p>
+            <span class="badge badge-danger right">New</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          {# Updated href for Auditorias Promociones VTEX (assuming Comercial section) #}
+          <a href="/Reportes/Comercial/auditoriasPromocionesVTEX/" class="nav-link {% if 'auditoriasPromocionesVTEX' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Auditorías Promociones VTEX</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          {# Updated href for Stock Franquicias (assuming Comercial section) #}
+          <a href="/Reportes/Comercial/StockFranquicias" class="nav-link {% if 'StockFranquicias' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Stock Franquicias</p>
+            <span class="badge badge-info right">New</span>
+          </a>
+        </li>
       </ul>
     </li>
+
 
     {# RRHH Section #}
     {# Apply menu-is-opening menu-open if any path in RRHH section is active #}
@@ -501,7 +577,17 @@
             <!-- <span class="badge badge-info right">New</span> -->
           </a>
         </li>
+        <li class="nav-item">
+          {# Updated href for Gestion Horarios (assuming RRHH section) #}
+          <a href="/Reportes/RRHH/gestionHorarios" class="nav-link {% if 'gestionHorarios' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Gestión Horarios</p>
+          </a>
+        </li>
+
+
       </ul>
     </li>
+    
   </ul>
 </li>

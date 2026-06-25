@@ -66,6 +66,12 @@ from datetime import datetime, timedelta, date, time as dt_time
 # Logistica
 
 @login_required(login_url="/login/")
+def AnularRemitos(request):
+    Nombre = 'Anular Remitos'
+    dir_iframe = DIR_HERAMIENTAS['AnularRemitos']
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre})
+
+@login_required(login_url="/login/")
 def RemisionMasiva(request):
     Nombre = ''
     dir_iframe = DIR_HERAMIENTAS['RemisionMasiva']
@@ -1341,6 +1347,13 @@ def ImpRemEcom(request):
     # return redirect(dir_iframe)
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
 
+@login_required(login_url="/login/")
+def SistemaReclamos(request):
+    Nombre = 'Sistema de Reclamos'
+    dir_iframe = DIR_HERAMIENTAS['SistemaReclamos']
+    return redirect(dir_iframe)
+
+
 
 # Abastecimiento
 
@@ -1366,27 +1379,6 @@ def Recodificacion(request):
 def Stock_excluido(request):
     Nombre = 'Stock excluido'
     dir_iframe = DIR_HERAMIENTAS['Stock_excluido']
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
-
-
-@login_required(login_url="/login/")
-def Carga_de_orden(request):
-    Nombre = 'Carga de orden'
-    dir_iframe = DIR_HERAMIENTAS['Carga_de_orden']
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
-
-
-@login_required(login_url="/login/")
-def Activar_orden(request):
-    Nombre = 'Activar orden'
-    dir_iframe = DIR_HERAMIENTAS['Activar_orden']
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
-
-
-@login_required(login_url="/login/")
-def Desactivar_orden(request):
-    Nombre = 'Desactivar orden'
-    dir_iframe = DIR_HERAMIENTAS['Desactivar_orden']
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
 
 
@@ -1453,13 +1445,62 @@ def gestionKits(request):
     dir_iframe = DIR_HERAMIENTAS['gestionKits'] #+ UserName
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
 
+@login_required(login_url="/login/")
+def conversorCSV(request):
+    if request.method == 'POST':
+        uploaded = request.FILES.get('excel_file')
+        if not uploaded:
+            return render(request, 'herramientas/conversor_csv.html', {'error': 'No se recibió ningún archivo.'})
+
+        separator = request.POST.get('separator', ';')
+        encoding  = request.POST.get('encoding', 'utf-8-sig')
+        sheet     = request.POST.get('sheet_name', 0)  # 0 = primera hoja
+
+        try:
+            df = pd.read_excel(uploaded, sheet_name=sheet, dtype=str)
+        except Exception as e:
+            return render(request, 'herramientas/conversor_csv.html', {'error': f'Error al leer el archivo: {e}'})
+
+        import io
+        buffer = io.StringIO()
+        df.to_csv(buffer, sep=separator, index=False, encoding=encoding)
+        csv_content = buffer.getvalue()
+
+        # Nombre del archivo de salida
+        base = uploaded.name.rsplit('.', 1)[0]
+        response = HttpResponse(csv_content.encode(encoding), content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{base}.csv"'
+        return response
+
+    return render(request, 'herramientas/conversor_csv.html')
+
+
+@login_required(login_url="/login/")
+def conversorCSV_sheets(request):
+    """Devuelve la lista de hojas de un archivo Excel (llamada AJAX)."""
+    if request.method == 'POST':
+        uploaded = request.FILES.get('excel_file')
+        if not uploaded:
+            return JsonResponse({'sheets': []})
+        try:
+            xl = pd.ExcelFile(uploaded)
+            return JsonResponse({'sheets': xl.sheet_names})
+        except Exception:
+            return JsonResponse({'sheets': []})
+    return JsonResponse({'sheets': []})
+
 # Mayoristas
 @login_required(login_url="/login/")
-def Adm_Pedido(request):
-    Nombre = 'Adm Pedido'
-    dir_iframe = DIR_HERAMIENTAS['Adm_Pedido']
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe, })
+def gestionPedidos(request):
+    Nombre = 'Gestión de Pedidos Mayoristas'
+    dir_iframe = DIR_HERAMIENTAS['gestionPedidos']
+    return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def ActualizacionPrecios(request):
+    Nombre='Actualización de Precios'
+    dir_iframe = DIR_HERAMIENTAS['ActualizacionPrecios']
+    return render(request,'home/PlantillaHerramientas.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 # Ecommerce
 
 # --- Categorías ---
@@ -1478,7 +1519,7 @@ def categoria_create(request):
         if form.is_valid():
             crear_categoria(form.cleaned_data['nombre'], form.cleaned_data['codigo'], form.cleaned_data['PalabrasClave'])
             messages.success(request, 'Categoría creada exitosamente.')
-            return redirect('herramientas:categoria_list') # Updated redirect
+            return redirect('herramientas:herramientas_categoria_list') # Updated redirect
     else:
         form = CategoriaForm()
     return render(request, 'appConsultasTango/ecommerce/categorias/categoria_create.html', {'form': form})
@@ -1488,13 +1529,13 @@ def categoria_update(request, id_categoria):
     categoria = obtener_categoria(id_categoria)
     if not categoria:
         messages.error(request, 'Categoría no encontrada.')
-        return redirect('herramientas:categoria_list') # Updated redirect
+        return redirect('herramientas:herramientas_categoria_list') # Updated redirect
     if request.method == 'POST':
         form = CategoriaForm(request.POST)
         if form.is_valid():
             editar_categoria(id_categoria, form.cleaned_data['nombre'], form.cleaned_data['codigo'], form.cleaned_data['PalabrasClave'])
             messages.success(request, 'Categoría actualizada exitosamente.')
-            return redirect('herramientas:categoria_list') # Updated redirect
+            return redirect('herramientas:herramientas_categoria_list') # Updated redirect
     else:
         form = CategoriaForm(initial={'nombre': categoria[1], 'codigo': categoria[2], 'PalabrasClave': categoria[3]})
     return render(request, 'appConsultasTango/ecommerce/categorias/categoria_update.html', {'form': form, 'id_categoria': id_categoria})
@@ -1504,11 +1545,11 @@ def categoria_delete(request, id_categoria):
     categoria = obtener_categoria(id_categoria)
     if not categoria:
         messages.error(request, 'Categoría no encontrada.')
-        return redirect('herramientas:categoria_list') # Updated redirect
+        return redirect('herramientas:herramientas_categoria_list') # Updated redirect
     if request.method == 'POST':
          eliminar_categoria(id_categoria)
          messages.success(request, 'Categoría eliminada exitosamente.')
-         return redirect('herramientas:categoria_list') # Updated redirect
+         return redirect('herramientas:herramientas_categoria_list') # Updated redirect
     return render(request, 'appConsultasTango/ecommerce/categorias/categoria_delete.html', {'categoria': categoria})
 
 # --- Subcategorías ---
@@ -1529,7 +1570,7 @@ def subcategoria_create(request):
             crear_subcategoria(form.cleaned_data['codigo'], form.cleaned_data['nombre'],
                                form.cleaned_data['Keywords'], form.cleaned_data['id_categoria_VtxAr'],form.cleaned_data['id_categoria_Tango'])
             messages.success(request, 'Subcategoría creada exitosamente.')
-            return redirect('herramientas:subcategoria_list') # Updated redirect
+            return redirect('herramientas:herramientas_subcategoria_list') # Updated redirect
     else:
         form = SubcategoriaForm()
     return render(request, 'appConsultasTango/ecommerce/subcategorias/subcategoria_create.html', {'form': form})
@@ -1539,7 +1580,7 @@ def subcategoria_update(request, id_subcategoria):
     subcategoria = obtener_subcategoria(id_subcategoria)
     if not subcategoria:
         messages.error(request, 'Subcategoría no encontrada.')
-        return redirect('herramientas:subcategoria_list') # Updated redirect
+        return redirect('herramientas:herramientas_subcategoria_list') # Updated redirect
     if request.method == 'POST':
         form = SubcategoriaForm(request.POST)
         if form.is_valid():
@@ -1547,7 +1588,7 @@ def subcategoria_update(request, id_subcategoria):
                                form.cleaned_data['Keywords'], form.cleaned_data['id_categoria_VtxAr'],form.cleaned_data['id_categoria_Tango'])
 
              messages.success(request, 'Subcategoría actualizada exitosamente.')
-             return redirect('herramientas:subcategoria_list') # Updated redirect
+             return redirect('herramientas:herramientas_subcategoria_list') # Updated redirect
     else:
           form = SubcategoriaForm(initial={'codigo': subcategoria[1],'nombre': subcategoria[2],'Keywords': subcategoria[3],'id_categoria_VtxAr': subcategoria[4],'id_categoria_Tango': subcategoria[5]})
     return render(request, 'appConsultasTango/ecommerce/subcategorias/subcategoria_update.html', {'form': form, 'id_subcategoria': id_subcategoria})
@@ -1557,11 +1598,11 @@ def subcategoria_delete(request, id_subcategoria):
     subcategoria = obtener_subcategoria(id_subcategoria)
     if not subcategoria:
         messages.error(request, 'Subcategoría no encontrada.')
-        return redirect('herramientas:subcategoria_list') # Updated redirect
+        return redirect('herramientas:herramientas_subcategoria_list') # Updated redirect
     if request.method == 'POST':
          eliminar_subcategoria(id_subcategoria)
          messages.success(request, 'Subcategoría eliminada exitosamente.')
-         return redirect('herramientas:subcategoria_list') # Updated redirect
+         return redirect('herramientas:herramientas_subcategoria_list') # Updated redirect
     return render(request, 'appConsultasTango/ecommerce/subcategorias/subcategoria_delete.html', {'subcategoria': subcategoria})
 
 # --- Relaciones ---
@@ -1580,7 +1621,7 @@ def relacion_create(request):
         if form.is_valid():
             crear_relacion(form.cleaned_data['id_categoria_Tango'], form.cleaned_data['id_subCat_VtxAr'])
             messages.success(request, 'Relación creada exitosamente.')
-            return redirect('herramientas:relacion_list') # Updated redirect
+            return redirect('herramientas:herramientas_relacion_list') # Updated redirect
     else:
         form = RelacionForm()
     return render(request, 'appConsultasTango/ecommerce/relaciones/relacion_create.html', {'form': form})
@@ -1591,13 +1632,13 @@ def relacion_update(request, id_categoria_tango,id_subcategoria):
     relacion = obtener_relacion(id_categoria_tango,id_subcategoria)
     if not relacion:
         messages.error(request, 'Relación no encontrada.')
-        return redirect('herramientas:relacion_create') # Updated redirect
+        return redirect('herramientas:herramientas_relacion_create') # Updated redirect
     if request.method == 'POST':
         form = RelacionForm(request.POST)
         if form.is_valid():
              editar_relacion(id_categoria_tango,id_subcategoria,form.cleaned_data['id_categoria_Tango'], form.cleaned_data['id_subCat_VtxAr'])
              messages.success(request, 'Relación actualizada exitosamente.')
-             return redirect('herramientas:relacion_list') # Updated redirect
+             return redirect('herramientas:herramientas_relacion_list') # Updated redirect
     else:
         form = RelacionForm(initial={'id_categoria_Tango': relacion[0], 'id_subCat_VtxAr': relacion[1]})
     return render(request, 'appConsultasTango/ecommerce/relaciones/relacion_update.html', {'form': form, 'id_categoria_tango': id_categoria_tango,'id_subcategoria':id_subcategoria})
@@ -1608,11 +1649,11 @@ def relacion_delete(request, id_categoria_tango, id_subcategoria):
     relacion = obtener_relacion(id_categoria_tango,id_subcategoria)
     if not relacion:
         messages.error(request, 'Relación no encontrada.')
-        return redirect('herramientas:relacion_list') # Updated redirect
+        return redirect('herramientas:herramientas_relacion_list') # Updated redirect
     if request.method == 'POST':
         eliminar_relacion(id_categoria_tango, id_subcategoria)
         messages.success(request, 'Relación eliminada exitosamente.')
-        return redirect('herramientas:relacion_list') # Updated redirect
+        return redirect('herramientas:herramientas_relacion_list') # Updated redirect
     return render(request, 'appConsultasTango/ecommerce/relaciones/relacion_delete.html', {'relacion': relacion,'id_categoria_tango': id_categoria_tango, 'id_subcategoria': id_subcategoria})
 
 @login_required(login_url="/login/")
@@ -1686,8 +1727,32 @@ def import_art_vtex(request):
 
                 excel_data.append(row_data)
                 if len(row_data) > 0:
-                    resultado = json.loads(obtenerInformacionArticulo(row_data[0], row_data[2]))
-                    crear_archivo_excel(resultado, nombre_archivo)
+                    # Validar que row_data tenga suficientes elementos
+                    if len(row_data) >= 3:
+                        resultado_json = obtenerInformacionArticulo(row_data[0], row_data[2])
+                        if resultado_json is not None:
+                            try:
+                                resultado = json.loads(resultado_json)
+                                # Validar que el resultado no sea None y sea una lista válida
+                                if resultado is not None and isinstance(resultado, list) and len(resultado) > 0:
+                                    crear_archivo_excel(resultado, nombre_archivo)
+                                else:
+                                    print(f"El stored procedure devolvió datos inválidos para artículo {row_data[0]}: {resultado_json}")
+                                    if not mensaje_error:
+                                        mensaje_error = f'El stored procedure devolvió datos inválidos para el artículo {row_data[0]}'
+                            except json.JSONDecodeError as e:
+                                print(f"Error decodificando JSON para artículo {row_data[0]}: {str(e)}")
+                                print(f"Contenido recibido: {resultado_json}")
+                                if not mensaje_error:
+                                    mensaje_error = 'Error procesando algunos artículos. Revisar datos de entrada.'
+                        else:
+                            print(f"No se pudo obtener información para el artículo: {row_data[0]}")
+                            if not mensaje_error:
+                                mensaje_error = 'Error obteniendo información de algunos artículos.'
+                    else:
+                        print(f"Fila con datos insuficientes: {row_data}")
+                        if not mensaje_error:
+                            mensaje_error = 'Algunas filas del archivo tienen datos insuficientes.'
 
             wb.save(path_filname)
             if not(mensaje_error):
@@ -1700,13 +1765,26 @@ def import_art_vtex(request):
 
 
     except Exception as identifier:
-        print(identifier)
+        print(f"Error en import_art_vtex: {str(identifier)}")
+        mensaje_error = f"Error procesando el archivo: {str(identifier)}"
+        return render(request, 'appConsultasTango/importFileArtVtex.html', {
+            'mensaje_error': mensaje_error
+        })
     return render(request,'appConsultasTango/importFileArtVtex.html',{})
 
 import xlwt
 import xlrd
 
 def crear_archivo_excel(tempJson, nombre_archivo):
+    # Validar que tempJson no sea None y sea una lista válida
+    if tempJson is None:
+        print(f"Error: tempJson es None - no se puede crear el archivo {nombre_archivo}")
+        return
+    
+    if not isinstance(tempJson, list) or len(tempJson) == 0:
+        print(f"Error: tempJson no es una lista válida o está vacía - no se puede crear el archivo {nombre_archivo}")
+        return
+
     # Construir la ruta absoluta del archivo
     ruta_archivo = os.path.join(settings.MEDIA_ROOT, nombre_archivo)
 
@@ -1819,11 +1897,6 @@ def CargaFacturasSuc(request):
     dir_iframe = DIR_HERAMIENTAS['CargaFacturasSuc'] #+ UserName
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
 
-@login_required(login_url="/login/")
-def CargaContratosFr(request):
-    Nombre = 'Carga Contratos Franquicias'
-    dir_iframe = DIR_HERAMIENTAS['CargaContratosFr'] #+ UserName
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
 
 @login_required(login_url="/login/")
 def ControlGastosSupervision(request):
@@ -1862,12 +1935,6 @@ def CargaGastosAlquileres(request):
     return redirect(dir_iframe)
 
 @login_required(login_url="/login/")
-def GestionDeAlquileres(request):
-    Nombre = 'Gestión % De Alquileres'
-    dir_iframe = DIR_HERAMIENTAS['GestionDeAlquileres'] #+ UserName
-    return redirect(dir_iframe)
-
-@login_required(login_url="/login/")
 def ControlEgresosDeCaja(request,UserName):
     Nombre = 'Control Egresos De Caja'
     dir_iframe = DIR_HERAMIENTAS['ControlEgresosDeCaja'] + UserName
@@ -1900,7 +1967,7 @@ def RegistroPagoServicios(request):
 # Administracion_CE             ***Comercio Exterior***
 @login_required(login_url="/login/")
 def Cargarcontenedor(request):
-    Nombre = 'Cargar Contenedor'
+    Nombre = 'Gestión de Importaciones'
     dir_iframe = DIR_HERAMIENTAS['cargaInicial'] #+ UserName
     return redirect(dir_iframe)
 
@@ -1982,14 +2049,212 @@ def CargaProyecto(request):
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
     # return redirect(dir_iframe)
 
-# Admin
+# ─────────────────────────────────────────────────────────────────────────────
+# Gestión de Usuarios
+# ─────────────────────────────────────────────────────────────────────────────
+from django.contrib.auth.models import User, Group
+
+def _puede_gestionar_usuarios(user):
+    """Retorna True si el usuario puede acceder a la gestión de usuarios."""
+    if not user.is_authenticated:
+        return False
+    return user.groups.filter(name='admin').exists() or \
+           user.groups.filter(name__iendswith='_sup').exists()
+
+
+def _grupos_accesibles(user):
+    """Retorna el queryset de grupos que el usuario puede asignar.
+    Soporta múltiples grupos _sup (ej: Abastecimiento_Sup + Comercial_sup)."""
+    if user.groups.filter(name='admin').exists():
+        return Group.objects.all().order_by('name')
+    from django.db.models import Q
+    sup_groups = user.groups.filter(name__iendswith='_sup')
+    if not sup_groups.exists():
+        return Group.objects.none()
+    q = Q()
+    for sg in sup_groups:
+        prefijo = sg.name[:-4]  # quita '_sup' o '_Sup'
+        q |= Q(name__istartswith=prefijo)
+    return Group.objects.filter(q).exclude(name__iendswith='_sup').order_by('name')
+
+
+def _usuarios_accesibles(user, solo_activos=True):
+    """Retorna el queryset de usuarios que el usuario puede ver/editar.
+    Siempre incluye usuarios activos sin grupos asignados para que cualquier
+    operador pueda asignarles un grupo al momento de darlos de alta.
+    """
+    from django.db.models import Q
+    qs = User.objects.prefetch_related('groups')
+    if solo_activos:
+        qs = qs.filter(is_active=True)
+    if user.groups.filter(name='admin').exists():
+        return qs.order_by('username')
+    grupos = _grupos_accesibles(user)
+    # Usuarios del área del operador + usuarios activos sin ningún grupo asignado
+    return qs.filter(
+        Q(groups__in=grupos) | Q(groups__isnull=True)
+    ).distinct().order_by('username')
+
 
 @login_required(login_url="/login/")
-def AdminNotificaciones(request):
-    Nombre = ''
-    dir_iframe = DIR_HERAMIENTAS['AdminNotificaciones'] #+ UserName
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
-    # return redirect(dir_iframe)
+def gestion_usuarios(request):
+    if not _puede_gestionar_usuarios(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("No tiene permiso para acceder a esta sección.")
+    is_admin = request.user.groups.filter(name='admin').exists()
+    grupos_disponibles = list(_grupos_accesibles(request.user).values('id', 'name'))
+    return render(request, 'herramientas/gestion_usuarios.html', {
+        'is_admin': is_admin,
+        'grupos_disponibles': grupos_disponibles,
+    })
+
+
+@login_required(login_url="/login/")
+def api_usuarios(request):
+    """Retorna lista de usuarios en JSON."""
+    if not _puede_gestionar_usuarios(request.user):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+
+    solo_activos = request.GET.get('activos', 'true') == 'true'
+    qs = _usuarios_accesibles(request.user, solo_activos=solo_activos)
+
+    data = []
+    for u in qs:
+        grupos = [g.name for g in u.groups.all()]
+        data.append({
+            'id': u.id,
+            'username': u.username,
+            'first_name': u.first_name,
+            'last_name': u.last_name,
+            'email': u.email,
+            'is_active': u.is_active,
+            'date_joined': u.date_joined.strftime('%d/%m/%Y'),
+            'last_login': u.last_login.strftime('%d/%m/%Y %H:%M') if u.last_login else '—',
+            'grupos': grupos,
+        })
+    return JsonResponse({'usuarios': data})
+
+
+@login_required(login_url="/login/")
+def api_usuario_detalle(request, user_id):
+    """Retorna detalle de un usuario para edición."""
+    if not _puede_gestionar_usuarios(request.user):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+
+    target = get_object_or_404(User, pk=user_id)
+
+    # Verificar que el solicitante tiene acceso a este usuario
+    accesibles = _usuarios_accesibles(request.user, solo_activos=False)
+    if not accesibles.filter(pk=user_id).exists():
+        return JsonResponse({'error': 'Sin permiso sobre este usuario'}, status=403)
+
+    grupos_usuario = list(target.groups.values_list('id', flat=True))
+    # Grupos que el operador puede gestionar normalmente
+    grupos_accesibles_ids = set(_grupos_accesibles(request.user).values_list('id', flat=True))
+    # Grupos que el usuario tiene pero están fuera del alcance del operador
+    grupos_extra = list(
+        target.groups.exclude(id__in=grupos_accesibles_ids).values('id', 'name').order_by('name')
+    )
+    return JsonResponse({
+        'id': target.id,
+        'username': target.username,
+        'first_name': target.first_name,
+        'last_name': target.last_name,
+        'email': target.email,
+        'is_active': target.is_active,
+        'grupos': grupos_usuario,
+        'grupos_extra': grupos_extra,  # [{id, name}] asignados fuera del área del operador
+    })
+
+
+@login_required(login_url="/login/")
+def api_editar_usuario(request, user_id):
+    """Edita datos personales y grupos de un usuario."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    if not _puede_gestionar_usuarios(request.user):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+
+    target = get_object_or_404(User, pk=user_id)
+    accesibles = _usuarios_accesibles(request.user, solo_activos=False)
+    if not accesibles.filter(pk=user_id).exists():
+        return JsonResponse({'error': 'Sin permiso sobre este usuario'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Datos inválidos'}, status=400)
+
+    first_name = data.get('first_name', target.first_name).strip()
+    last_name = data.get('last_name', target.last_name).strip()
+    email = data.get('email', target.email).strip()
+    is_active = data.get('is_active', target.is_active)
+    if not isinstance(is_active, bool):
+        is_active = bool(is_active)
+    grupos_ids = data.get('grupos', [])
+
+    # Grupos que el operador puede gestionar por su área
+    grupos_permitidos = _grupos_accesibles(request.user)
+    grupos_permitidos_ids = set(grupos_permitidos.values_list('id', flat=True))
+    # Grupos extra: los que el usuario ya tiene asignados fuera del área del operador.
+    # El operador los ve en la UI y puede desasignarlos.
+    grupos_usuario_actuales_ids = set(target.groups.values_list('id', flat=True))
+    grupos_extra_ids = grupos_usuario_actuales_ids - grupos_permitidos_ids
+    # El operador puede manejar: su área normal + los grupos extra ya asignados
+    grupos_manejables_ids = grupos_permitidos_ids | grupos_extra_ids
+    grupos_ids_validos = [int(gid) for gid in grupos_ids if int(gid) in grupos_manejables_ids]
+
+    target.first_name = first_name
+    target.last_name = last_name
+    target.email = email
+    target.is_active = is_active
+    target.save(update_fields=['first_name', 'last_name', 'email', 'is_active'])
+
+    # Preservar solo grupos que el operador no pudo ver en absoluto (ninguno en este caso,
+    # pero se mantiene como red de seguridad por si hubiera grupos no incluidos en la UI).
+    grupos_a_preservar = target.groups.exclude(id__in=grupos_manejables_ids)
+    nuevos_grupos = list(grupos_a_preservar.values_list('id', flat=True)) + grupos_ids_validos
+    target.groups.set(nuevos_grupos)
+
+    return JsonResponse({'ok': True, 'mensaje': f'Usuario {target.username} actualizado correctamente.'})
+
+
+@login_required(login_url="/login/")
+def api_cambiar_password(request, user_id):
+    """Cambia la contraseña de un usuario."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    if not _puede_gestionar_usuarios(request.user):
+        return JsonResponse({'error': 'Sin permiso'}, status=403)
+
+    target = get_object_or_404(User, pk=user_id)
+    accesibles = _usuarios_accesibles(request.user, solo_activos=False)
+    if not accesibles.filter(pk=user_id).exists():
+        return JsonResponse({'error': 'Sin permiso sobre este usuario'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Datos inválidos'}, status=400)
+
+    nueva_password = data.get('password', '').strip()
+    confirmar_password = data.get('confirmar_password', '').strip()
+
+    if not nueva_password:
+        return JsonResponse({'error': 'La contraseña no puede estar vacía.'}, status=400)
+    if len(nueva_password) < 6:
+        return JsonResponse({'error': 'La contraseña debe tener al menos 6 caracteres.'}, status=400)
+    if nueva_password != confirmar_password:
+        return JsonResponse({'error': 'Las contraseñas no coinciden.'}, status=400)
+
+    target.set_password(nueva_password)
+    target.save(update_fields=['password'])
+
+    return JsonResponse({'ok': True, 'mensaje': f'Contraseña de {target.username} actualizada correctamente.'})
+
+
+# Admin
+
 
 
 # --- Moved from viewsExtras.py ---
@@ -2091,12 +2356,12 @@ def upload_file_artEtiquetas(path_filname):
         cargar_articulo(articulo,descripcion)
 
 @login_required(login_url="/login/")
-def import_file_cierrePedidos(request):
+def import_file_anularPedidos(request):
     nombre_db='LAKER_SA'
     settings.DATABASES['mi_db_2']['NAME'] = nombre_db
     print('Cambiando base de datos a ' + nombre_db)
     try:
-        if request.method == 'POST' and request.FILES['excel_file']:
+        if request.method == 'POST' and request.FILES.get('excel_file'):
             pfile = request.FILES['excel_file']
             filesys =FileSystemStorage()
             # Obtener el nombre del archivo sin espacios en blanco
@@ -2106,82 +2371,114 @@ def import_file_cierrePedidos(request):
             uploadfilename = filesys.save(filename, pfile)
             extension = os.path.splitext(uploadfilename)
             if  not extension[1] == '.xlsx':
-                error_extension = 'El formato del archivo debe ser de tipo .xlsx'
+                error_extension = '❌ El archivo debe ser formato .xlsx (Excel). Formato recibido: ' + extension[1]
                 os.remove(filesys.path(uploadfilename))
-                return render(request,'appConsultasTango/importFilePedidosCierre.html',{'mensaje_error':error_extension})
+                return render(request,'appConsultasTango/importFilePedidosAnular.html',{'mensaje_error':error_extension})
 
-            uploaded_url = filesys.url(uploadfilename)  #Ruta donde se guardo el archivo
-            uploaded_url = os.path.normpath(uploaded_url)
-            # print("uploaded_url: " + uploaded_url)
-            ruta_actual = os.path.join(os.getcwd()) #Ruta del proyecto
-            # print('Ruta actual: ' + ruta_actual)
-            path_filname = ruta_actual + uploaded_url
+            # Obtener la ruta completa del archivo
+            path_filname = filesys.path(uploadfilename)
+            print(f'Ruta del archivo: {path_filname}')
+            
             wb = openpyxl.load_workbook(path_filname) #Abrimos el archivo
             worksheet = wb.active
             excel_data = list()
             enc_data = list()
+            pedidos_data = list()  # Lista estructurada de pedidos
             mensaje_error = ''
-            mensaje_Success = ''
-            # iterando sobre las filas y obteniendo
-            # valor de cada celda en la fila
-            for row in worksheet.iter_rows():
-                fila = row[0].row   #Numero de fila
-                row_data = list()
-                talon_pedido = 0
-                i = 1
-                if worksheet.cell(row=fila, column=1).value is None: #Frena el loop al llegar al final de la lista
+            mensaje_info = ''
+            pedidos_validos = 0
+            pedidos_invalidos = 0
+            
+            # Buscar índices de columnas
+            col_nro_pedido = None
+            col_talon_ped = None
+            for i, cell in enumerate(worksheet[1], start=1):
+                if cell.value == 'NRO_PEDIDO':
+                    col_nro_pedido = i
+                elif cell.value == 'TALON_PED':
+                    col_talon_ped = i
+            
+            if not col_nro_pedido or not col_talon_ped:
+                os.remove(filesys.path(uploadfilename))
+                return render(request,'appConsultasTango/importFilePedidosAnular.html',{
+                    'mensaje_error': '❌ El archivo debe contener las columnas NRO_PEDIDO y TALON_PED'
+                })
+            
+            # Procesar filas
+            for row in worksheet.iter_rows(min_row=2):
+                if not row[0].value:  # Fila vacía
                     break
                 
-                for cell in row:
-                    if fila == 1:
-                        enc_data.append(str(cell.value))
-                    else:
-                        if worksheet.cell(row=1, column=i).value == 'NRO_PEDIDO':
-                            if fila > 1:
-                                pedido = worksheet.cell(row=fila, column=i).value
-                                if worksheet.cell(row=1, column=6).value == 'TALON_PED':
-                                    talon_pedido = worksheet.cell(row=fila, column=6).value
-
-                                ped_valido= validar_pedido(pedido,str(talon_pedido))
-                                # print('ped_valido: ' + str(ped_valido))
-                                if ped_valido == 0:
-                                    mensaje_error = 'Los Pedidos NO EXISTEN  o NO ESTAN PENDIENTES'
-                                    row_data.append('*' + str(cell.value) + '*')
-                                    i += 1
-                                    continue
-                        if cell.value == None:
-                            row_data.append(str(''))
-                        else:
-                            row_data.append(str(cell.value))                        
-                    i += 1
-
-                excel_data.append(row_data)
-
-            # print('path_filname: ' + path_filname)
-            wb.save(path_filname)
-            if not(mensaje_error):
-                upload_file_CierrePedidos(path_filname) #Ejecuta ejuste en base de datos
-                mensaje_Success = 'Articulos cargados correctamente'
-                os.remove(filesys.path(uploadfilename))
+                nro_pedido = row[col_nro_pedido - 1].value
+                talon_ped = row[col_talon_ped - 1].value
                 
-            else:
-                os.remove(filesys.path(uploadfilename))
-
+                if nro_pedido is None or talon_ped is None:
+                    continue
+                
+                # Validar pedido
+                ped_valido = validar_pedido(nro_pedido, str(talon_ped))
+                estado = 'válido' if ped_valido > 0 else 'inválido'
+                
+                pedido_info = {
+                    'nro_pedido': str(nro_pedido),
+                    'talon_ped': str(talon_ped),
+                    'estado': estado,
+                    'valido': ped_valido > 0
+                }
+                pedidos_data.append(pedido_info)
+                
+                if ped_valido > 0:
+                    pedidos_validos += 1
+                else:
+                    pedidos_invalidos += 1
             
-            return render(request, 'appConsultasTango/importFilePedidosCierre.html' ,{'enc_data':enc_data,'excel_data':excel_data,'mensaje_Success':mensaje_Success,'mensaje_error':mensaje_error})
-
+            os.remove(filesys.path(uploadfilename))
+            
+            # Preparar mensaje informativo
+            if pedidos_validos > 0 and pedidos_invalidos == 0:
+                mensaje_info = f'📋 Se encontraron {pedidos_validos} pedido(s) válido(s) listo(s) para anular'
+            elif pedidos_validos > 0 and pedidos_invalidos > 0:
+                mensaje_info = f'⚠️ Se encontraron {pedidos_validos} pedido(s) válido(s) y {pedidos_invalidos} inválido(s). Solo se pueden anular los válidos.'
+            elif pedidos_validos == 0:
+                mensaje_error = f'❌ No se encontraron pedidos válidos para anular. Total de pedidos inválidos: {pedidos_invalidos}'
+            
+            # Si es petición AJAX, devolver JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'pedidos_data': pedidos_data,
+                    'pedidos_validos': pedidos_validos,
+                    'pedidos_invalidos': pedidos_invalidos,
+                    'mensaje_info': mensaje_info,
+                    'mensaje_error': mensaje_error
+                })
+            
+            # SOLO PREVISUALIZACIÓN - NO SE ANULA NADA AÚN
+            return render(request, 'appConsultasTango/importFilePedidosAnular.html', {
+                'pedidos_data': pedidos_data,
+                'pedidos_validos': pedidos_validos,
+                'pedidos_invalidos': pedidos_invalidos,
+                'mensaje_info': mensaje_info,
+                'mensaje_error': mensaje_error,
+                'mostrar_preview': True
+            })
 
     except Exception as identifier:            
         print(identifier)
-    return render(request,'appConsultasTango/importFilePedidosCierre.html',{})
+        mensaje_error = f'❌ Error al procesar el archivo: {str(identifier)}. Verifica que el archivo tenga el formato correcto.'
+        # Si es petición AJAX, devolver JSON de error
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'mensaje_error': mensaje_error})
+        return render(request,'appConsultasTango/importFilePedidosAnular.html',{'mensaje_error': mensaje_error})
+    return render(request,'appConsultasTango/importFilePedidosAnular.html',{})
 
 @login_required(login_url="/login/")
-def import_file_cierrePedidosUY(request):
+def import_file_anularPedidosUY(request):
     nombre_db='TASKY_SA'
     settings.DATABASES['mi_db_2']['NAME'] = nombre_db
     print('Cambiando base de datos a ' + nombre_db)
     try:
-        if request.method == 'POST' and request.FILES['excel_file']:
+        if request.method == 'POST' and request.FILES.get('excel_file'):
             pfile = request.FILES['excel_file']
             filesys =FileSystemStorage()
             # Obtener el nombre del archivo sin espacios en blanco
@@ -2191,91 +2488,295 @@ def import_file_cierrePedidosUY(request):
             uploadfilename = filesys.save(filename, pfile)
             extension = os.path.splitext(uploadfilename)
             if  not extension[1] == '.xlsx':
-                error_extension = 'El formato del archivo debe ser de tipo .xlsx'
+                error_extension = '❌ El archivo debe ser formato .xlsx (Excel). Formato recibido: ' + extension[1]
                 os.remove(filesys.path(uploadfilename))
-                return render(request,'appConsultasTango/importFilePedidosCierreUY.html',{'mensaje_error':error_extension})
+                return render(request,'appConsultasTango/importFilePedidosAnularUY.html',{'mensaje_error':error_extension})
 
-            uploaded_url = filesys.url(uploadfilename)  #Ruta donde se guardo el archivo
-            uploaded_url = os.path.normpath(uploaded_url)
-            # print("uploaded_url: " + uploaded_url)
-            ruta_actual = os.path.join(os.getcwd()) #Ruta del proyecto
-            # print('Ruta actual: ' + ruta_actual)
-            path_filname = ruta_actual + uploaded_url
+            # Obtener la ruta completa del archivo
+            path_filname = filesys.path(uploadfilename)
+            print(f'Ruta del archivo (UY): {path_filname}')
+            
             wb = openpyxl.load_workbook(path_filname) #Abrimos el archivo
             worksheet = wb.active
-            excel_data = list()
-            enc_data = list()
+            pedidos_data = list()  # Lista estructurada de pedidos
             mensaje_error = ''
-            mensaje_Success = ''
-            # iterando sobre las filas y obteniendo
-            # valor de cada celda en la fila
-            for row in worksheet.iter_rows():
-                fila = row[0].row   #Numero de fila
-                row_data = list()
-                talon_pedido = 0
-                i = 1
-                if worksheet.cell(row=fila, column=1).value is None: #Frena el loop al llegar al final de la lista
+            mensaje_info = ''
+            pedidos_validos = 0
+            pedidos_invalidos = 0
+            
+            # Buscar índices de columnas
+            col_nro_pedido = None
+            col_talon_ped = None
+            for i, cell in enumerate(worksheet[1], start=1):
+                if cell.value == 'NRO_PEDIDO':
+                    col_nro_pedido = i
+                elif cell.value == 'TALON_PED':
+                    col_talon_ped = i
+            
+            if not col_nro_pedido or not col_talon_ped:
+                os.remove(filesys.path(uploadfilename))
+                return render(request,'appConsultasTango/importFilePedidosAnularUY.html',{
+                    'mensaje_error': '❌ El archivo debe contener las columnas NRO_PEDIDO y TALON_PED'
+                })
+            
+            # Procesar filas
+            for row in worksheet.iter_rows(min_row=2):
+                if not row[0].value:  # Fila vacía
                     break
                 
-                for cell in row:
-                    if fila == 1:
-                        enc_data.append(str(cell.value))
-                    else:
-                        if worksheet.cell(row=1, column=i).value == 'NRO_PEDIDO':
-                            if fila > 1:
-                                pedido = worksheet.cell(row=fila, column=i).value
-                                if worksheet.cell(row=1, column=6).value == 'TALON_PED':
-                                    talon_pedido = worksheet.cell(row=fila, column=6).value
-
-                                ped_valido= validar_pedido(pedido,str(talon_pedido))
-                                # print('ped_valido: ' + str(ped_valido))
-                                if ped_valido == 0:
-                                    mensaje_error = 'Los Pedidos NO EXISTEN  o NO ESTAN PENDIENTES'
-                                    row_data.append('*' + str(cell.value) + '*')
-                                    i += 1
-                                    continue
-                        if cell.value == None:
-                            row_data.append(str(''))
-                        else:
-                            row_data.append(str(cell.value))                        
-                    i += 1
-
-                excel_data.append(row_data)
-
-            # print('path_filname: ' + path_filname)
-            wb.save(path_filname)
-            if not(mensaje_error):
-                upload_file_CierrePedidos(path_filname) #Ejecuta ejuste en base de datos
-                mensaje_Success = 'Pedidos anulados correctamente'
-                os.remove(filesys.path(uploadfilename))
+                nro_pedido = row[col_nro_pedido - 1].value
+                talon_ped = row[col_talon_ped - 1].value
                 
-            else:
-                os.remove(filesys.path(uploadfilename))
-
+                if nro_pedido is None or talon_ped is None:
+                    continue
+                
+                # Validar pedido
+                ped_valido = validar_pedido(nro_pedido, str(talon_ped))
+                estado = 'válido' if ped_valido > 0 else 'inválido'
+                
+                pedido_info = {
+                    'nro_pedido': str(nro_pedido),
+                    'talon_ped': str(talon_ped),
+                    'estado': estado,
+                    'valido': ped_valido > 0
+                }
+                pedidos_data.append(pedido_info)
+                
+                if ped_valido > 0:
+                    pedidos_validos += 1
+                else:
+                    pedidos_invalidos += 1
             
-            return render(request, 'appConsultasTango/importFilePedidosCierreUY.html' ,{'enc_data':enc_data,'excel_data':excel_data,'mensaje_Success':mensaje_Success,'mensaje_error':mensaje_error})
-
+            os.remove(filesys.path(uploadfilename))
+            
+            # Preparar mensaje informativo
+            if pedidos_validos > 0 and pedidos_invalidos == 0:
+                mensaje_info = f'📋 Se encontraron {pedidos_validos} pedido(s) válido(s) listo(s) para anular (Uruguay)'
+            elif pedidos_validos > 0 and pedidos_invalidos > 0:
+                mensaje_info = f'⚠️ Se encontraron {pedidos_validos} pedido(s) válido(s) y {pedidos_invalidos} inválido(s). Solo se pueden anular los válidos.'
+            elif pedidos_validos == 0:
+                mensaje_error = f'❌ No se encontraron pedidos válidos para anular. Total de pedidos inválidos: {pedidos_invalidos}'
+            
+            # Si es petición AJAX, devolver JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'pedidos_data': pedidos_data,
+                    'pedidos_validos': pedidos_validos,
+                    'pedidos_invalidos': pedidos_invalidos,
+                    'mensaje_info': mensaje_info,
+                    'mensaje_error': mensaje_error
+                })
+            
+            # SOLO PREVISUALIZACIÓN - NO SE ANULA NADA AÚN
+            return render(request, 'appConsultasTango/importFilePedidosAnularUY.html', {
+                'pedidos_data': pedidos_data,
+                'pedidos_validos': pedidos_validos,
+                'pedidos_invalidos': pedidos_invalidos,
+                'mensaje_info': mensaje_info,
+                'mensaje_error': mensaje_error,
+                'mostrar_preview': True,
+                'es_uy': True
+            })
 
     except Exception as identifier:            
         print(identifier)
-    return render(request,'appConsultasTango/importFilePedidosCierreUY.html',{})
+        mensaje_error = f'❌ Error al procesar el archivo: {str(identifier)}. Verifica que el archivo tenga el formato correcto.'
+        # Si es petición AJAX, devolver JSON de error
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'mensaje_error': mensaje_error})
+        return render(request,'appConsultasTango/importFilePedidosAnularUY.html',{'mensaje_error': mensaje_error})
+    return render(request,'appConsultasTango/importFilePedidosAnularUY.html',{})
 
-def upload_file_CierrePedidos(path_filname):
+@login_required(login_url="/login/")
+def ejecutar_anulacion_pedidos_uy(request):
+    """Vista para ejecutar la anulación de pedidos seleccionados (Uruguay)"""
+    nombre_db='TASKY_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    if request.method == 'POST':
+        try:
+            # Obtener pedidos seleccionados del POST
+            pedidos_seleccionados = request.POST.getlist('pedidos_seleccionados')
+            anular_todos = request.POST.get('anular_todos') == 'true'
+            
+            if not pedidos_seleccionados:
+                return render(request, 'appConsultasTango/importFilePedidosAnularUY.html', {
+                    'mensaje_error': '❌ No se seleccionaron pedidos para anular'
+                })
+            
+            # Procesar anulaciones
+            anulados_exitosos = 0
+            anulados_fallidos = 0
+            
+            for pedido_str in pedidos_seleccionados:
+                try:
+                    # Formato: "nro_pedido|talon_ped"
+                    nro_pedido, talon_ped = pedido_str.split('|')
+                    numero_pedido = ' 0000' + str(nro_pedido)[-9:]
+                    
+                    # Ejecutar anulación
+                    anular_pedido(talon_ped, numero_pedido)
+                    anulados_exitosos += 1
+                except Exception as e:
+                    print(f"Error anulando pedido {pedido_str}: {str(e)}")
+                    anulados_fallidos += 1
+            
+            # Preparar mensaje de resultado
+            if anulados_fallidos == 0:
+                mensaje_success = f'✅ Se anularon exitosamente {anulados_exitosos} pedido(s) (Uruguay)'
+            else:
+                mensaje_success = f'⚠️ Se anularon {anulados_exitosos} pedido(s). Fallaron {anulados_fallidos}.'
+            
+            return render(request, 'appConsultasTango/importFilePedidosAnularUY.html', {
+                'mensaje_Success': mensaje_success
+            })
+            
+        except Exception as e:
+            print(f"Error en ejecutar_anulacion_pedidos_uy: {str(e)}")
+            return render(request, 'appConsultasTango/importFilePedidosAnularUY.html', {
+                'mensaje_error': f'❌ Error al anular pedidos: {str(e)}'
+            })
+    
+    return render(request, 'appConsultasTango/importFilePedidosAnularUY.html', {})
+
+@login_required(login_url="/login/")
+def ejecutar_anulacion_pedidos(request):
+    """Vista para ejecutar la anulación de pedidos seleccionados"""
+    nombre_db='LAKER_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    if request.method == 'POST':
+        try:
+            # Obtener pedidos seleccionados del POST
+            pedidos_seleccionados = request.POST.getlist('pedidos_seleccionados')
+            anular_todos = request.POST.get('anular_todos') == 'true'
+            
+            if not pedidos_seleccionados:
+                return render(request, 'appConsultasTango/importFilePedidosAnular.html', {
+                    'mensaje_error': '❌ No se seleccionaron pedidos para anular'
+                })
+            
+            # Procesar anulaciones
+            anulados_exitosos = 0
+            anulados_fallidos = 0
+            
+            for pedido_str in pedidos_seleccionados:
+                try:
+                    # Formato: "nro_pedido|talon_ped"
+                    nro_pedido, talon_ped = pedido_str.split('|')
+                    numero_pedido = ' 0000' + str(nro_pedido)[-9:]
+                    
+                    # Ejecutar anulación
+                    anular_pedido(talon_ped, numero_pedido)
+                    anulados_exitosos += 1
+                except Exception as e:
+                    print(f"Error anulando pedido {pedido_str}: {str(e)}")
+                    anulados_fallidos += 1
+            
+            # Preparar mensaje de resultado
+            if anulados_fallidos == 0:
+                mensaje_success = f'✅ Se anularon exitosamente {anulados_exitosos} pedido(s)'
+            else:
+                mensaje_success = f'⚠️ Se anularon {anulados_exitosos} pedido(s). Fallaron {anulados_fallidos}.'
+            
+            return render(request, 'appConsultasTango/importFilePedidosAnular.html', {
+                'mensaje_Success': mensaje_success
+            })
+            
+        except Exception as e:
+            print(f"Error en ejecutar_anulacion_pedidos: {str(e)}")
+            return render(request, 'appConsultasTango/importFilePedidosAnular.html', {
+                'mensaje_error': f'❌ Error al anular pedidos: {str(e)}'
+            })
+    
+    return render(request, 'appConsultasTango/importFilePedidosAnular.html', {})
+
+@login_required(login_url="/login/")
+def validar_pedido_individual(request):
+    """Vista para validar un pedido antes de anularlo (AR)"""
+    nombre_db='LAKER_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    if request.method == 'POST':
+        nro_pedido = request.POST.get('nro_pedido', '').strip()
+        talon_ped = request.POST.get('talon_ped', '').strip()
+        
+        if not nro_pedido or not talon_ped:
+            return JsonResponse({
+                'valido': False,
+                'mensaje': '❌ Debes completar ambos campos (Nro. Pedido y Talón)'
+            })
+        
+        try:
+            # Validar usando la función existente
+            resultado = validar_pedido(nro_pedido, talon_ped)
+            
+            if resultado > 0:
+                return JsonResponse({
+                    'valido': True,
+                    'mensaje': f'✅ Pedido {nro_pedido} (Talón {talon_ped}) existe y está en estado PENDIENTE'
+                })
+            else:
+                return JsonResponse({
+                    'valido': False,
+                    'mensaje': f'❌ El pedido {nro_pedido} (Talón {talon_ped}) no existe o no está en estado PENDIENTE'
+                })
+        except Exception as e:
+            return JsonResponse({
+                'valido': False,
+                'mensaje': f'❌ Error al validar pedido: {str(e)}'
+            })
+    
+    return JsonResponse({'valido': False, 'mensaje': 'Método no permitido'})
+
+@login_required(login_url="/login/")
+def validar_pedido_individual_uy(request):
+    """Vista para validar un pedido antes de anularlo (UY)"""
+    nombre_db='TASKY_SA'
+    settings.DATABASES['mi_db_2']['NAME'] = nombre_db
+    
+    if request.method == 'POST':
+        nro_pedido = request.POST.get('nro_pedido', '').strip()
+        talon_ped = request.POST.get('talon_ped', '').strip()
+        
+        if not nro_pedido or not talon_ped:
+            return JsonResponse({
+                'valido': False,
+                'mensaje': '❌ Debes completar ambos campos (Nro. Pedido y Talón)'
+            })
+        
+        try:
+            # Validar usando la función existente
+            resultado = validar_pedido(nro_pedido, talon_ped)
+            
+            if resultado > 0:
+                return JsonResponse({
+                    'valido': True,
+                    'mensaje': f'✅ Pedido {nro_pedido} (Talón {talon_ped}) existe y está en estado PENDIENTE'
+                })
+            else:
+                return JsonResponse({
+                    'valido': False,
+                    'mensaje': f'❌ El pedido {nro_pedido} (Talón {talon_ped}) no existe o no está en estado PENDIENTE'
+                })
+        except Exception as e:
+            return JsonResponse({
+                'valido': False,
+                'mensaje': f'❌ Error al validar pedido: {str(e)}'
+            })
+    
+    return JsonResponse({'valido': False, 'mensaje': 'Método no permitido'})
+
+def upload_file_AnularPedidos(path_filname):
+    """Función legacy - mantener por compatibilidad"""
     excel_file =path_filname
     empexceldata = pd.read_excel(excel_file, engine='openpyxl')
     dbframe = empexceldata
     for df in dbframe.itertuples():
-        
-        numero_pedido = ' 0000' + str(df.NRO_PEDIDO)[-9:]  #Toma los ultimos 9 digitos del numero de pedido
+        numero_pedido = ' 0000' + str(df.NRO_PEDIDO)[-9:]
         talon_pedido = str(df.TALON_PED)
-
-        # if type(numero_pedido) == int:
-        #     pedido = ' 0000' + numero_pedido
-        # else:
-        #     pedido = numero_pedido
-        #     print('Dato sin concatenar')
-        
-        cerrar_pedido(talon_pedido,numero_pedido)
+        anular_pedido(talon_pedido,numero_pedido)
 
 
 @login_required(login_url="/login/")
@@ -2758,210 +3259,3 @@ def gestion_sucursales_ecommerce(request):
             'sucursal_activa': None,
             'titulo': 'Gestión de Sucursales E-commerce'
         })
-
-
-# ============================================================================
-# VISTAS PARA ADJUNTOS DE TURNOS DE RESERVA
-# ============================================================================
-
-from consultasTango.models import AdjuntoTurnoReserva
-import mimetypes
-
-# Constantes para adjuntos
-MAX_FILE_SIZE_MB = 5
-MAX_FILES_PER_TURNO = 5
-EXTENSIONES_PERMITIDAS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.xlsx', '.xls', '.csv', '.doc', '.docx']
-
-
-@login_required(login_url="/login/")
-@require_http_methods(["POST"])
-def subir_adjunto_turno(request, turno_id):
-    """
-    Vista AJAX para subir un archivo adjunto a un turno.
-    Valida tamaño máximo (5MB), extensiones permitidas y límite de archivos por turno.
-    """
-    try:
-        turno = get_object_or_404(TurnoReserva, pk=turno_id)
-        
-        # Verificar que el archivo fue enviado
-        if 'archivo' not in request.FILES:
-            return JsonResponse({'success': False, 'error': 'No se recibió ningún archivo'}, status=400)
-        
-        archivo = request.FILES['archivo']
-        tipo_documento = request.POST.get('tipo_documento', 'OTRO')
-        
-        # Validar cantidad máxima de archivos por turno
-        cantidad_actual = AdjuntoTurnoReserva.objects.filter(turno=turno).count()
-        if cantidad_actual >= MAX_FILES_PER_TURNO:
-            return JsonResponse({
-                'success': False, 
-                'error': f'Se alcanzó el límite máximo de {MAX_FILES_PER_TURNO} archivos por turno'
-            }, status=400)
-        
-        # Validar tamaño del archivo (máximo 5MB)
-        if archivo.size > MAX_FILE_SIZE_MB * 1024 * 1024:
-            return JsonResponse({
-                'success': False, 
-                'error': f'El archivo excede el tamaño máximo permitido ({MAX_FILE_SIZE_MB}MB)'
-            }, status=400)
-        
-        # Validar extensión
-        ext = os.path.splitext(archivo.name)[1].lower()
-        if ext not in EXTENSIONES_PERMITIDAS:
-            return JsonResponse({
-                'success': False, 
-                'error': f'Extensión no permitida. Extensiones válidas: {", ".join(EXTENSIONES_PERMITIDAS)}'
-            }, status=400)
-        
-        # Detectar tipo MIME
-        tipo_mime, _ = mimetypes.guess_type(archivo.name)
-        if not tipo_mime:
-            tipo_mime = 'application/octet-stream'
-        
-        # Crear el registro de adjunto
-        adjunto = AdjuntoTurnoReserva(
-            turno=turno,
-            archivo=archivo,
-            tipo_documento=tipo_documento,
-            nombre_original=archivo.name,
-            tipo_archivo=tipo_mime,
-            tamaño_bytes=archivo.size,
-            usuario_subio=request.user.username
-        )
-        adjunto.save()
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Archivo subido exitosamente',
-            'adjunto': {
-                'id': adjunto.id_adjunto,
-                'nombre': adjunto.nombre_original,
-                'tipo_documento': adjunto.get_tipo_documento_display(),
-                'tamaño': adjunto.get_tamaño_legible(),
-                'es_imagen': adjunto.es_imagen(),
-                'url': adjunto.archivo.url,
-                'fecha_subida': adjunto.fecha_subida.strftime('%d/%m/%Y %H:%M'),
-                'usuario': adjunto.usuario_subio,
-                'puede_eliminar': adjunto.puede_eliminar()
-            }
-        })
-        
-    except Exception as e:
-        return JsonResponse({
-            'success': False, 
-            'error': f'Error al subir el archivo: {str(e)}'
-        }, status=500)
-
-
-@login_required(login_url="/login/")
-@require_http_methods(["POST", "DELETE"])
-def eliminar_adjunto_turno(request, adjunto_id):
-    """
-    Vista AJAX para eliminar un archivo adjunto.
-    Solo permite eliminar si el turno está en estado RESERVADO.
-    """
-    try:
-        adjunto = get_object_or_404(AdjuntoTurnoReserva, pk=adjunto_id)
-        
-        # Verificar que el turno está en estado RESERVADO
-        if not adjunto.puede_eliminar():
-            return JsonResponse({
-                'success': False, 
-                'error': 'No se puede eliminar el adjunto. El turno no está en estado RESERVADO.'
-            }, status=403)
-        
-        # Guardar nombre para mensaje
-        nombre_archivo = adjunto.nombre_original
-        
-        # Eliminar (el método delete del modelo también elimina el archivo físico)
-        adjunto.delete()
-        
-        return JsonResponse({
-            'success': True,
-            'message': f'Archivo "{nombre_archivo}" eliminado exitosamente'
-        })
-        
-    except Exception as e:
-        return JsonResponse({
-            'success': False, 
-            'error': f'Error al eliminar el archivo: {str(e)}'
-        }, status=500)
-
-
-@login_required(login_url="/login/")
-def descargar_adjunto_turno(request, adjunto_id):
-    """
-    Vista para descargar un archivo adjunto.
-    Fuerza la descarga en lugar de mostrar en el navegador.
-    """
-    try:
-        adjunto = get_object_or_404(AdjuntoTurnoReserva, pk=adjunto_id)
-        
-        # Abrir el archivo y preparar la respuesta
-        file_path = adjunto.archivo.path
-        
-        if not os.path.exists(file_path):
-            return JsonResponse({'error': 'Archivo no encontrado'}, status=404)
-        
-        with open(file_path, 'rb') as f:
-            response = HttpResponse(f.read(), content_type=adjunto.tipo_archivo)
-            response['Content-Disposition'] = f'attachment; filename="{adjunto.nombre_original}"'
-            response['Content-Length'] = adjunto.tamaño_bytes
-            return response
-            
-    except Exception as e:
-        return JsonResponse({
-            'error': f'Error al descargar el archivo: {str(e)}'
-        }, status=500)
-
-
-@login_required(login_url="/login/")
-def listar_adjuntos_turno(request, turno_id):
-    """
-    Vista AJAX para listar los adjuntos de un turno.
-    Retorna JSON con la lista de archivos.
-    """
-    try:
-        turno = get_object_or_404(TurnoReserva, pk=turno_id)
-        adjuntos = AdjuntoTurnoReserva.objects.filter(turno=turno)
-        
-        adjuntos_lista = []
-        for adjunto in adjuntos:
-            adjuntos_lista.append({
-                'id': adjunto.id_adjunto,
-                'nombre': adjunto.nombre_original,
-                'tipo_documento': adjunto.get_tipo_documento_display(),
-                'tipo_documento_key': adjunto.tipo_documento,
-                'tamaño': adjunto.get_tamaño_legible(),
-                'es_imagen': adjunto.es_imagen(),
-                'es_pdf': adjunto.es_pdf(),
-                'url': adjunto.archivo.url,
-                'fecha_subida': adjunto.fecha_subida.strftime('%d/%m/%Y %H:%M'),
-                'usuario': adjunto.usuario_subio,
-                'puede_eliminar': adjunto.puede_eliminar()
-            })
-        
-        # Estado del turno para saber si permite subir más archivos
-        puede_subir = turno.estado and turno.estado.nombre == 'RESERVADO'
-        archivos_restantes = MAX_FILES_PER_TURNO - len(adjuntos_lista)
-        
-        return JsonResponse({
-            'success': True,
-            'adjuntos': adjuntos_lista,
-            'total': len(adjuntos_lista),
-            'puede_subir': puede_subir,
-            'archivos_restantes': archivos_restantes,
-            'max_archivos': MAX_FILES_PER_TURNO,
-            'max_tamaño_mb': MAX_FILE_SIZE_MB
-        })
-        
-    except Exception as e:
-        return JsonResponse({
-            'success': False, 
-            'error': f'Error al listar adjuntos: {str(e)}'
-        }, status=500)
-
-
-# ============================================================================
-# FIN VISTAS ADJUNTOS DE TURNOS
-# ============================================================================

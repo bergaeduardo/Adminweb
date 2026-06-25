@@ -1,0 +1,253 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Conversor Excel a CSV{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+<style>
+  .conv-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.08);
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .conv-card .card-header {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border-radius: 12px 12px 0 0 !important;
+    padding: 1.1rem 1.4rem;
+  }
+  .conv-card .card-header h5 {
+    color: #fff;
+    font-weight: 600;
+    margin: 0;
+    font-size: 1.1rem;
+  }
+  .conv-card .card-body { padding: 1.6rem; }
+
+  .drop-zone {
+    border: 2px dashed #c3e6cb;
+    border-radius: 10px;
+    padding: 2.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    background: #f9fffe;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: #28a745;
+    background: #f0fff4;
+  }
+  .drop-zone i { font-size: 2.5rem; color: #34c759; margin-bottom: .6rem; display: block; }
+  .drop-zone p { margin: 0; color: #6c757d; font-size: .9rem; }
+  .drop-zone .file-name { color: #28a745; font-weight: 600; margin-top: .4rem; font-size: .95rem; }
+
+  .sheet-selector { display: none; }
+  .sheet-selector.visible { display: block; }
+
+  .option-label {
+    font-weight: 600;
+    font-size: .85rem;
+    color: #495057;
+    margin-bottom: .3rem;
+  }
+  .btn-convert {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    padding: .6rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: opacity .2s;
+  }
+  .btn-convert:hover { opacity: .9; color: #fff; }
+  .btn-convert:disabled { opacity: .6; cursor: not-allowed; }
+
+  #spinner { display: none; }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content-wrapper">
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0 text-dark">Conversor Excel a CSV</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active">Conversor CSV</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="content">
+    <div class="container-fluid">
+
+      {% if error %}
+      <div class="alert alert-danger alert-dismissible fade show" style="max-width:640px;margin:0 auto 1rem;">
+        <i class="fas fa-exclamation-triangle mr-2"></i>{{ error }}
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+      </div>
+      {% endif %}
+
+      <div class="card conv-card">
+        <div class="card-header">
+          <h5><i class="fas fa-file-csv mr-2"></i>Convertir archivo Excel (.xlsx / .xls) a CSV</h5>
+        </div>
+        <div class="card-body">
+
+          <!-- Paso 2: Opciones de conversión -->
+          <form id="convertForm" method="post" enctype="multipart/form-data" action="{% url 'herramientas:herramientas_conversor_csv' %}">
+            {% csrf_token %}
+            <!-- Input real dentro del formulario, oculto -->
+            <input type="file" id="fileInput" name="excel_file" accept=".xlsx,.xls" style="display:none">
+
+          <!-- Paso 1: Zona de drop (solo visual, dispara el input real) -->
+          <div class="drop-zone mb-4" id="dropZone">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Arrastrá tu archivo aquí o <strong>hacé clic para seleccionarlo</strong></p>
+            <p class="file-name" id="fileName"></p>
+          </div>
+
+            <!-- Selector de hoja (aparece tras cargar el archivo) -->
+            <div class="sheet-selector mb-3" id="sheetSelector">
+              <label class="option-label">Hoja a convertir</label>
+              <select name="sheet_name" class="form-control" id="sheetSelect">
+              </select>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-sm-6">
+                <label class="option-label">Separador</label>
+                <select name="separator" class="form-control">
+                  <option value=";">Punto y coma ( ; )</option>
+                  <option value=",">Coma ( , )</option>
+                  <option value="	">Tabulador ( TAB )</option>
+                  <option value="|">Pipe ( | )</option>
+                </select>
+              </div>
+              <div class="col-sm-6">
+                <label class="option-label">Codificación</label>
+                <select name="encoding" class="form-control">
+                  <option value="utf-8-sig">UTF-8 (recomendado para Excel)</option>
+                  <option value="utf-8">UTF-8</option>
+                  <option value="latin-1">Latin-1 / ISO-8859-1</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="text-center mt-3">
+              <button type="submit" class="btn btn-convert" id="btnConvert" disabled>
+                <span id="spinner"><i class="fas fa-spinner fa-spin mr-1"></i></span>
+                <i class="fas fa-download mr-1" id="btnIcon"></i>
+                <span id="btnText">Descargar CSV</span>
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+(function () {
+  const dropZone    = document.getElementById('dropZone');
+  const fileInput   = document.getElementById('fileInput');
+  const fileName    = document.getElementById('fileName');
+  const sheetSel    = document.getElementById('sheetSelector');
+  const sheetSelect = document.getElementById('sheetSelect');
+  const btnConvert  = document.getElementById('btnConvert');
+  const form        = document.getElementById('convertForm');
+  const spinner     = document.getElementById('spinner');
+  const btnIcon     = document.getElementById('btnIcon');
+  const btnText     = document.getElementById('btnText');
+
+  // Click en la zona de drop abre el selector de archivos
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  // Selección normal por click
+  fileInput.addEventListener('change', e => {
+    if (e.target.files.length) handleFile(e.target.files[0]);
+  });
+
+  // Drag & drop
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) {
+      // Asignar el archivo al input real (que está dentro del form)
+      const dt = new DataTransfer();
+      dt.items.add(e.dataTransfer.files[0]);
+      fileInput.files = dt.files;
+      handleFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  function handleFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['xlsx', 'xls'].includes(ext)) {
+      alert('Solo se aceptan archivos .xlsx o .xls');
+      return;
+    }
+    fileName.textContent = file.name;
+
+    // Obtener lista de hojas vía AJAX
+    const fd = new FormData();
+    fd.append('excel_file', file);
+    fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch("{% url 'herramientas:herramientas_conversor_csv_sheets' %}", { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(data => {
+        if (data.sheets && data.sheets.length > 1) {
+          sheetSelect.innerHTML = '';
+          data.sheets.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s; opt.textContent = s;
+            sheetSelect.appendChild(opt);
+          });
+          sheetSel.classList.add('visible');
+        }
+        btnConvert.disabled = false;
+      })
+      .catch(() => { btnConvert.disabled = false; });
+  }
+
+  // Al enviar: mostrar spinner (el archivo ya está en el input dentro del form)
+  form.addEventListener('submit', e => {
+    if (!fileInput.files.length) {
+      e.preventDefault();
+      alert('Seleccioná un archivo primero.');
+      return;
+    }
+    spinner.style.display = 'inline';
+    btnIcon.style.display = 'none';
+    btnText.textContent = 'Convirtiendo...';
+    btnConvert.disabled = true;
+
+    // La descarga no recarga la página; resetear el botón tras 4 segundos
+    setTimeout(() => {
+      spinner.style.display = 'none';
+      btnIcon.style.display = 'inline';
+      btnText.textContent = 'Descargar CSV';
+      btnConvert.disabled = false;
+    }, 4000);
+  });
+})();
+</script>
+{% endblock javascripts %}

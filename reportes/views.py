@@ -29,8 +29,14 @@ def reporteAnticipos(request):
 
 @login_required(login_url="/login/")
 def gestionClientes(request):
-    Nombre=''
+    Nombre='Gestión de Clientes'
     dir_iframe = DIR_REPORTES['gestionClientes']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
+@login_required(login_url="/login/")
+def gestionHorarios(request):
+    Nombre='Gestión de Horarios'
+    dir_iframe = DIR_REPORTES['gestionHorarios']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 # Logistica
@@ -60,13 +66,14 @@ def ConsultaDestino(request):
     dir_iframe = DIR_REPORTES['ConsultaDestino']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
+@login_required(login_url="/login/")
+def GestionTransferencias(request):
+    Nombre='Gestión de Transferencias'
+    dir_iframe = DIR_REPORTES['GestionTransferencias']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 # Abastecimiento
 
-@login_required(login_url="/login/")
-def Auditoria_orden(request):
-    Nombre='Auditoria orden'
-    dir_iframe = DIR_REPORTES['Auditoria_orden']
-    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 @login_required(login_url="/login/")
 def CategoriasDeProductos(request):
@@ -87,9 +94,9 @@ def Eficiencia_pedidos(request):
     return redirect(dir_iframe)
 
 @login_required(login_url="/login/")
-def promocionesActivas(request):
-    Nombre='Promociones Activas'
-    dir_iframe = DIR_REPORTES['promocionesActivas']
+def gestionOrdenesPreventa(request):
+    Nombre='Gestión de Ordenes de Preventa'
+    dir_iframe = DIR_REPORTES['gestionOrdenesPreventa']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 # Comercial
@@ -148,6 +155,29 @@ def auditoriaDiferenciaPrecio(request):
     dir_iframe = DIR_REPORTES['auditoriaDiferenciaPrecio']
     return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def gestionObjetivosLocales(request):
+    Nombre='Gestión de Objetivos Locales'
+    dir_iframe = DIR_REPORTES['gestionObjetivosLocales']
+    return redirect(dir_iframe)
+
+@login_required(login_url="/login/")
+def auditoriasPromocionesVTEX(request):
+    Nombre='Auditoría de Promociones VTEX'
+    dir_iframe = DIR_REPORTES['auditoriasPromocionesVTEX']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
+@login_required(login_url="/login/")
+def ControlCads(request):
+    Nombre='Control de CADs'
+    dir_iframe = DIR_REPORTES['ControlCads']
+    return redirect(dir_iframe)
+
+@login_required(login_url="/login/")
+def StockFranquicias(request): 
+    Nombre='Stock Franquicias'
+    dir_iframe = DIR_REPORTES['StockFranquicias']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 # Mayoristas
 
@@ -206,12 +236,6 @@ def Auditoria_Prisma(request):
 # Administracion
 
 @login_required(login_url="/login/")
-def ContratosFranquicias(request):
-    Nombre='Contratos Franquicias'
-    dir_iframe = DIR_REPORTES['ContratosFranquicias']
-    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
-
-@login_required(login_url="/login/")
 def VentasXmedio_pago(request):
     Nombre='Resumen de Ventas'
     dir_iframe = DIR_REPORTES['VentasXmedio_pago']
@@ -223,11 +247,6 @@ def Consultagastos(request):
     dir_iframe = DIR_REPORTES['consultaGastos']
     return redirect(dir_iframe)
 
-@login_required(login_url="/login/")
-def VentaVscobranza(request):
-    Nombre='Venta Vs cobranza'
-    dir_iframe = DIR_REPORTES['ventaVsCobranza']
-    return redirect(dir_iframe)
 
 @login_required(login_url="/login/")
 def Controlcajasmensual(request):
@@ -255,9 +274,9 @@ def GastosSupervision(request):
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 @login_required(login_url="/login/")
-def controlVentasSucursales(request):
-    Nombre='Control Ventas Sucursales'
-    dir_iframe = DIR_REPORTES['controlVentasSucursales']
+def integridadVentas(request):
+    Nombre='Control Integral Ventas'
+    dir_iframe = DIR_REPORTES['integridadVentas']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 @login_required(login_url="/login/")
@@ -277,6 +296,19 @@ def cuentasParticulares(request):
     Nombre='Cuentas Particulares'
     dir_iframe = DIR_REPORTES['cuentasParticulares']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
+@login_required(login_url="/login/")
+def alquileresFranquicias(request):
+    Nombre='Gestión Contratos Franquicias'
+    dir_iframe = DIR_REPORTES['alquileresFranquicias']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
+@login_required(login_url="/login/")
+def SolicitudesTransferencias(request):
+    Nombre='Solicitudes de Transferencias'
+    dir_iframe = DIR_REPORTES['SolicitudesTransferencias']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 
 # Gerencia
 
@@ -518,4 +550,21 @@ def Proyectos(request):
     dir_iframe = DIR_REPORTES['Proyectos']
     return redirect(dir_iframe)
 
+# Admin
+@login_required(login_url="/login/")
+def comparador_tablas(request):
+    Nombre='Comparador de Tablas'
+    dir_iframe = DIR_REPORTES['comparador_tablas']
+    return redirect(dir_iframe)
 
+@login_required(login_url="/login/")
+def adminNotificaciones(request):
+    Nombre='Administrador de Notificaciones'
+    dir_iframe = DIR_REPORTES['adminNotificaciones']
+    return redirect(dir_iframe)
+
+@login_required(login_url="/login/")
+def contadorPersonas(request):
+    Nombre='Admin Contador de Personas'
+    dir_iframe = DIR_REPORTES['contadorPersonas']
+    return redirect(dir_iframe)

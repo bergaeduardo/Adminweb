@@ -9,7 +9,9 @@ class sucursalesform(forms.ModelForm):
 
         model = SucursalesLakers
         fields = ['id','nro_sucursal','cod_client','desc_sucursal','direccion','telefono','mail','localidad','provincia','canal',
-        'habilitado','dashboard_bi','tango','nro_suc_madre','tipo_local','empresa_ferreteria','horario','integra_vtex','cod_deposi','retiro_expres','mail_grupo_emp']
+        'habilitado','dashboard_bi','tango','suc_madre','nro_suc_madre','tipo_local','empresa_ferreteria','horario',
+        'lunes','martes','miercoles','jueves','viernes','sabado','domingo',
+        'integra_vtex','cod_deposi','retiro_expres','mail_grupo_emp']
 
 
 class SucursalesLakersCompletaForm(forms.ModelForm):
@@ -59,6 +61,15 @@ class SucursalesLakersCompletaForm(forms.ModelForm):
     class Meta:
         model = SucursalesLakers
         fields = '__all__'  # Incluye TODOS los campos del modelo
+        labels = {
+            'lunes': 'Lunes',
+            'martes': 'Martes',
+            'miercoles': 'Miercoles',
+            'jueves': 'Jueves',
+            'viernes': 'Viernes',
+            'sabado': 'Sabado',
+            'domingo': 'Domingo',
+        }
         widgets = {
             'nro_sucursal': forms.NumberInput(attrs={'class': 'form-control'}),
             'cod_client': forms.TextInput(attrs={'class': 'form-control', 'style': 'text-transform:uppercase'}),
@@ -94,6 +105,13 @@ class SucursalesLakersCompletaForm(forms.ModelForm):
             'usuario_pc_madre': forms.TextInput(attrs={'class': 'form-control'}),
             'cod_deposi': forms.TextInput(attrs={'class': 'form-control'}),
             'horario': forms.TextInput(attrs={'class': 'form-control'}),
+            'lunes': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'martes': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'miercoles': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'jueves': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'viernes': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'sabado': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'domingo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'integra_vtex': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'retiro_expres': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }

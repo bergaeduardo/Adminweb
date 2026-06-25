@@ -55,10 +55,10 @@
     <!-- Fin 	Abastecimiento -->
 
     <!-- inicio 	Administracion -->
-      {% if request.user|has_group:"AdministracionSup" or request.user|has_group:"admin" %} 
+      {% if request.user|has_group:"Administracion_Sup" or request.user|has_group:"admin" %} 
                 <!-- ver solo el supervisor del area aqui -->
       {% endif %}
-      {% if request.user|has_group:"Administracion" or request.user|has_group:"AdministracionSup" or request.user|has_group:"admin" %}
+      {% if request.user|has_group:"Administracion" or request.user|has_group:"Administracion_Sup" or request.user|has_group:"admin" %}
                 <!-- accesos del area aqui -->
       {% endif %}
     <!-- Fin 	Administracion -->
@@ -139,26 +139,10 @@
       </li>
       {% endif %}
       {% if request.user|has_group:"Comercial_may" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin"  or request.user|has_group:"Abastecimiento" %}
-      <li class="nav-item">
-        <a href="/../Dashboard/Ventas_Franquicias" class="nav-link {% if 'Ventas_Franquicias' in request.path %} active {% endif %}">
-          <i class="far fa-circle nav-icon"></i>
-          <p>Ventas Franquicias</p>
-        </a>
-      </li>
+
       {% endif %}
       {% if request.user|has_group:"Comercial_may" or request.user|has_group:"Comercial_fr" or request.user|has_group:"Comercial_suc" or request.user|has_group:"Comercial_sup" or request.user|has_group:"admin"  or request.user|has_group:"e-commerce"  or request.user|has_group:"Produccion"  or request.user|has_group:"Abastecimiento" %}
-      <li class="nav-item">
-        <a href="/../Dashboard/Ventas_Sucursales" class="nav-link {% if 'Ventas_Sucursales' in request.path %} active {% endif %}">
-          <i class="far fa-circle nav-icon"></i>
-          <p>Ventas Sucursales</p>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="/../Dashboard/Ventas_SucursalesUY" class="nav-link {% if 'Ventas_SucursalesUY' in request.path %} active {% endif %}">
-          <i class="far fa-circle nav-icon"></i>
-          <p>Ventas Sucursales UY</p>
-        </a>
-      </li>
+
       <li class="nav-item">
         <a href="/../Dashboard/Velocidad_de_Ventas" class="nav-link {% if 'Velocidad_de_Ventas' in request.path %} active {% endif %}">
           <i class="far fa-circle nav-icon"></i>

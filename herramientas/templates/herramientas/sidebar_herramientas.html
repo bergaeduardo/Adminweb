@@ -46,11 +46,31 @@
     </li>
     {% endif %}    
     <!-- inicio Logistica -->
+    {% if request.user|has_any_group:"admin,Logistica" or request.user.id == 21 %}
+    <li>
+      <a href="/../Herramientas/SistemaReclamos"
+        class="nav-link {% if 'SistemaReclamos' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Sistema de Reclamos</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>    
+
+    {% endif %}
+  
     {% if request.user|has_any_group:"admin,Logistica_Sup" %}
     
 
     {% endif %}
     {% if request.user|has_any_group:"admin,Logistica_Sup,Logistica,Comercial_may" %}
+    <li>
+      <a href="/../Herramientas/AnularRemitos"
+        class="nav-link {% if 'AnularRemitos' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Anular Remitos</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>
     <li class="nav-item">
       <a href="/../Herramientas/RemisionMasiva"
         class="nav-link {% if 'RemisionMasiva' in request.path %} active {% endif %}">
@@ -115,27 +135,8 @@
         <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
-    <li class="nav-item">
-      <a href="/../Herramientas/Carga_de_orden"
-        class="nav-link {% if 'Carga_de_orden' in request.path %} active {% endif %}">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Carga de orden</p>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a href="/../Herramientas/Activar_orden"
-        class="nav-link {% if 'Activar_orden' in request.path %} active {% endif %}">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Activar orden</p>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a href="/../Herramientas/Desactivar_orden"
-        class="nav-link {% if 'Desactivar_orden' in request.path %} active {% endif %}">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Desactivar orden</p>
-      </a>
-    </li>
+    {% endif %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento" or request.user.id == 44 %}
     <li class="nav-item">
       <a href="/../Herramientas/Recodificacion"
         class="nav-link {% if 'Recodificacion' in request.path %} active {% endif %}">
@@ -144,6 +145,8 @@
         <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
+    {% endif %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento" %}
     <li class="nav-item">
       <a href="/../Herramientas/MaestroDestinos"
         class="nav-link {% if 'MaestroDestinos' in request.path %} active {% endif %}">
@@ -186,7 +189,7 @@
     <!-- Fin 	Gestión de Volúmenes -->
 
     <!-- inicio 	Administracion -->
-    {% if request.user|has_any_group:"admin,AdministracionSup" %}
+    {% if request.user|has_any_group:"admin,Administracion_Sup" %}
     <li class="nav-item">
       <a href="/../Herramientas/Controlgastos"
         class="nav-link {% if 'Controlgastos' in request.path %} active {% endif %}">
@@ -206,7 +209,7 @@
 
     
     {% endif %}
-    {% if request.user|has_any_group:"admin,AdministracionSup,Administracion" %}
+    {% if request.user|has_any_group:"admin,Administracion_Sup,Administracion" %}
     <li class="nav-item">
       <a href="/../Herramientas/ControlGastosSupervision"
         class="nav-link {% if 'ControlGastosSupervision' in request.path %} active {% endif %}">
@@ -232,14 +235,6 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="/../Herramientas/GestionDeAlquileres"
-        class="nav-link {% if 'GestionDeAlquileres' in request.path %} active {% endif %}">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Gestion De Alquileres</p>
-        <!-- <span class="badge badge-info right">2</span> -->
-      </a>
-    </li>
-    <li class="nav-item">
       <a href="/../Herramientas/CargaGastosAlquileres"
         class="nav-link {% if 'CargaGastosAlquileres' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
@@ -252,7 +247,7 @@
       <a href="/../Herramientas/ControlEgresosDeCaja/{{ request.user.username }}"
         class="nav-link {% if 'ControlEgresosDeCaja' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
-        <p>Ctrl Egresos De Caja</p>
+        <p>Control Egresos De Caja</p>
         <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
@@ -272,14 +267,6 @@
         <!-- <span class="badge badge-info top">New</span> -->
       </a>
     </li>
-    <li class="nav-item">
-      <a href="/../Herramientas/ContratosFrCarga"
-        class="nav-link {% if 'ContratosFrCarga' in request.path %} active {% endif %}">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Cargar Contratos Fr</p>
-        <!-- <span class="badge badge-info right">New</span> -->
-      </a>
-    </li>    
     <li class="nav-item">
       <a href="/../Herramientas/CargaFacturasSuc"
         class="nav-link {% if 'CargaFacturasSuc' in request.path %} active {% endif %}">
@@ -306,7 +293,7 @@
     </li>
     
     {% endif %}
-    {% if request.user|has_any_group:"admin,AdministracionSup,Administracion,Tesoreria" %}
+    {% if request.user|has_any_group:"admin,Administracion_Sup,Administracion,Tesoreria" %}
     <li class="nav-item">
       <a href="/../Herramientas/EgresosCajaTesoreria"
         class="nav-link {% if 'EgresosCajaTesoreria' in request.path %} active {% endif %}">
@@ -325,19 +312,19 @@
     </li>
     {% endif %}
     <!-- Administracion_CE   ***Comercio Exterior*** -->
-    {% if request.user|has_any_group:"admin,AdministracionSup,Administracion_CE" %}
+    {% if request.user|has_any_group:"admin,Administracion_Sup,Administracion_CE,Gerencia" or request.user.id == 92 %}
     <li class="nav-item">
       <a href="/../Herramientas/Cargarcontenedor"
         class="nav-link {% if 'Cargarcontenedor' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
-        <p>Cargar Contenedor</p>
+        <p>Gestión de Importaciones</p>
         <!-- <span class="badge badge-info right">2</span> -->
       </a>
     </li>
     {% endif %}
     <!-- Fin Administracion_CE ***Comercio Exterior*** -->
 
-    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento,AdministracionSup,Administracion" %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento,Administracion_Sup,Administracion" %}
     <li class="nav-item">
       <a href="/../Herramientas/MedidasLocales"
         class="nav-link {% if 'MedidasLocales' in request.path %} active {% endif %}">
@@ -496,7 +483,26 @@
         <p>Gestión de Kits</p>
         <!-- <span class="badge badge-info right">New</span> -->
       </a>
-    </li>    
+    </li>
+    <li class="nav-item">
+      <a href="/../Herramientas/conversorCSV"
+        class="nav-link {% if 'conversorCSV' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Conversor CSV</p>
+        <span class="badge badge-info right">New</span>
+      </a>
+    </li>
+    {# Actualización de Precios - Solo usuario ID 83 #}
+    {% if request.user|has_any_group:"admin" or request.user.id == 83 %}
+    <li class="nav-item">
+      {# Updated href for Actualización de Precios (assuming Comercial section) #}
+      <a href="/Herramientas/Comercial/ActualizacionPrecios/" class="nav-link {% if 'ActualizacionPrecios' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Actualización de Precios</p>
+        <!-- <span class="badge badge-info right">New</span> -->
+      </a>
+    </li>
+    {% endif %}
     {% endif %}
     {% if request.user|has_any_group:"admin,Comercial_may,Comercial_fr,Comercial_suc,Comercial_sup" %}
     <!-- accesos del area aqui -->
@@ -525,9 +531,9 @@
     {% if request.user|has_any_group:"admin,Comercial_sup,Comercial_may" %}
     <!-- accesos del area aqui -->
     <li class="nav-item">
-      <a href="/../Herramientas/Adm_Pedido" class="nav-link {% if 'Adm_Pedido' in request.path %} active {% endif %}">
+      <a href="/../Herramientas/gestionPedidos" class="nav-link {% if 'gestionPedidos' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
-        <p>Adm. Pedido</p>
+        <p>Gestión Pedidos Mayoristas</p>
         <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
@@ -567,7 +573,7 @@
     <!-- Fin 	Tesoreria -->
 
     <!-- inicio 	Supervisores -->
-    {% if request.user|has_any_group:"admin,Comercial_sup,e-commerce_sup,AdministracionSup,Logistica_Sup" or request.user.id == 63 %}
+    {% if request.user|has_any_group:"admin,Comercial_sup,e-commerce_sup,Administracion_Sup,Logistica_Sup,RRHH" or request.user.id == 63 %}
     <li class="nav-item">
       <a href="/../Herramientas/CargaProyecto" class="nav-link {% if  'CargaProyecto' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
@@ -580,14 +586,7 @@
 
     <!-- inicio 	Admin -->
     {% if request.user|has_any_group:"admin" %}
-    <li class="nav-item">
-      <a href="/../Herramientas/AdminNotificaciones"
-        class="nav-link {% if 'AdminNotificaciones' in request.path %} active {% endif %}">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Admin Notificaciones</p>
-        <!-- <span class="badge badge-info right">New</span> -->
-      </a>
-    </li>
+
     {% endif %}
     <!-- Fin 	Admin -->
 

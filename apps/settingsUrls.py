@@ -12,9 +12,6 @@ DIR_PBI = {
     'Conteos':'https://app.powerbi.com/view?r=eyJrIjoiMDYxYzNkNjYtZjg0NS00ODFmLWJmN2MtYTA5MTQzNTMxMDAwIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     'Geodatos':'https://app.powerbi.com/view?r=eyJrIjoiMjA3OGM2MGItYmEzYy00ZWZmLTk4NDYtMzMwNWIzZDk3ZTI3IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     'Notas_de_credito':'https://app.powerbi.com/view?r=eyJrIjoiYzRjNzY0MGItZDk0MC00NWIyLWI5NmItYzcxYjhhMzA4MTQ3IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
-    'Ventas_Franquicias':'https://app.powerbi.com/view?r=eyJrIjoiMDBiN2Q3ZjItNTcyOS00YTAwLWE4YjgtN2JkMTQ1MGM0NjI3IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
-    'Ventas_Sucursales':'https://app.powerbi.com/view?r=eyJrIjoiMjYyY2YwZTAtNGY4OC00YzM4LTkzYTktYTU5YTM2OWIzMjRjIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
-    'Ventas_SucursalesUY':'https://app.powerbi.com/view?r=eyJrIjoiOTNjMGFlOTUtM2Q4MS00YTg1LWJmNDItMjg4NzAxNmFjODg5IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     'Velocidad_de_Ventas':'https://app.powerbi.com/view?r=eyJrIjoiMWJiNDk5ZDAtYzFkYy00OWRmLTk1OTYtMDIxNWU2MTllNmEzIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     # Mayoristas
     'Ventas_Mayoristas':'https://app.powerbi.com/view?r=eyJrIjoiMzcwMDA2ZGItMTFkZS00MThiLWI2N2EtYWFiODY5YzYzYTA0IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
@@ -32,22 +29,29 @@ DIR_REPORTES = {
     # Logistica
     'Pedidos_pendiente_despacho':SERVIDOR['production'] + 'sistemas/cronoDespacho/pedidos.php',
     'ConsultaDestino':SERVIDOR['production'] + 'sistemas/maestroDestinos/indexMob.php',
+    'GestionTransferencias':SERVIDOR['production'] + 'comercial/SolicitudesTransferencias/public/logistica',
     # Abastecimiento
-    'Auditoria_orden': SERVIDOR['production']  + 'sistemas/distriCuero/listOrdenesComercial.php',
     'CategoriasDeProductos':SERVIDOR['production']  + 'comercial/producto/consultaCategoriaProductos.php',
     'HRecodificaciones':SERVIDOR['production']  + 'recodificacion/historialDeRecodificaciones.php',
     'Eficiencia_pedidos': SERVIDOR['production']  + 'comercial/abastecimiento/pedidos/eficienciaPedidos.php',
+    'gestionOrdenesPreventa': SERVIDOR['production']  + 'sistemas/distriCuero/menu.php',
+
     # Comercial
     'Stock_Sucursales': SERVIDOR['production']  + 'sistemas/stockYprecios/stockDepositos.php',
     'Stock_central': SERVIDOR['production']  + 'logistica/stock.php',
-    'promocionesActivas': SERVIDOR['production']  + 'comercial/mayoristas/promocionesBancarias/promocionesActivas.php',
     'VentasXcanal':SERVIDOR['production']  + 'comercial/abastecimiento/ventasAbastecimiento/',
     # 'AdmEmpleados':SERVIDOR['production']  + 'administracion/recursosHumanos/controlHorarios/verControlHorario.php',
     'AnalisisProductos':SERVIDOR['production']  + 'comercial/abastecimiento/analisisProducto/listado.php',
     'compararStock':SERVIDOR['production']  + 'controlGestion/compararStock/',
     'compararVentas':SERVIDOR['production']  + 'controlGestion/compararVentas/',
-    'PresupuestoComercial':'https://192.168.0.13:3000/home/',
+    'PresupuestoComercial':'https://192.168.0.9:3000/home/',
     'auditoriaDiferenciaPrecio':SERVIDOR['production']  + 'comercial/auditoria/ingreso_asistente.php',
+    'gestionObjetivosLocales':SERVIDOR['production']  + 'ppp/objetivos/gestion.php',
+    'auditoriasPromocionesVTEX':SERVIDOR['production']  + 'comercial/auditoria/promociones/index.php',
+    'ControlCads':SERVIDOR['production'] + 'comercial/cads',
+    'StockFranquicias':SERVIDOR['production'] + 'comercial/franquicias/stock/index.php',
+
+
     # Mayoristas
     'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'comercial/mayoristas/despacho/tracking.php',
     # Ecommerce
@@ -61,42 +65,50 @@ DIR_REPORTES = {
     # Administracion
     'VentasXmedio_pago':SERVIDOR['production'] + 'administracion/controlSucursales/resumenVentas.php',
     'consultaGastos':SERVIDOR['production'] + 'administracion/contabilidad/consultaGastos.php',
-    'ventaVsCobranza':SERVIDOR['production'] + 'administracion/controlSucursales/ventaVsCobranza.php',
     'Controlcajasmensual':SERVIDOR['production'] + 'administracion/controlSucursales/controlMensualCajaSucursales.php',
     'CargaGastosTesoreria':SERVIDOR['production'] + 'administracion/controlSucursales/cargaGastosTesoreria.php',
     'DetalleContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/contratos/detalleContratosAlquiler.php',
-    'ContratosFranquicias':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias/detalleContratosAlquiler.php',
     'GastosSupervision':SERVIDOR['production'] + 'comercial/supervision/presupuesto/dashboard.php',
-    'controlVentasSucursales':SERVIDOR['production'] + 'administracion/controlSucursales/controlVentasSucursales.php',
+    'integridadVentas':SERVIDOR['production'] + 'administracion/controlSucursales/integridadVentas/index.php',
     'saldoCaja':SERVIDOR['production'] + 'administracion/tesoreria/saldoCaja.php',
     'costoOcupacion':SERVIDOR['production'] + 'administracion/impuestos/alquileres/costoOcupacion/index.php',
     'FacturasDirectores':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/proveedores.php',
     'cuentasParticulares':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/contabilidad.php',
+    'alquileresFranquicias':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias',
+    'SolicitudesTransferencias':SERVIDOR['production'] + 'comercial/SolicitudesTransferencias',
+    
+        # RRHH
 
     # Gerencia
     'DetalleRemitos599':SERVIDOR['production']  + 'finanzas/599/consultaderemitos.php?userName=',
     'ChequesRecibidos':SERVIDOR['production']  + 'finanzas/599/reportedecheques.php?userName=',
     # RRHH
-    'ReporteAnticipos':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/reporteAnticipos.php',
+    'ReporteAnticipos':SERVIDOR['production'] + 'recursosHumanos/anticipoSueldos/reporteAnticipos.php',
     'gestionClientes':SERVIDOR['production'] + 'recursosHumanos/clientes/index.php',
+    'gestionHorarios':SERVIDOR['production'] + 'comercial/horarios/rrhh.php',
     # Supervisores
     'Proyectos':SERVIDOR['production'] + 'projects/adminProyectos/index.php',
+    # Admin
+    'comparador_tablas':SERVIDOR['production'] + 'controlgestion/checker',
+    'adminNotificaciones':SERVIDOR['production'] + 'sistemas/adminNotificaciones/',
+    'contadorPersonas':SERVIDOR['production'] + 'sistemas/contadorPersonas/',
+
 
 }
 
 DIR_HERAMIENTAS = {
     # Logistica
-    'Gestion_cronograma': SERVIDOR['production'] + 'sistemas/cronoDespacho/index.php',
+    'Gestion_cronograma': SERVIDOR['production'] + 'logistica/cronoDespacho/index.php',
     'Gestion_guias_mayoristas': SERVIDOR['production'] + 'comercial/mayoristas/despacho/index.php',
     'ImpRotulos': SERVIDOR['production'] + 'remapp/index.html',
     'ImportarRemEcommerce': SERVIDOR['production'] + 'ecommerce/abastecimiento/',
     'ImprimirEtiquetasBultos': SERVIDOR['production']  + 'logistica/etiquetas/',
     'RemisionMasiva': SERVIDOR['production']  + 'logistica/remisionMasiva/',
+    'AnularRemitos': SERVIDOR['production']  + 'logistica/anularRemito/',
+    'SistemaReclamos': SERVIDOR['production']  + 'logistica/reclamos',
+
     # Abastecimiento
     'Stock_excluido': SERVIDOR['production']  + 'comercial/abastecimiento/stockExcluido/index.php',
-    'Carga_de_orden': SERVIDOR['production']  + 'sistemas/distriCuero/index.php',
-    'Activar_orden': SERVIDOR['production']  + 'sistemas/distriCuero/activaOrdenes.php',
-    'Desactivar_orden': SERVIDOR['production']  + 'sistemas/distriCuero/desactivaOrdenes.php',
     'Recodificacion': SERVIDOR['production']  + 'recodificacion/nuevoProceso.php',
     'MaestroDestinos':SERVIDOR['production']  + 'comercial/abastecimiento/destinos/maestroDestinos.php',
     'GestionEquivalentes':SERVIDOR['production']  + 'comercial/abastecimiento/analisisProducto/gestion_equivalencias.php',
@@ -111,8 +123,10 @@ DIR_HERAMIENTAS = {
     'UsuariosFranquicias':SERVIDOR['production']  + 'usuariosFranquicias/',
     'ObjetivosVentaFranquicias':SERVIDOR['production']  + 'comercial/franquicias/objetivosVenta/',
     'gestionKits':SERVIDOR['production']  + 'comercial/producto/gestionKits.php',
+    'conversorCSV':'http://192.168.0.13:3000/conversor-csv',
+    'ActualizacionPrecios':SERVIDOR['production'] + 'comercial/precios/index.php',
     # Mayoristas
-    'Adm_Pedido':SERVIDOR['production']  + 'sistemas/despachoMayorista/index.php',
+    'gestionPedidos':SERVIDOR['production']  + 'comercial/mayoristas/gestionPedidos/',
     # Ecommerce
     'Control_pedidos': SERVIDOR['production'] + 'logistica/ecommerce/',
     'StockSegVtex': SERVIDOR['production'] + 'ecommerce/stockSeguridad/stockSeguridad.php',
@@ -130,12 +144,10 @@ DIR_HERAMIENTAS = {
     'mostrarOrden':SERVIDOR['production'] + 'administracion/comercioExterior/mostrarOrden.php',
     'Controlcajasdiario':SERVIDOR['production'] + 'administracion/controlSucursales/controlDiarioCajaSucursales.php',
     'CargaGastosAlquileres':SERVIDOR['production'] + 'administracion/impuestos/alquileres/cargaAlquileres.php',
-    'GestionDeAlquileres':SERVIDOR['production'] + 'administracion/impuestos/alquileres/porcGastosAlquileres.php',
     'ControlEgresosDeCaja':SERVIDOR['production'] + 'administracion/controlSucursales/controlEgresosCajaSucursales.php?userName=',
     'ControlMasivoCobranza':SERVIDOR['production'] + 'administracion/controlSucursales/controlMasivoCaja.php',
     'CargarContratosDeAlquiler':SERVIDOR['production'] + 'administracion/impuestos/alquileres/contratos/cargaContratoAlquileres.php',
     'RelacionesCtaCont':SERVIDOR['production'] + 'administracion/contabilidad/gestionRelacionesCuenta.php',
-    'CargaContratosFr':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias/cargaContratosAlquileres.php',
     'CargaFacturasSuc':SERVIDOR['production'] + 'administracion/controlSucursales/cargaFacturaSucursales.php',
     'EgresosCajaTesoreria':SERVIDOR['production'] + 'administracion/tesoreria/cargaGastos.php',
     'GestionDeProveedores':'https://proveedores.xl.com.ar/administracion/dashboard/',
@@ -144,11 +156,11 @@ DIR_HERAMIENTAS = {
     'RegistroPagoServicios':SERVIDOR['production'] + 'administracion/tesoreria/cajaDirectores/formPagoServicios.php',
     # RRHH
     # 'adminEmpleados':SERVIDOR['production'] + 'administracion/recursosHumanos/controlHorarios/controlHorario.php',
-    'altaVendedores':SERVIDOR['production'] + 'administracion/recursoshumanos/altaVendedores/altaVendedores.php',
-    'listarGrupos':SERVIDOR['production'] + 'administracion/recursosHumanos/altaVendedores/listarGrupos.php',
-    'gestionarVendedores':SERVIDOR['production'] + 'administracion/recursosHumanos/altaVendedores/gestionarVendedores.php',
-    'CargaAnticipoGrupo':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/cargaAnticipoGrupo.php',
-    'CargaAnticipo':SERVIDOR['production'] + 'administracion/recursosHumanos/anticipoSueldos/cargaAnticipo.php',
+    'altaVendedores':SERVIDOR['production'] + 'recursoshumanos/altaVendedores/altaVendedores.php',
+    'listarGrupos':SERVIDOR['production'] + 'recursoshumanos/altaVendedores/listarGrupos.php',
+    'gestionarVendedores':SERVIDOR['production'] + 'recursoshumanos/altaVendedores/gestionarVendedores.php',
+    'CargaAnticipoGrupo':SERVIDOR['production'] + 'recursoshumanos/anticipoSueldos/cargaAnticipoGrupo.php',
+    'CargaAnticipo':SERVIDOR['production'] + 'recursoshumanos/anticipoSueldos/cargaAnticipo.php',
     
     # Tesoreria
     'ControlDeEfectivo':SERVIDOR['production'] + 'administracion/controlSucursales/controlRecepcionEfectivo.php',
@@ -158,7 +170,7 @@ DIR_HERAMIENTAS = {
     'CargaProyecto':SERVIDOR['production'] + 'projects/adminProyectos/cargarProyecto.php',
 
     # Admin
-    'AdminNotificaciones':SERVIDOR['production'] + 'sistemas/adminNotificaciones/',
+
 }
 
 DIR_EXTRAS = {

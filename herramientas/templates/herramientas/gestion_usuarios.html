@@ -1,0 +1,822 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Gestión de Usuarios{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<link rel="stylesheet" href="/static/assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" href="/static/assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+<link rel="stylesheet" href="/static/assets/plugins/toastr/toastr.min.css">
+<link rel="stylesheet" href="/static/assets/plugins/sweetalert2/sweetalert2.min.css">
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+<style>
+  /* ── Layout ── */
+  .gu-page-header {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: 1.5rem;
+  }
+  .gu-page-header .gu-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .gu-page-header h1 {
+    font-size: 1.35rem; font-weight: 600;
+    color: #2d3748; margin: 0;
+  }
+  .gu-page-header p {
+    font-size: .82rem; color: #718096; margin: 0;
+  }
+
+  /* ── Card ── */
+  .gu-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.07);
+  }
+  .gu-card .card-header {
+    background: #fff;
+    border-bottom: 1px solid #edf2f7;
+    border-radius: 12px 12px 0 0 !important;
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .gu-card .card-body { padding: 1.25rem; }
+
+  /* ── Toggle switch ── */
+  .toggle-wrap {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .82rem; color: #4a5568; font-weight: 500;
+  }
+  .form-switch-lg { /* custom toggle */
+    position: relative; display: inline-block; width: 44px; height: 24px;
+  }
+  .form-switch-lg input { opacity: 0; width: 0; height: 0; }
+  .form-switch-lg .slider {
+    position: absolute; cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e0;
+    border-radius: 24px;
+    transition: .3s;
+  }
+  .form-switch-lg .slider:before {
+    position: absolute; content: "";
+    height: 18px; width: 18px;
+    left: 3px; bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: .3s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+  .form-switch-lg input:checked + .slider { background-color: #667eea; }
+  .form-switch-lg input:checked + .slider:before { transform: translateX(20px); }
+
+  /* ── Badge grupos ── */
+  .badge-grupo {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: .72rem;
+    font-weight: 500;
+    background: #ebf4ff;
+    color: #3182ce;
+    margin: 1px 2px;
+    white-space: nowrap;
+  }
+  .badge-inactivo {
+    background: #fff5f5;
+    color: #e53e3e;
+    font-size: .72rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .badge-activo {
+    background: #f0fff4;
+    color: #38a169;
+    font-size: .72rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  /* ── Avatar ── */
+  .gu-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .gu-user-cell { display: flex; align-items: center; gap: .6rem; }
+
+  /* ── Action btns ── */
+  .btn-gu-edit {
+    background: #ebf4ff; color: #3182ce; border: none;
+    border-radius: 6px; padding: 4px 10px; font-size: .78rem;
+    font-weight: 500; cursor: pointer; transition: background .15s;
+  }
+  .btn-gu-edit:hover { background: #bee3f8; }
+  .btn-gu-pwd {
+    background: #faf5ff; color: #805ad5; border: none;
+    border-radius: 6px; padding: 4px 10px; font-size: .78rem;
+    font-weight: 500; cursor: pointer; transition: background .15s;
+  }
+  .btn-gu-pwd:hover { background: #e9d8fd; }
+
+  /* ── Modal personalizado ── */
+  .gu-modal .modal-content {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.18);
+  }
+  .gu-modal .modal-header {
+    border-bottom: 1px solid #edf2f7;
+    padding: 1.1rem 1.5rem;
+    border-radius: 14px 14px 0 0;
+  }
+  .gu-modal .modal-header .modal-title {
+    font-size: 1rem; font-weight: 600; color: #2d3748;
+  }
+  .gu-modal .modal-footer {
+    border-top: 1px solid #edf2f7;
+    padding: .75rem 1.5rem;
+    border-radius: 0 0 14px 14px;
+  }
+  .gu-modal .form-group label {
+    font-size: .8rem; font-weight: 600; color: #4a5568;
+    margin-bottom: .25rem;
+  }
+  .gu-modal .form-control {
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: .88rem;
+  }
+  .gu-modal .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102,126,234,.15);
+  }
+
+  /* ── Grupos checkbox list ── */
+  .grupos-list {
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: .25rem 0;
+  }
+  .grupo-item {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .45rem .75rem;
+    border-bottom: 1px solid #f0f4f8;
+    cursor: pointer;
+    transition: background .1s;
+  }
+  .grupo-item:last-child { border-bottom: none; }
+  .grupo-item:hover { background: #f7fafc; }
+  .grupo-item.asignado { background: #ebf4ff; }
+  .grupo-item.asignado:hover { background: #dbeafe; }
+  .grupo-item input[type=checkbox] {
+    width: 16px; height: 16px;
+    flex-shrink: 0;
+    accent-color: #667eea;
+    cursor: pointer;
+  }
+  .grupo-item label {
+    font-size: .83rem;
+    color: #2d3748;
+    cursor: pointer;
+    margin: 0;
+    flex: 1;
+  }
+  .grupo-item.asignado label { font-weight: 600; color: #3182ce; }
+  .grupo-badge-asignado {
+    font-size: .68rem;
+    background: #667eea;
+    color: #fff;
+    border-radius: 10px;
+    padding: 1px 7px;
+    margin-left: auto;
+  }
+  .grupo-item.externo { background: #fffbeb; }
+  .grupo-item.externo:hover { background: #fef3c7; }
+  .grupo-item.externo label { font-weight: 600; color: #b45309; }
+  .grupo-badge-externo {
+    font-size: .68rem;
+    background: #f59e0b;
+    color: #fff;
+    border-radius: 10px;
+    padding: 1px 7px;
+    margin-left: auto;
+  }
+
+  /* ── Password strength ── */
+  .pwd-strength { height: 4px; border-radius: 4px; margin-top: .4rem; transition: all .3s; }
+
+  /* ── Spinner overlay ── */
+  #gu-spinner {
+    display: none;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255,255,255,.55);
+    z-index: 9999;
+    align-items: center; justify-content: center;
+  }
+  #gu-spinner.active { display: flex; }
+  .gu-spin-inner {
+    width: 48px; height: 48px;
+    border: 4px solid #e2e8f0;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── DataTable override ── */
+  table.dataTable thead th {
+    font-size: .78rem; font-weight: 600; color: #718096;
+    text-transform: uppercase; letter-spacing: .04em;
+    border-bottom: 2px solid #edf2f7 !important;
+    background: #fff;
+  }
+  table.dataTable tbody td {
+    font-size: .85rem; color: #2d3748;
+    vertical-align: middle !important;
+    border-bottom: 1px solid #f7fafc !important;
+  }
+  table.dataTable tbody tr:hover { background: #f9fafb; }
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #667eea !important; color: #fff !important;
+    border-radius: 6px; border: none !important;
+  }
+  .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #ebf4ff !important; color: #3182ce !important;
+    border-radius: 6px; border: none !important;
+  }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div id="gu-spinner"><div class="gu-spin-inner"></div></div>
+
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-1">
+        <div class="col-sm-6">
+          <div class="gu-page-header">
+            <div class="gu-icon"><i class="fas fa-users"></i></div>
+            <div>
+              <h1>Gestión de Usuarios</h1>
+              <p>Administración de perfiles, grupos y contraseñas</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+            <li class="breadcrumb-item active">Gestión de Usuarios</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <div class="card gu-card">
+        <div class="card-header">
+          <div class="d-flex align-items-center gap-2" style="gap:.75rem">
+            <span style="font-weight:600;font-size:.9rem;color:#2d3748">
+              <i class="fas fa-list mr-1" style="color:#667eea"></i>
+              Listado de usuarios
+            </span>
+          </div>
+          <div class="toggle-wrap">
+            <span id="lbl-toggle">Solo activos</span>
+            <label class="form-switch-lg">
+              <input type="checkbox" id="toggle-inactivos">
+              <span class="slider"></span>
+            </label>
+            <span style="color:#a0aec0">Mostrar inactivos</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <table id="tabla-usuarios" class="table table-hover w-100">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Nombre completo</th>
+                <th>Email</th>
+                <th>Grupos</th>
+                <th>Último acceso</th>
+                <th>Estado</th>
+                <th style="width:110px"></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-usuarios">
+              <!-- Llenado vía JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════ MODAL EDITAR USUARIO ══════════ -->
+<div class="modal fade gu-modal" id="modal-editar" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">
+            <i class="fas fa-user-edit mr-2" style="color:#667eea"></i>
+            Editar usuario: <span id="me-username" style="color:#667eea"></span>
+          </div>
+        </div>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:1.5rem">
+        <input type="hidden" id="me-user-id">
+        <div class="row">
+          <div class="col-md-6">
+            <h6 style="font-size:.78rem;font-weight:700;color:#a0aec0;text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem">
+              Información personal
+            </h6>
+            <div class="form-group">
+              <label for="me-first-name">Nombre</label>
+              <input type="text" class="form-control" id="me-first-name" placeholder="Nombre">
+            </div>
+            <div class="form-group">
+              <label for="me-last-name">Apellido</label>
+              <input type="text" class="form-control" id="me-last-name" placeholder="Apellido">
+            </div>
+            <div class="form-group">
+              <label for="me-email">Email</label>
+              <input type="email" class="form-control" id="me-email" placeholder="email@ejemplo.com">
+            </div>
+            <div class="form-group d-flex align-items-center" style="gap:.75rem;margin-top:1.1rem">
+              <span style="font-size:.85rem;color:#4a5568;font-weight:500">Estado:</span>
+              <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="me-is-active">
+                <label class="custom-control-label" for="me-is-active" id="me-estado-label">Activo</label>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h6 style="font-size:.78rem;font-weight:700;color:#a0aec0;text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem">
+              Grupos asignados
+            </h6>
+            <div class="grupos-list" id="me-grupos-list">
+              <!-- Llenado vía JS -->
+            </div>
+            <p class="text-muted mt-1" style="font-size:.75rem">
+              <i class="fas fa-info-circle mr-1"></i>
+              Solo se muestran los grupos que tiene permiso de asignar.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light btn-sm" data-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-sm" id="btn-guardar-usuario"
+                style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:8px;padding:.4rem 1.2rem;font-weight:600">
+          <i class="fas fa-save mr-1"></i> Guardar cambios
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL CAMBIAR CONTRASEÑA ══════════ -->
+<div class="modal fade gu-modal" id="modal-password" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fas fa-key mr-2" style="color:#805ad5"></i>
+          Establecer contraseña: <span id="mp-username" style="color:#805ad5;font-weight:700"></span>
+        </div>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:1.5rem">
+        <input type="hidden" id="mp-user-id">
+        <div class="alert" style="background:#faf5ff;border:1px solid #e9d8fd;border-radius:8px;padding:.6rem 1rem;margin-bottom:1rem">
+          <i class="fas fa-info-circle mr-1" style="color:#805ad5"></i>
+          <small style="color:#553c9a">Ingrese la nueva contraseña. Al guardar, podrá verla para comunicársela al usuario.</small>
+        </div>
+        <div class="form-group">
+          <label for="mp-pwd">Nueva contraseña</label>
+          <div class="input-group">
+            <input type="password" class="form-control" id="mp-pwd" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary" type="button" id="btn-show-pwd" title="Mostrar/ocultar">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div class="pwd-strength mt-1" id="pwd-strength-bar" style="background:#e2e8f0;width:0%;height:4px;border-radius:4px"></div>
+        </div>
+        <div class="form-group mb-0">
+          <label for="mp-pwd2">Confirmar contraseña</label>
+          <div class="input-group">
+            <input type="password" class="form-control" id="mp-pwd2" placeholder="Repetir contraseña" autocomplete="new-password">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary" type="button" id="btn-show-pwd2" title="Mostrar/ocultar">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <small id="mp-match" style="font-size:.78rem;margin-top:.25rem;display:block"></small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light btn-sm" data-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-sm" id="btn-guardar-pwd"
+                style="background:linear-gradient(135deg,#9f7aea,#805ad5);color:#fff;border:none;border-radius:8px;padding:.4rem 1.2rem;font-weight:600">
+          <i class="fas fa-check mr-1"></i> Guardar contraseña
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+<!-- Base scripts (required) -->
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/assets/js/adminlte.min.js"></script>
+<!-- DataTables -->
+<script src="/static/assets/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="/static/assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script src="/static/assets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script src="/static/assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<!-- Toastr -->
+<script src="/static/assets/plugins/toastr/toastr.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="/static/assets/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+<script>
+  // ── Configuración Toastr ─────────────────────────────────────
+  toastr.options = {
+    positionClass: 'toast-top-right',
+    timeOut: 3500,
+    progressBar: true,
+    closeButton: true,
+    newestOnTop: true,
+  };
+
+  // ── CSRF token ────────────────────────────────────────────────
+  function getCookie(name) {
+    let v = null;
+    document.cookie.split(';').forEach(c => {
+      c = c.trim();
+      if (c.startsWith(name + '=')) v = decodeURIComponent(c.substring(name.length + 1));
+    });
+    return v;
+  }
+  const csrfToken = getCookie('csrftoken');
+
+  // ── Grupos disponibles (inyectados desde Django) ─────────────
+  const gruposDisponibles = {{ grupos_disponibles|safe }};
+
+  // ── DataTable ────────────────────────────────────────────────
+  let dtUsuarios;
+
+  function initTable() {
+    if (dtUsuarios) dtUsuarios.destroy();
+    dtUsuarios = $('#tabla-usuarios').DataTable({
+      language: {
+        url: '', lengthMenu: 'Mostrar _MENU_ usuarios',
+        search: 'Buscar:', zeroRecords: 'No se encontraron usuarios.',
+        info: 'Mostrando _START_ a _END_ de _TOTAL_ usuarios',
+        infoEmpty: 'Sin resultados', paginate: { previous: '‹', next: '›' }
+      },
+      responsive: true,
+      pageLength: 15,
+      columnDefs: [{ orderable: false, targets: [3, 6] }],
+    });
+  }
+
+  // ── Cargar usuarios via AJAX ─────────────────────────────────
+  function cargarUsuarios(soloActivos = true) {
+    spinner(true);
+    $.get(`/Herramientas/gestionUsuarios/api/usuarios/?activos=${soloActivos}`)
+      .done(data => {
+        renderTabla(data.usuarios);
+      })
+      .fail(() => toastr.error('Error al cargar usuarios.'))
+      .always(() => spinner(false));
+  }
+
+  function getInitials(first, last, username) {
+    if (first || last) {
+      return ((first[0] || '') + (last[0] || '')).toUpperCase() || username[0].toUpperCase();
+    }
+    return username[0].toUpperCase();
+  }
+
+  function renderTabla(usuarios) {
+    if (dtUsuarios) { dtUsuarios.destroy(); dtUsuarios = null; }
+    const tbody = document.getElementById('tbody-usuarios');
+    tbody.innerHTML = '';
+    usuarios.forEach(u => {
+      const initials = getInitials(u.first_name, u.last_name, u.username);
+      const nombreCompleto = [u.first_name, u.last_name].filter(Boolean).join(' ') || '—';
+      const gruposHtml = u.grupos.length
+        ? u.grupos.map(g => `<span class="badge-grupo">${g}</span>`).join('')
+        : '<span style="color:#a0aec0;font-size:.78rem">Sin grupos</span>';
+      const estadoBadge = u.is_active
+        ? '<span class="badge-activo"><i class="fas fa-circle mr-1" style="font-size:.5rem"></i>Activo</span>'
+        : '<span class="badge-inactivo"><i class="fas fa-circle mr-1" style="font-size:.5rem"></i>Inactivo</span>';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="gu-user-cell">
+            <div class="gu-avatar">${initials}</div>
+            <span style="font-weight:600;">${u.username}</span>
+          </div>
+        </td>
+        <td>${nombreCompleto}</td>
+        <td style="color:#718096">${u.email || '—'}</td>
+        <td>${gruposHtml}</td>
+        <td style="color:#a0aec0;font-size:.8rem">${u.last_login}</td>
+        <td>${estadoBadge}</td>
+        <td>
+          <button class="btn-gu-edit mr-1" onclick="abrirEditar(${u.id})" title="Editar datos">
+            <i class="fas fa-pen mr-1"></i>Editar
+          </button>
+          <button class="btn-gu-pwd" onclick="abrirPassword(${u.id}, '${u.username}')" title="Cambiar contraseña">
+            <i class="fas fa-key mr-1"></i>Clave
+          </button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+    initTable();
+  }
+
+  // ── Toggle estado visual de ítem de grupo ────────────────────
+  function toggleGrupoItem(checkbox) {
+    const item = checkbox.closest('.grupo-item');
+    const isExterno = item.dataset.externo === 'true';
+    const badge = item.querySelector('.grupo-badge-asignado, .grupo-badge-externo');
+    if (checkbox.checked) {
+      if (isExterno) {
+        item.classList.add('externo');
+        if (!badge) {
+          const b = document.createElement('span');
+          b.className = 'grupo-badge-externo';
+          b.textContent = 'externo';
+          item.appendChild(b);
+        }
+      } else {
+        item.classList.add('asignado');
+        if (!badge) {
+          const b = document.createElement('span');
+          b.className = 'grupo-badge-asignado';
+          b.textContent = 'asignado';
+          item.appendChild(b);
+        }
+      }
+    } else {
+      item.classList.remove('asignado', 'externo');
+      if (badge) badge.remove();
+    }
+  }
+
+  // ── Toggle activos/inactivos ─────────────────────────────────
+  document.getElementById('toggle-inactivos').addEventListener('change', function () {
+    const soloActivos = !this.checked;
+    document.getElementById('lbl-toggle').textContent = soloActivos ? 'Solo activos' : 'Todos';
+    cargarUsuarios(soloActivos);
+  });
+
+  // ── Modal Editar ─────────────────────────────────────────────
+  function abrirEditar(userId) {
+    spinner(true);
+    $.get(`/Herramientas/gestionUsuarios/api/usuario/${userId}/`)
+      .done(u => {
+        document.getElementById('me-user-id').value = u.id;
+        document.getElementById('me-username').textContent = u.username;
+        document.getElementById('me-first-name').value = u.first_name;
+        document.getElementById('me-last-name').value = u.last_name;
+        document.getElementById('me-email').value = u.email;
+        const chkActivo = document.getElementById('me-is-active');
+        chkActivo.checked = u.is_active;
+        document.getElementById('me-estado-label').textContent = u.is_active ? 'Activo' : 'Inactivo';
+        chkActivo.onchange = function () {
+          document.getElementById('me-estado-label').textContent = this.checked ? 'Activo' : 'Inactivo';
+        };
+
+        // Renderizar checkboxes de grupos  (asignados primero)
+        const container = document.getElementById('me-grupos-list');
+        container.innerHTML = '';
+        if (gruposDisponibles.length === 0) {
+          container.innerHTML = '<p class="text-muted mb-0" style="font-size:.8rem;padding:.5rem .75rem">Sin grupos disponibles para asignar.</p>';
+        } else {
+          const asignados = gruposDisponibles.filter(g => u.grupos.includes(g.id));
+          const noAsignados = gruposDisponibles.filter(g => !u.grupos.includes(g.id));
+          [...asignados, ...noAsignados].forEach(g => {
+            const esAsignado = u.grupos.includes(g.id);
+            const checked = esAsignado ? 'checked' : '';
+            const claseItem = esAsignado ? 'grupo-item asignado' : 'grupo-item';
+            const badge = esAsignado ? '<span class="grupo-badge-asignado">asignado</span>' : '';
+            container.innerHTML += `
+              <div class="${claseItem}">
+                <input type="checkbox" value="${g.id}" id="grp-${g.id}" ${checked}
+                       onchange="toggleGrupoItem(this)">
+                <label for="grp-${g.id}">${g.name}</label>
+                ${badge}
+              </div>`;
+          });
+          // Grupos extra: asignados fuera del área del operador (ej: por un admin)
+          // Se muestran para que el operador pueda desasignarlos si lo desea.
+          if (u.grupos_extra && u.grupos_extra.length > 0) {
+            u.grupos_extra.forEach(g => {
+              container.innerHTML += `
+                <div class="grupo-item externo" data-externo="true" title="Asignado fuera de su área de gestión">
+                  <input type="checkbox" value="${g.id}" id="grp-ext-${g.id}" checked
+                         onchange="toggleGrupoItem(this)">
+                  <label for="grp-ext-${g.id}">${g.name}</label>
+                  <span class="grupo-badge-externo">externo</span>
+                </div>`;
+            });
+          }
+        }
+        $('#modal-editar').modal('show');
+      })
+      .fail(() => toastr.error('No se pudo cargar el usuario.'))
+      .always(() => spinner(false));
+  }
+
+  document.getElementById('btn-guardar-usuario').addEventListener('click', function () {
+    const userId = document.getElementById('me-user-id').value;
+    const grupos = [...document.querySelectorAll('#me-grupos-list input[type=checkbox]:checked')].map(i => parseInt(i.value));
+
+    const payload = {
+      first_name: document.getElementById('me-first-name').value.trim(),
+      last_name: document.getElementById('me-last-name').value.trim(),
+      email: document.getElementById('me-email').value.trim(),
+      is_active: document.getElementById('me-is-active').checked,
+      grupos: grupos,
+    };
+
+    spinner(true);
+    fetch(`/Herramientas/gestionUsuarios/api/usuario/${userId}/editar/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+      body: JSON.stringify(payload),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        $('#modal-editar').modal('hide');
+        toastr.success(data.mensaje);
+        cargarUsuarios(!document.getElementById('toggle-inactivos').checked);
+      } else {
+        toastr.error(data.error || 'Error al guardar.');
+      }
+    })
+    .catch(() => toastr.error('Error de conexión.'))
+    .finally(() => spinner(false));
+  });
+
+  // ── Modal Contraseña ─────────────────────────────────────────
+  function abrirPassword(userId, username) {
+    document.getElementById('mp-user-id').value = userId;
+    document.getElementById('mp-username').textContent = username || '';
+    document.getElementById('mp-pwd').value = '';
+    document.getElementById('mp-pwd2').value = '';
+    document.getElementById('mp-pwd').type = 'password';
+    document.getElementById('mp-pwd2').type = 'password';
+    document.getElementById('btn-show-pwd').querySelector('i').className = 'fas fa-eye';
+    document.getElementById('btn-show-pwd2').querySelector('i').className = 'fas fa-eye';
+    document.getElementById('mp-match').textContent = '';
+    updateStrengthBar('');
+    $('#modal-password').modal('show');
+  }
+
+  document.getElementById('btn-guardar-pwd').addEventListener('click', function () {
+    const userId = document.getElementById('mp-user-id').value;
+    const username = document.getElementById('mp-username').textContent;
+    const pwd = document.getElementById('mp-pwd').value;
+    const pwd2 = document.getElementById('mp-pwd2').value;
+
+    if (!pwd) { toastr.warning('Ingrese una contraseña.'); return; }
+    if (pwd.length < 6) { toastr.warning('Mínimo 6 caracteres.'); return; }
+    if (pwd !== pwd2) { toastr.warning('Las contraseñas no coinciden.'); return; }
+
+    Swal.fire({
+      title: '¿Confirmar cambio?',
+      html: `Se actualizará la contraseña de <strong>${username}</strong>.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, actualizar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#805ad5',
+      cancelButtonColor: '#a0aec0',
+    }).then(result => {
+      if (!result.isConfirmed) return;
+      spinner(true);
+      fetch(`/Herramientas/gestionUsuarios/api/usuario/${userId}/password/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        body: JSON.stringify({ password: pwd, confirmar_password: pwd2 }),
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok) {
+          $('#modal-password').modal('hide');
+          // Mostrar contraseña seteada para que el admin pueda anotarla
+          Swal.fire({
+            title: 'Contraseña actualizada',
+            html: `<p style="margin-bottom:.5rem">Usuario: <strong>${username}</strong></p>
+                   <p style="margin-bottom:.5rem">Nueva contraseña:</p>
+                   <div style="background:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;padding:.6rem 1rem;font-family:monospace;font-size:1.1rem;letter-spacing:.08em;color:#2d3748">${pwd}</div>
+                   <p class="text-muted mt-2" style="font-size:.78rem">Tome nota de esta contraseña antes de cerrar.</p>`,
+            icon: 'success',
+            confirmButtonText: 'Listo',
+            confirmButtonColor: '#805ad5',
+          });
+        } else {
+          toastr.error(data.error || 'Error al actualizar contraseña.');
+        }
+      })
+      .catch(() => toastr.error('Error de conexión.'))
+      .finally(() => spinner(false));
+    });
+  });
+
+  // ── Toggle visibilidad contraseña ────────────────────────────
+  document.getElementById('btn-show-pwd').addEventListener('click', function () {
+    const inp = document.getElementById('mp-pwd');
+    const isPass = inp.type === 'password';
+    inp.type = isPass ? 'text' : 'password';
+    this.querySelector('i').className = isPass ? 'fas fa-eye-slash' : 'fas fa-eye';
+  });
+  document.getElementById('btn-show-pwd2').addEventListener('click', function () {
+    const inp = document.getElementById('mp-pwd2');
+    const isPass = inp.type === 'password';
+    inp.type = isPass ? 'text' : 'password';
+    this.querySelector('i').className = isPass ? 'fas fa-eye-slash' : 'fas fa-eye';
+  });
+
+  // ── Indicador de fortaleza y match ───────────────────────────
+  document.getElementById('mp-pwd').addEventListener('input', function () {
+    updateStrengthBar(this.value);
+    checkMatch();
+  });
+  document.getElementById('mp-pwd2').addEventListener('input', checkMatch);
+
+  function checkMatch() {
+    const pwd = document.getElementById('mp-pwd').value;
+    const pwd2 = document.getElementById('mp-pwd2').value;
+    const el = document.getElementById('mp-match');
+    if (!pwd2) { el.textContent = ''; return; }
+    if (pwd === pwd2) {
+      el.innerHTML = '<i class="fas fa-check-circle"></i> Las contraseñas coinciden';
+      el.style.color = '#38a169';
+    } else {
+      el.innerHTML = '<i class="fas fa-times-circle"></i> No coinciden';
+      el.style.color = '#e53e3e';
+    }
+  }
+
+  function updateStrengthBar(pwd) {
+    const bar = document.getElementById('pwd-strength-bar');
+    let score = 0;
+    if (pwd.length >= 6) score++;
+    if (pwd.length >= 10) score++;
+    if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    const pct = pwd.length ? Math.min(100, score * 20) : 0;
+    const colors = ['#e2e8f0','#fc8181','#f6ad55','#68d391','#38a169','#276749'];
+    bar.style.width = pct + '%';
+    bar.style.background = colors[score] || '#e2e8f0';
+  }
+
+  // ── Spinner ────────────────────────────────────────────────
+  function spinner(show) {
+    document.getElementById('gu-spinner').classList.toggle('active', show);
+  }
+
+  // ── Init ──────────────────────────────────────────────────
+  $(document).ready(function () {
+    cargarUsuarios(true);
+  });
+</script>
+{% endblock javascripts %}

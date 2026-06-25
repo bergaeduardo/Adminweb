@@ -5,7 +5,8 @@ import pprint
 from tkinter.tix import CELL, COLUMN
 from django import template
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.db.models import Q
 from django.template import loader
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -22,7 +23,7 @@ from apps.settingsUrls import *
 # from apps.static.Scripts.getData_Trello import reporte_trello
 import json
 from consultasTango.filters import *
-from consultasLakersBis.filters import filtroCanal,filtroTipoLocal,filtroGrupoEmpresario,DireccionarioFilter
+from consultasLakersBis.filters import filtroCanal,filtroTipoLocal,filtroGrupoEmpresario,DireccionarioFilter,filtroProvincias
 from django.contrib import messages
 # Removed openpyxl and pandas imports as they were only used by moved import functions
 # import openpyxl
@@ -41,6 +42,10 @@ from django.templatetags.static import static
 def usuario_es_admin_o_sistemas(user):
     """Verifica si el usuario pertenece a los grupos 'admin' o 'Sistemas'"""
     return user.groups.filter(name__in=['admin', 'Sistemas']).exists() or user.is_superuser
+
+def usuario_puede_editar_sucursal(user):
+    """Verifica si el usuario puede editar (completo o básico) o es admin/Sistemas"""
+    return user.groups.filter(name__in=['admin', 'Sistemas', 'Comercial_suc', 'Comercial_sup', 'Comercial_fr', 'Comercial_may']).exists() or user.is_superuser
 
 @login_required(login_url="/login/")
 def runscript(request):
@@ -90,6 +95,21 @@ def editarSucursal(request,id):
     return  render(request,'appConsultasTango/editarSucursal.html',{'formulario':sucForm,'Disabled':Disabled})
 
 @login_required(login_url="/login/")
+@user_passes_test(usuario_puede_editar_sucursal, login_url="/login/")
+def eliminarSucursal(request, id):
+    """Deshabilita una sucursal. Solo accesible para grupos permitidos."""
+    sucursal = get_object_or_404(SucursalesLakers, nro_sucursal=id)
+    if request.method == 'POST':
+        nombre = f"{sucursal.nro_sucursal} - {sucursal.desc_sucursal}"
+        sucursal.habilitado = False
+        sucursal.save()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'ok': True, 'mensaje': f'Sucursal {nombre} deshabilitada.'})
+        messages.success(request, f'Sucursal {nombre} deshabilitada exitosamente.')
+        return redirect('extras:extras_direccionario')
+    return JsonResponse({'ok': False, 'error': 'Método no permitido.'}, status=405)
+
+@login_required(login_url="/login/")
 @user_passes_test(usuario_es_admin_o_sistemas, login_url="/login/")
 def editarSucursalCompleta(request, id):
     """
@@ -119,20 +139,20 @@ def editarSucursalCompleta(request, id):
 
 @login_required(login_url="/login/")
 def registraSucursal(request):
-    if request.method=='POST':
-        formulario=sucursalesform(request.POST)
+    if request.method == 'POST':
+        formulario = sucursalesform(request.POST)
         if formulario.is_valid():
-            sucursal = formulario.save(commit=False)
-            sucursal.save()
-            messages.success(request, 'OK')
-            infForm = formulario.cleaned_data
-            # print(infForm)
-            return redirect('extras:extras_direccionario') # Updated redirect
-
+            try:
+                sucursal = formulario.save(commit=False)
+                sucursal.save()
+                messages.success(request, 'Sucursal dada de alta exitosamente.')
+                return redirect('extras:extras_direccionario')
+            except Exception as e:
+                messages.error(request, f'Error al guardar la sucursal: {e}')
     else:
-        formulario=sucursalesform()
+        formulario = sucursalesform()
 
-    return  render(request,'appConsultasTango/registraSucursal.html',{'formulario':formulario})
+    return render(request, 'appConsultasTango/registraSucursal.html', {'formulario': formulario})
 
 # Removed import_file_etiquetas and its helpers
 
@@ -151,22 +171,196 @@ def direccionario(request):
 
 @login_required(login_url="/login/")
 def agenda(request):
-    Nombre='Direccionario'
-    datos = Direccionario.objects.all()
-    canal = filtroCanal()
+    Nombre = 'Direccionario'
+    canales    = filtroCanal()
+    provincias = filtroProvincias()
     tipo_local = filtroTipoLocal()
-    grupo = filtroGrupoEmpresario()
+    grupo      = filtroGrupoEmpresario()
+    return render(request, 'appConsultasTango/direccionario2.html', {
+        'Nombre':     Nombre,
+        'canales':    canales,
+        'provincias': provincias,
+        'tipo_local': tipo_local,
+        'grupo':      grupo,
+    })
 
-    for dato in datos:
-        if dato.mail_grupo_emp:
-            # Reemplazar comas y espacios por punto y coma para tener un único delimitador
-            mail_string = dato.mail_grupo_emp.replace(',', ';').replace(' ', ';')
-            # Dividir la cadena y limpiar cada dirección de correo
-            dato.mails_empresa = [mail.strip() for mail in mail_string.split(';') if mail.strip()]
-        else:
-            dato.mails_empresa = []
+def _get_supervisoras_map():
+    """Retorna un dict {nro_sucursal: nombre_supervisora} para todas las sucursales que tienen supervisora asignada."""
+    from django.db import connections
+    try:
+        with connections['mi_db_4'].cursor() as cursor:
+            cursor.execute("""
+                SELECT s.NRO_SUCURSAL, sv.NOMBRE
+                FROM SUCURSALES_LAKERS s
+                INNER JOIN RO_T_SUPERVISORAS_COMERCIAL sv ON s.ID_SUPERVISORA = sv.ID
+                WHERE s.ID_SUPERVISORA IS NOT NULL AND sv.ACTIVA = 1
+            """)
+            return {row[0]: row[1] for row in cursor.fetchall()}
+    except Exception:
+        return {}
 
-    return render(request,'appConsultasTango/direccionario2.html',{'datos': datos,'canal':canal,'tipo_local':tipo_local,'grupo':grupo,'Nombre':Nombre})
+def _to_bool_flag(value):
+    """Convierte valores de DB (bit/int/str) a bool para consumo de frontend."""
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return int(value) == 1
+    if isinstance(value, str):
+        return value.strip().lower() in ['1', 'true', 'si', 's', 'yes']
+    return False
+
+def _dias_abiertos_texto(dias_flags):
+    dias_label = [
+        ('lunes', 'Lun'),
+        ('martes', 'Mar'),
+        ('miercoles', 'Mie'),
+        ('jueves', 'Jue'),
+        ('viernes', 'Vie'),
+        ('sabado', 'Sab'),
+        ('domingo', 'Dom'),
+    ]
+    abiertos = [label for key, label in dias_label if dias_flags.get(key)]
+    return ', '.join(abiertos) if abiertos else 'Cerrado'
+
+def _get_dias_apertura_map():
+    """Retorna un dict con flags de apertura por dia para cada sucursal."""
+    from django.db import connections
+    try:
+        with connections['mi_db_4'].cursor() as cursor:
+            cursor.execute("""
+                SELECT NRO_SUCURSAL, LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO
+                FROM SUCURSALES_LAKERS
+            """)
+            data = {}
+            for row in cursor.fetchall():
+                data[row[0]] = {
+                    'lunes': _to_bool_flag(row[1]),
+                    'martes': _to_bool_flag(row[2]),
+                    'miercoles': _to_bool_flag(row[3]),
+                    'jueves': _to_bool_flag(row[4]),
+                    'viernes': _to_bool_flag(row[5]),
+                    'sabado': _to_bool_flag(row[6]),
+                    'domingo': _to_bool_flag(row[7]),
+                }
+            return data
+    except Exception:
+        return {}
+
+@login_required(login_url="/login/")
+def buscar_sucursales(request):
+    """Endpoint AJAX para búsqueda y filtrado del direccionario."""
+    action = request.POST.get('action') or request.GET.get('action', 'buscar')
+
+    if action == 'getCanales':
+        canales = list(
+            Direccionario.objects.filter(nro_sucursal_madre__isnull=True)
+            .exclude(canal__isnull=True).exclude(canal='')
+            .values_list('canal', flat=True)
+            .distinct().order_by('canal')
+        )
+        return JsonResponse({'canales': canales})
+
+    if action == 'getProvincias':
+        provincias = list(
+            Direccionario.objects.filter(nro_sucursal_madre__isnull=True)
+            .exclude(provincia__isnull=True).exclude(provincia='')
+            .values_list('provincia', flat=True)
+            .distinct().order_by('provincia')
+        )
+        return JsonResponse({'provincias': provincias})
+
+    # action == 'buscar'
+    busqueda      = (request.POST.get('busqueda')      or request.GET.get('busqueda', '')).strip()
+    canal         = (request.POST.get('canal')         or request.GET.get('canal', '')).strip()
+    provincia     = (request.POST.get('provincia')     or request.GET.get('provincia', '')).strip()
+    tipo_local    = (request.POST.get('tipo_local')    or request.GET.get('tipo_local', '')).strip()
+    grupo_empresario = (request.POST.get('grupo_empresario') or request.GET.get('grupo_empresario', '')).strip()
+
+    # mostrar_todos: solo permitido para admin / Sistemas / superuser
+    mostrar_todos_raw = (request.POST.get('mostrar_todos') or request.GET.get('mostrar_todos', 'false'))
+    puede_ver_todo = (
+        request.user.groups.filter(name__in=['admin', 'Sistemas']).exists()
+        or request.user.is_superuser
+    )
+
+    qs = Direccionario.objects.all()
+    if not (puede_ver_todo and mostrar_todos_raw == 'true'):
+        qs = qs.filter(nro_sucursal_madre__isnull=True)
+
+    if busqueda:
+        q = (
+            Q(desc_sucursal__icontains=busqueda) |
+            Q(localidad__icontains=busqueda) |
+            Q(direccion__icontains=busqueda)
+        )
+        if busqueda.isdigit():
+            q |= Q(nro_sucursal=int(busqueda))
+        qs = qs.filter(q)
+    if canal:
+        qs = qs.filter(canal=canal)
+    if provincia:
+        qs = qs.filter(provincia=provincia)
+    if tipo_local:
+        qs = qs.filter(tipo_local=tipo_local)
+    if grupo_empresario:
+        qs = qs.filter(grupo_empresario=grupo_empresario)
+
+    data = []
+    puede_ver_tecnico = (
+        request.user.groups.filter(name__in=['admin', 'soporteExt']).exists()
+        or request.user.is_superuser
+    )
+    supervisoras_map = _get_supervisoras_map()
+    dias_apertura_map = _get_dias_apertura_map()
+    for d in qs:
+        dias_flags = dias_apertura_map.get(d.nro_sucursal, {
+            'lunes': False,
+            'martes': False,
+            'miercoles': False,
+            'jueves': False,
+            'viernes': False,
+            'sabado': False,
+            'domingo': False,
+        })
+        data.append({
+            'nro_sucursal':        d.nro_sucursal,
+            'cod_client':          d.cod_client or '',
+            'desc_sucursal':       d.desc_sucursal or '',
+            'canal':               d.canal or '',
+            'tipo_local':          d.tipo_local or '',
+            'grupo_empresario':    d.grupo_empresario or '',
+            'direccion':           d.direccion or '',
+            'telefono':            d.telefono or '',
+            'mail':                d.mail or '',
+            'horario':             d.horario or '',
+            'localidad':           d.localidad or '',
+            'provincia':           d.provincia or '',
+            'tango':               d.tango or '',
+            'tienda':              d.tienda or '',
+            'integra_vtex':        d.integra_vtex or '',
+            'deposito':            d.deposito or '',
+            'retiro_expres':       d.retiro_expres or '',
+            'nro_sucursal_madre':   d.nro_sucursal_madre,
+            'nro_sucursal_anterior': d.nro_sucursal_anterior,
+            'supervisora':           supervisoras_map.get(d.nro_sucursal, ''),
+            'lunes':                dias_flags['lunes'],
+            'martes':               dias_flags['martes'],
+            'miercoles':            dias_flags['miercoles'],
+            'jueves':               dias_flags['jueves'],
+            'viernes':              dias_flags['viernes'],
+            'sabado':               dias_flags['sabado'],
+            'domingo':              dias_flags['domingo'],
+            'dias_abiertos':        _dias_abiertos_texto(dias_flags),
+            # Campos sensibles: solo incluidos para admin / soporteExt
+            **({'base_nombre':   d.base_nombre or '',
+                'conexion_dns':  d.conexion_dns or '',
+                'n_llave_tango': d.n_llave_tango or ''}
+               if puede_ver_tecnico else {}),
+        })
+
+    return JsonResponse({'sucursales': data, 'total': len(data)})
 
 @login_required(login_url="/login/")
 def DireccionarioTabla(request):    # <<<----- Direccionario Tabla -->

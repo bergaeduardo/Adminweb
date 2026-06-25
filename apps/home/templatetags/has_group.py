@@ -28,3 +28,12 @@ def get_user_groups(user):
     if not user or not user.is_authenticated:
         return []
     return [group.name for group in user.groups.all()]
+
+
+@register.filter(name='has_sup_group')
+def has_sup_group(user):
+    """Retorna True si el usuario pertenece a algún grupo terminado en '_sup'/'_Sup' o es admin."""
+    if not user or not user.is_authenticated:
+        return False
+    return user.groups.filter(name='admin').exists() or \
+           user.groups.filter(name__iendswith='_sup').exists()

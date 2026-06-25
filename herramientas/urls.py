@@ -53,12 +53,11 @@ urlpatterns = [
     path("ImpRemEcom", views.ImpRemEcom, name="herramientas_importar_rem_ecom"),
     path("ImprimirEtiquetasBultos", views.ImprimirEtiquetasBultos, name="herramientas_imprimir_etiquetas_bultos"),
     path("RemisionMasiva", views.RemisionMasiva, name="herramientas_remision_masiva"),
+    path("AnularRemitos", views.AnularRemitos, name="herramientas_anular_remitos"),
+    path("SistemaReclamos", views.SistemaReclamos, name="herramientas_sistema_reclamos"),
 
     # Abastecimiento
     path('Stock_excluido', views.Stock_excluido, name='herramientas_stock_excluido'),
-    path('Carga_de_orden', views.Carga_de_orden, name='herramientas_carga_orden'),
-    path('Activar_orden', views.Activar_orden, name='herramientas_activar_orden'),
-    path('Desactivar_orden', views.Desactivar_orden, name='herramientas_desactivar_orden'),
     path('Recodificacion', views.Recodificacion, name='herramientas_recodificacion'),
     path('MaestroDestinos', views.MaestroDestinos, name='herramientas_maestro_destinos'),
     path('GestionEquivalentes', views.GestionEquivalentes, name='herramientas_gestion_equivalentes'),
@@ -72,8 +71,11 @@ urlpatterns = [
     path('UsuariosFranquicias', views.UsuariosFranquicias, name='herramientas_usuarios_franquicias'),
     path('ObjetivosVentaFranquicias', views.ObjetivosVentaFranquicias, name='herramientas_objetivos_venta_franquicias'),
     path('gestionKits', views.gestionKits, name='herramientas_gestion_kits'),
+    path('conversorCSV', views.conversorCSV, name='herramientas_conversor_csv'),
+    path('conversorCSV/sheets', views.conversorCSV_sheets, name='herramientas_conversor_csv_sheets'),
+    path('Comercial/ActualizacionPrecios/', views.ActualizacionPrecios, name='herramientas_actualizacion_precios'),
     # Mayoristas
-    path('Adm_Pedido', views.Adm_Pedido, name='herramientas_adm_pedido'),
+    path('gestionPedidos', views.gestionPedidos, name='herramientas_gestion_pedidos'),
     # Ecommerce
     path('Control_pedidos', views.Control_pedidos, name='herramientas_control_pedidos'),
     path('StockSegVtex', views.StockSegVtex, name='herramientas_stock_seguridad_vtex'),
@@ -106,13 +108,12 @@ urlpatterns = [
     path('Controlgastos', views.Controlgastos, name='herramientas_control_gastos'),
     path('Cargargastos', views.Cargargastos, name='herramientas_cargar_gastos'),
     path('Controlcajasdiario', views.Controlcajasdiario, name='herramientas_control_cajas_diario'),
-    path('GestionDeAlquileres', views.GestionDeAlquileres, name='herramientas_gestion_alquileres'),
     path('CargaGastosAlquileres', views.CargaGastosAlquileres, name='herramientas_carga_gastos_alquileres'),
     path('ControlEgresosDeCaja/<str:UserName>', views.ControlEgresosDeCaja, name='herramientas_control_egresos_caja'),
     path('ControlMasivoCobranza', views.ControlMasivoCobranza, name='herramientas_control_masivo_cobranza'),
     path('CargarContratosDeAlquiler', views.CargarContratosDeAlquiler, name='herramientas_cargar_contratos_alquiler'),
     path('RelacionesCtaCont', views.RelacionesCtaCont, name='herramientas_relaciones_cuenta_contable'),
-    path('ContratosFrCarga', views.CargaContratosFr, name='herramientas_carga_contratos_franquicias'),
+  
     path('CargaFacturasSuc', views.CargaFacturasSuc, name='herramientas_carga_facturas_sucursales'),
     path('EgresosCajaTesoreria', views.EgresosCajaTesoreria, name='herramientas_egresos_caja_tesoreria'),
     path('GestionDeProveedores',views.GestionDeProveedores, name='herramientas_gestion_proveedores'),
@@ -133,6 +134,13 @@ urlpatterns = [
     path('gestionarVendedores', views.gestionarVendedores, name='herramientas_gestionar_vendedores'),
     path('cargaAnticipo', views.CargaAnticipo, name='herramientas_carga_anticipo'),
 
+    # Gestión de usuarios
+    path('gestionUsuarios/', views.gestion_usuarios, name='herramientas_gestion_usuarios'),
+    path('gestionUsuarios/api/usuarios/', views.api_usuarios, name='herramientas_api_usuarios'),
+    path('gestionUsuarios/api/usuario/<int:user_id>/', views.api_usuario_detalle, name='herramientas_api_usuario_detalle'),
+    path('gestionUsuarios/api/usuario/<int:user_id>/editar/', views.api_editar_usuario, name='herramientas_api_editar_usuario'),
+    path('gestionUsuarios/api/usuario/<int:user_id>/password/', views.api_cambiar_password, name='herramientas_api_cambiar_password'),
+
     # Tesoreria
     path('ControlDeEfectivo', views.ControlDeEfectivo, name='herramientas_control_efectivo'),
     path('PagosDirectores', views.PagosDirectores, name='herramientas_pagos_directores'),
@@ -141,12 +149,15 @@ urlpatterns = [
      path('CargaProyecto', views.CargaProyecto, name='carga_proyecto'),
 
     # Admin
-    path('AdminNotificaciones', views.AdminNotificaciones, name='herramientas_admin_notificaciones'),
 
     # --- URLs for views moved from viewsExtras.py ---
     path('import_file_etiquetas', views.import_file_etiquetas, name='herramientas_import_file_etiquetas'),
-    path('import_file_cierrePedidos', views.import_file_cierrePedidos, name='herramientas_import_file_cierre_pedidos'),
-    path('import_file_cierrePedidosUY', views.import_file_cierrePedidosUY, name='herramientas_import_file_cierre_pedidos_uy'),
+    path('import_file_anularPedidos', views.import_file_anularPedidos, name='herramientas_import_file_anular_pedidos'),
+    path('ejecutar_anulacion_pedidos', views.ejecutar_anulacion_pedidos, name='herramientas_ejecutar_anulacion_pedidos'),
+    path('validar_pedido_individual', views.validar_pedido_individual, name='herramientas_validar_pedido_individual'),
+    path('import_file_anularPedidosUY', views.import_file_anularPedidosUY, name='herramientas_import_file_anular_pedidos_uy'),
+    path('ejecutar_anulacion_pedidos_uy', views.ejecutar_anulacion_pedidos_uy, name='herramientas_ejecutar_anulacion_pedidos_uy'),
+    path('validar_pedido_individual_uy', views.validar_pedido_individual_uy, name='herramientas_validar_pedido_individual_uy'),
     path('import_file_ubi', views.import_file_ubi, name='herramientas_import_file_ubi'),
 
     # EB_sincArt_volumen - URLs específicas PRIMERO (antes de las dinámicas)
@@ -160,6 +171,10 @@ urlpatterns = [
     path('eb-sinc-art-volumen/<str:cod_articulo>/edit/', views.eb_sinc_art_volumen_edit, name='eb_sinc_art_volumen_edit'),
     path('eb-sinc-art-volumen/<str:cod_articulo>/delete/', views.eb_sinc_art_volumen_delete, name='eb_sinc_art_volumen_delete'),
     
+    # Validación de Artículos
+    path('validacion-articulos/', views.validacion_articulos, name='validacion_articulos'),
+    path('validacion-articulos/export/', views.validacion_articulos_export, name='validacion_articulos_export'),
+
     # Vista de prueba para Excel
     path('test-excel/', views.test_excel_download, name='test_excel_download'),
     path('test-plantilla-step/', views.test_plantilla_step_by_step, name='test_plantilla_step'),
