@@ -346,12 +346,19 @@ def obtener_turnos_calendario(request):
             inicio = datetime.combine(turno.fecha, turno.hora_inicio)
             fin = datetime.combine(turno.fecha, turno.hora_fin)
             
-            # Usar color del estado
-            color = turno.estado.color if turno.estado else '#17a2b8'
+            es_bloqueo_manual = turno.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']
+            
+            if es_bloqueo_manual:
+                color = '#495057'  # Gris oscuro
+                # Mostrar el nombre descriptivo directamente
+                titulo = turno.nombre_proveedor or f"Bloqueo: {turno.codigo_proveedor}"
+            else:
+                color = turno.estado.color if turno.estado else '#17a2b8'
+                titulo = f'{turno.codigo_proveedor} - OC: {formatear_orden_compra(turno.orden_compra)}'
             
             eventos.append({
                 'id': turno.id_turno_reserva,
-                'title': f'{turno.codigo_proveedor} - OC: {formatear_orden_compra(turno.orden_compra)}',
+                'title': titulo,
                 'start': inicio.isoformat(),
                 'end': fin.isoformat(),
                 'backgroundColor': color,
@@ -366,9 +373,10 @@ def obtener_turnos_calendario(request):
                     'observaciones': turno.observaciones or '',
                     'estado': turno.estado.nombre if turno.estado else 'Sin Estado',
                     'estado_id': turno.estado.id_estado if turno.estado else None,
-                    'estado_color': turno.estado.color if turno.estado else '#6c757d',
+                    'estado_color': color,
                     'permite_editar': turno.estado.permite_editar if turno.estado else True,
-                    'usuario_creador': turno.usuario_creador
+                    'usuario_creador': turno.usuario_creador,
+                    'isManualBlock': es_bloqueo_manual
                 }
             })
         
@@ -392,9 +400,17 @@ def obtener_slots_disponibles(request):
     try:
         fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
         
-        # Definir horario laboral (ejemplo: 8:00 a 18:00)
-        hora_inicio = dt_time(8, 0)
-        hora_fin = dt_time(18, 0)
+        # Validar día de la semana
+        weekday = fecha.weekday()
+        if weekday == 6:  # Domingo
+            return JsonResponse({'slots': []})
+            
+        if weekday == 5:  # Sábado
+            hora_inicio = dt_time(7, 0)
+            hora_fin = dt_time(10, 0)
+        else:  # Lunes a Viernes
+            hora_inicio = dt_time(7, 0)
+            hora_fin = dt_time(16, 0)
         
         # Generar todos los slots de 30 minutos
         slots_disponibles = []
@@ -404,6 +420,17 @@ def obtener_slots_disponibles(request):
         while current_time < end_time:
             slot_inicio = current_time.time()
             slot_fin = (current_time + timedelta(minutes=30)).time()
+            
+            # Filtrar breaks de comida para Lunes a Viernes
+            if weekday < 5:  # L-V
+                # Break 10:00 a 10:30
+                if slot_inicio == dt_time(10, 0):
+                    current_time += timedelta(minutes=30)
+                    continue
+                # Break 13:00 a 14:00 (cubre 13:00-13:30 y 13:30-14:00)
+                if slot_inicio >= dt_time(13, 0) and slot_fin <= dt_time(14, 0):
+                    current_time += timedelta(minutes=30)
+                    continue
             
             # Verificar si el slot está ocupado
             # Solo considerar turnos con estados activos
@@ -467,6 +494,34 @@ def nueva_reserva_turno(request):
                 turno.estado_actual_desde = timezone.now()
                 
                 turno.save()
+                
+                # Si es un Turno Proveedor (Importado), actualizar la tabla RO_T_IMPORTACIONES_ENCABEZADO
+                tipo_registro = post_data.get('tipo_registro')
+                if tipo_registro == 'IMPORTADO':
+                    try:
+                        from datetime import datetime
+                        dt_recibido = datetime.combine(turno.fecha, turno.hora_inicio)
+                        
+                        oc_list_str = turno.orden_compra
+                        import ast
+                        try:
+                            oc_list = ast.literal_eval(oc_list_str)
+                            if isinstance(oc_list, list) and oc_list:
+                                oc_db_val = oc_list[0]
+                            else:
+                                oc_db_val = oc_list_str
+                        except Exception:
+                            oc_db_val = oc_list_str
+                        
+                        with connections['mi_db_2'].cursor() as cursor:
+                            cursor.execute("""
+                                UPDATE RO_T_IMPORTACIONES_ENCABEZADO 
+                                SET FECHA_RECIBIDO = %s 
+                                WHERE ORDEN_COMPRA = %s
+                            """, [dt_recibido, oc_db_val])
+                            connections['mi_db_2'].commit()
+                    except Exception as e_up:
+                        print(f"Error al actualizar FECHA_RECIBIDO: {str(e_up)}")
                 
                 # Crear registro en historial de estados
                 HistorialEstadoTurno.objects.create(
@@ -599,41 +654,42 @@ def editar_reserva_turno(request, turno_id):
             messages.error(request, 'No se pueden realizar modificaciones en este turno.')
             return redirect('herramientas:herramientas_calendario_reservas')
         
-        # Guardar estado anterior antes de aplicar cambios
+        # Guardar estado y datos anteriores antes de aplicar cambios
         estado_anterior = turno.estado
+        fecha_anterior = turno.fecha
+        hora_inicio_anterior = turno.hora_inicio
+        hora_fin_anterior = turno.hora_fin
         
         form = TurnoReservaForm(request.POST, instance=turno, user=request.user)
         if form.is_valid():
             turno_actualizado = form.save(commit=False)
             
-            # Verificar si hubo cambio de estado
-            if estado_anterior != turno_actualizado.estado:
-                # Validar que el usuario tenga permisos para cambiar estado
-                user_groups = [g.name for g in request.user.groups.all()]
-                puede_cambiar_estado = (
-                    request.user.is_superuser or 
-                    'Admin' in user_groups or 
-                    'Logistica_Sup' in user_groups or
-                    'Logistica' in user_groups
-                )
-                
-                if puede_cambiar_estado:
-                    # Registrar cambio de estado
+            hubo_cambio_estado = estado_anterior != turno_actualizado.estado
+            
+            # Verificar si hubo cambio de fecha/horario
+            cambios_detalles = []
+            if fecha_anterior != turno_actualizado.fecha:
+                cambios_detalles.append(f"Fecha: {fecha_anterior.strftime('%d/%m/%Y')} → {turno_actualizado.fecha.strftime('%d/%m/%Y')}")
+            if hora_inicio_anterior != turno_actualizado.hora_inicio or hora_fin_anterior != turno_actualizado.hora_fin:
+                cambios_detalles.append(f"Horario: {hora_inicio_anterior.strftime('%H:%M')}-{hora_fin_anterior.strftime('%H:%M')} → {turno_actualizado.hora_inicio.strftime('%H:%M')}-{turno_actualizado.hora_fin.strftime('%H:%M')}")
+            
+            if hubo_cambio_estado or cambios_detalles:
+                observaciones_list = []
+                if hubo_cambio_estado:
+                    observaciones_list.append(f"Cambio de estado: {estado_anterior.nombre if estado_anterior else 'N/A'} → {turno_actualizado.estado.nombre}")
                     turno_actualizado.usuario_ultima_modificacion_estado = request.user.username
                     turno_actualizado.estado_actual_desde = timezone.now()
-                    
-                    # Crear registro en historial
-                    HistorialEstadoTurno.objects.create(
-                        turno=turno_actualizado,
-                        estado_anterior=estado_anterior,
-                        estado_nuevo=turno_actualizado.estado,
-                        usuario=request.user.username,
-                        observaciones=f"Cambio de estado: {estado_anterior.nombre if estado_anterior else 'N/A'} → {turno_actualizado.estado.nombre}"
-                    )
-                else:
-                    # Si no tiene permisos, revertir el cambio de estado
-                    turno_actualizado.estado = estado_anterior
-                    messages.warning(request, 'No tiene permisos para cambiar el estado del turno.')
+                if cambios_detalles:
+                    observaciones_list.append(f"Modificación: {', '.join(cambios_detalles)}")
+                
+                # Crear registro en historial
+                HistorialEstadoTurno.objects.create(
+                    turno=turno_actualizado,
+                    estado_anterior=estado_anterior,
+                    estado_nuevo=turno_actualizado.estado,
+                    usuario=request.user.username,
+                    observaciones="; ".join(observaciones_list)
+                )
             
             turno_actualizado.save()
             messages.success(request, 'Turno actualizado exitosamente.')
@@ -748,7 +804,7 @@ def listado_reservas(request):
     fecha_hasta = request.GET.get('fecha_hasta')
     estado = request.GET.get('estado')
     
-    turnos = TurnoReserva.objects.all()
+    turnos = TurnoReserva.objects.all().select_related('estado')
     
     if fecha_desde:
         turnos = turnos.filter(fecha__gte=fecha_desde)
@@ -759,10 +815,199 @@ def listado_reservas(request):
     
     turnos = turnos.order_by('-fecha', '-hora_inicio')
     
+    estados = EstadoTurno.objects.filter(activo=True).order_by('orden_ejecucion')
+    
     return render(request, 'appConsultasTango/listado_reservas.html', {
         'turnos': turnos,
+        'estados': estados,
         'Nombre': 'Listado de Reservas'
     })
+
+
+@login_required(login_url="/login/")
+def historial_general_reservas(request):
+    """
+    Vista de historial general de cambios de reservas de turnos
+    """
+    historial = HistorialEstadoTurno.objects.all().select_related('turno', 'estado_anterior', 'estado_nuevo').order_by('-fecha_cambio')
+    
+    # Filtros opcionales
+    turno_id = request.GET.get('turno_id')
+    usuario = request.GET.get('usuario')
+    if turno_id:
+        historial = historial.filter(turno__id_turno_reserva=turno_id)
+    if usuario:
+        historial = historial.filter(usuario__icontains=usuario)
+        
+    # Paginación
+    paginator = Paginator(historial, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'appConsultasTango/historial_general_reservas.html', {
+        'Nombre': 'Historial de Cambios de Reservas',
+        'page_obj': page_obj
+    })
+
+
+@login_required(login_url="/login/")
+def descargar_reporte_reservas(request):
+    """
+    Genera y descarga un reporte Excel (.xlsx) con los turnos de reserva filtrados
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    estado = request.GET.get('estado')
+    
+    turnos = TurnoReserva.objects.all().select_related('estado')
+    
+    if fecha_desde:
+        turnos = turnos.filter(fecha__gte=fecha_desde)
+    if fecha_hasta:
+        turnos = turnos.filter(fecha__lte=fecha_hasta)
+    if estado:
+        turnos = turnos.filter(estado=estado)
+        
+    turnos = turnos.order_by('fecha', 'hora_inicio')
+    
+    # Crear Workbook de Excel
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Reporte de Reservas"
+    
+    # Estilos
+    font_header = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+    fill_header = PatternFill(start_color='1F4E78', end_color='1F4E78', fill_type='solid') # Azul oscuro premium
+    alignment_center = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    alignment_left = Alignment(horizontal='left', vertical='center')
+    border_thin = Border(
+        left=Side(style='thin', color='BFBFBF'),
+        right=Side(style='thin', color='BFBFBF'),
+        top=Side(style='thin', color='BFBFBF'),
+        bottom=Side(style='thin', color='BFBFBF')
+    )
+    
+    # Encabezados
+    headers = [
+        "ID", "Fecha", "Horario", "Código Prov.", "Proveedor / Tarea",
+        "Orden de Compra", "Remitos", "Unidades", "Bultos", "Estado", "Creador"
+    ]
+    
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.value = header
+        cell.font = font_header
+        cell.fill = fill_header
+        cell.alignment = alignment_center
+        cell.border = border_thin
+        
+    # Datos
+    for row_num, turno in enumerate(turnos, 2):
+        # Formatear OC
+        oc_str = formatear_orden_compra(turno.orden_compra)
+        
+        # Identificar si es bloqueo de tarea o turno regular
+        nombre_prov = turno.nombre_proveedor or ''
+        if turno.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']:
+            nombre_prov = turno.nombre_proveedor or f"Bloqueo: {turno.codigo_proveedor}"
+            
+        data_row = [
+            turno.id_turno_reserva,
+            turno.fecha.strftime('%d/%m/%Y'),
+            f"{turno.hora_inicio.strftime('%H:%M')} - {turno.hora_fin.strftime('%H:%M')}",
+            turno.codigo_proveedor,
+            nombre_prov,
+            oc_str,
+            turno.remitos,
+            turno.cantidad_unidades,
+            turno.cantidad_bultos or 0,
+            turno.estado.nombre if turno.estado else 'Sin Estado',
+            turno.usuario_creador
+        ]
+        
+        for col_num, val in enumerate(data_row, 1):
+            cell = ws.cell(row=row_num, column=col_num)
+            cell.value = val
+            cell.border = border_thin
+            
+            # Formatos de alineación y número
+            if col_num in [1, 2, 3, 4, 8, 9, 10]:
+                cell.alignment = alignment_center
+            else:
+                cell.alignment = alignment_left
+                
+            # Destacar bloqueos manuales
+            if turno.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']:
+                cell.fill = PatternFill(start_color='F2F2F2', end_color='F2F2F2', fill_type='solid')
+                
+    # Auto-ajustar ancho de columnas
+    for col in ws.columns:
+        max_len = 0
+        col_letter = col[0].column_letter
+        for cell in col:
+            if cell.value:
+                max_len = max(max_len, len(str(cell.value)))
+        ws.column_dimensions[col_letter].width = max(max_len + 3, 10)
+        
+    # Altura de filas
+    ws.row_dimensions[1].height = 28
+    for r in range(2, len(turnos) + 2):
+        ws.row_dimensions[r].height = 20
+        
+    # Retornar como HttpResponse
+    from django.http import HttpResponse
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    filename = f"reporte_reservas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    wb.save(response)
+    return response
+
+
+@login_required(login_url="/login/")
+def get_ordenes_compra_importadas(request):
+    """
+    Recupera las órdenes de compra de importación desde RO_T_IMPORTACIONES_ENCABEZADO
+    que están pendientes de recepción (FECHA_RECIBIDO IS NULL).
+    """
+    q = request.GET.get('q', '').strip()
+    if len(q) < 3:
+        return JsonResponse({'ordenes': []})
+        
+    try:
+        with connections['mi_db_2'].cursor() as cursor:
+            # Filtrar por término de búsqueda (coincidencia en OC o Proveedor)
+            cursor.execute("""
+                SELECT DISTINCT ORDEN_COMPRA, PROVEEDOR, COD_PROVEE 
+                FROM RO_T_IMPORTACIONES_ENCABEZADO 
+                WHERE ORDEN_COMPRA IS NOT NULL 
+                  AND FECHA_RECIBIDO IS NULL
+                  AND (LTRIM(RTRIM(ORDEN_COMPRA)) LIKE %s OR PROVEEDOR LIKE %s)
+                ORDER BY ORDEN_COMPRA
+            """, [f'%{q}%', f'%{q}%'])
+            rows = cursor.fetchall()
+            
+            ordenes = []
+            for r in rows:
+                oc_val = str(r[0]).strip()
+                prov_val = str(r[1]).strip() if r[1] else 'Sin Proveedor'
+                cod_provee = str(r[2]).strip() if r[2] else ''
+                if oc_val:
+                    ordenes.append({
+                        'id': r[0],
+                        'text': f"{oc_val} - {prov_val}",
+                        'proveedor': prov_val,
+                        'codigo_proveedor': cod_provee
+                    })
+            return JsonResponse({'ordenes': ordenes})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 # ============================================================================
 # FIN VISTAS CALENDARIO DE RESERVAS

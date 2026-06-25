@@ -1,5 +1,6 @@
 {% extends "layouts/base.html" %}
 {% load static %}
+{% load volumen_filters %}
 
 {% block body_class %}sidebar-mini sidebar-collapse{% endblock body_class %}
 
@@ -195,7 +196,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="{{ form.orden_compra.id_for_label }}">Orden de Compra *</label>
-                                            {% with orden_compra_formateada=turno.orden_compra|cut:"'"|cut:"["|cut:"]" %}
+                                            {% with orden_compra_formateada=turno.orden_compra|formatear_oc %}
                                             {% if solo_lectura %}
                                             <input type="text" class="form-control" value="{{ orden_compra_formateada }}" readonly style="background-color: #e9ecef; cursor: not-allowed;">
                                             {% else %}
@@ -281,7 +282,6 @@
                                 <div class="alert alert-info">
                                     <i class="fas fa-info-circle"></i> 
                                     <strong>Nota:</strong> Los turnos deben ser en bloques de 30 minutos. 
-                                    Usuarios sin permisos Admin/Logística solo pueden reservar hasta 2 bloques consecutivos (1 hora).
                                 </div>
                                 {% endif %}
                             </div>

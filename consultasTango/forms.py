@@ -1,7 +1,8 @@
 from django import forms
+import ast
 from .models import Turno, CodigosError, TurnoReserva, EstadoTurno, IncidenciasTurno
 from django.db import connections
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, time as dt_time
 
 class ImageUploadForm(forms.Form):
     images = forms.FileField(
@@ -184,6 +185,13 @@ class TurnoReservaForm(forms.ModelForm):
         widget=forms.HiddenInput()
     )
     
+    tipo_registro = forms.ChoiceField(
+        choices=[('TURNO', 'Turno Proveedor'), ('BLOQUEO', 'Bloqueo de Agenda (Tarea)'), ('IMPORTADO', 'Turno Proveedor (Importado)')],
+        initial='TURNO',
+        required=False,
+        widget=forms.HiddenInput()
+    )
+    
     class Meta:
         model = TurnoReserva
         fields = [
@@ -224,16 +232,8 @@ class TurnoReservaForm(forms.ModelForm):
         # Hacer nombre_proveedor no requerido (se llena automáticamente)
         self.fields['nombre_proveedor'].required = False
         
-        # Configurar campo estado según permisos del usuario
+        # Configurar campo estado para todos los usuarios (validación removida a pedido)
         if self.user:
-            user_groups = [g.name for g in self.user.groups.all()]
-            puede_cambiar_estado = (
-                self.user.is_superuser or 
-                'Admin' in user_groups or 
-                'Logistica_Sup' in user_groups or
-                'Logistica' in user_groups
-            )
-            
             # Solo mostrar estados activos ordenados
             self.fields['estado'].queryset = EstadoTurno.objects.filter(activo=True).order_by('orden_ejecucion')
             
@@ -243,25 +243,31 @@ class TurnoReservaForm(forms.ModelForm):
                 if estado_inicial:
                     self.fields['estado'].initial = estado_inicial.id_estado
             
-            if puede_cambiar_estado:
-                # Usuarios autorizados pueden ver y cambiar el estado
-                self.fields['estado'].widget.attrs.update({
-                    'class': 'form-control estado-select-enabled'
-                })
-                self.fields['cambiar_estado'].initial = True
-            else:
-                # Otros usuarios ven el estado pero no pueden cambiarlo
-                self.fields['estado'].widget.attrs.update({
-                    'class': 'form-control',
-                    'disabled': 'disabled'
-                })
-                self.fields['cambiar_estado'].initial = False
+            # Todos los usuarios pueden ver y cambiar el estado
+            self.fields['estado'].widget.attrs.update({
+                'class': 'form-control estado-select-enabled'
+            })
+            self.fields['cambiar_estado'].initial = True
         else:
-            # Sin usuario, deshabilitar campo estado
+            # Sin usuario (no debería pasar), deshabilitar campo estado
             self.fields['estado'].widget.attrs.update({
                 'class': 'form-control',
                 'disabled': 'disabled'
             })
+        
+        # Si es un bloqueo de agenda (tarea), relajar requerimientos de campos
+        tipo_reg = None
+        if self.data:
+            tipo_reg = self.data.get('tipo_registro')
+        elif self.instance and self.instance.pk:
+            if self.instance.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']:
+                tipo_reg = 'BLOQUEO'
+                
+        if tipo_reg in ['BLOQUEO', 'IMPORTADO']:
+            self.fields['codigo_proveedor'].required = False
+            self.fields['orden_compra'].required = (tipo_reg == 'IMPORTADO')
+            self.fields['remitos'].required = False
+            self.fields['cantidad_unidades'].required = False
         
         # Si estamos editando, aplicar restricciones según estado y fecha
         if self.instance and self.instance.pk:
@@ -289,7 +295,8 @@ class TurnoReservaForm(forms.ModelForm):
             else:
                 # Si estamos en RESERVADO pero la fecha ya pasó, deshabilitar fecha y hora
                 hoy = date.today()
-                if self.instance.fecha <= hoy:
+                # Omitir esta restricción si es un bloqueo manual existente para permitir moverlo
+                if self.instance.fecha <= hoy and not (self.instance.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']):
                     # Deshabilitar campos de fecha y hora
                     self.fields['fecha'].widget.attrs['readonly'] = True
                     self.fields['hora_inicio'].widget.attrs['readonly'] = True
@@ -304,6 +311,57 @@ class TurnoReservaForm(forms.ModelForm):
         hora_inicio = cleaned_data.get('hora_inicio')
         hora_fin = cleaned_data.get('hora_fin')
         nuevo_estado = cleaned_data.get('estado')
+        
+        tipo_reg = self.data.get('tipo_registro', 'TURNO')
+        codigo_prov = cleaned_data.get('codigo_proveedor')
+        es_bloqueo = (tipo_reg == 'BLOQUEO') or (codigo_prov in ['HOT', 'INV', 'CYBER', 'ALTA'])
+        
+        if es_bloqueo:
+            cleaned_data['orden_compra'] = "['BLOQ']"
+            cleaned_data['remitos'] = 'BLOQ'
+            cleaned_data['cantidad_unidades'] = 0
+            cleaned_data['cantidad_bultos'] = 0
+            
+            if codigo_prov:
+                codigo_prov = codigo_prov.upper().strip()
+                cleaned_data['codigo_proveedor'] = codigo_prov
+            
+            nombres_tareas = {
+                'HOT': 'Bloqueo: Hot Sale',
+                'INV': 'Bloqueo: Inventario',
+                'CYBER': 'Bloqueo: Cyber',
+                'ALTA': 'Bloqueo: Alta Demanda'
+            }
+            if codigo_prov in nombres_tareas:
+                cleaned_data['nombre_proveedor'] = nombres_tareas[codigo_prov]
+        
+        if tipo_reg == 'IMPORTADO':
+            cleaned_data['remitos'] = 'IMPORTADO'
+            cleaned_data['cantidad_unidades'] = 0
+            cleaned_data['cantidad_bultos'] = 0
+            
+            raw_oc = self.data.get('orden_compra')
+            if isinstance(raw_oc, list):
+                raw_oc = raw_oc[0] if raw_oc else None
+                
+            if raw_oc:
+                raw_oc_clean = str(raw_oc).replace('[', '').replace(']', '').replace("'", '').replace('"', '').strip()
+                from django.db import connections
+                with connections['mi_db_2'].cursor() as cursor:
+                    cursor.execute("""
+                        SELECT TOP 1 COD_PROVEE, PROVEEDOR, ORDEN_COMPRA 
+                        FROM RO_T_IMPORTACIONES_ENCABEZADO 
+                        WHERE LTRIM(RTRIM(ORDEN_COMPRA)) = %s
+                    """, [raw_oc_clean])
+                    row = cursor.fetchone()
+                    if row:
+                        cleaned_data['codigo_proveedor'] = str(row[0]).strip()
+                        cleaned_data['nombre_proveedor'] = str(row[1]).strip()
+                        cleaned_data['orden_compra'] = f"['{row[2]}']"
+                    else:
+                        raise forms.ValidationError(f"La orden de compra '{raw_oc_clean}' no fue encontrada en las importaciones.")
+            else:
+                raise forms.ValidationError("Debe seleccionar una orden de compra de importación.")
         
         # Validación de orden secuencial de estados (solo al editar)
         if self.instance and self.instance.pk and nuevo_estado:
@@ -376,6 +434,44 @@ class TurnoReservaForm(forms.ModelForm):
                 f"Por favor, ajuste los horarios para que la reserva tenga una duración válida."
             )
 
+        # Validar día Domingo
+        weekday = fecha.weekday()
+        if weekday == 6:  # Domingo
+            raise forms.ValidationError("No se pueden reservar turnos los días Domingo ya que no se trabaja.")
+
+        # Validar límites de horario según el día
+        if weekday == 5:  # Sábado
+            limite_inicio = dt_time(7, 0)
+            limite_fin = dt_time(10, 0)
+            if hora_inicio < limite_inicio or hora_fin > limite_fin:
+                raise forms.ValidationError(
+                    f"El horario de atención para los días Sábado es únicamente de {limite_inicio.strftime('%H:%M')} a {limite_fin.strftime('%H:%M')}."
+                )
+        else:  # Lunes a Viernes
+            limite_inicio = dt_time(7, 0)
+            limite_fin = dt_time(16, 0)
+            if hora_inicio < limite_inicio or hora_fin > limite_fin:
+                raise forms.ValidationError(
+                    f"El horario de atención de Lunes a Viernes es de {limite_inicio.strftime('%H:%M')} a {limite_fin.strftime('%H:%M')}."
+                )
+            
+            # Validar breaks de comida para Lunes a Viernes
+            # Break 1: 10:00 a 10:30
+            break1_inicio = dt_time(10, 0)
+            break1_fin = dt_time(10, 30)
+            if not (hora_fin <= break1_inicio or hora_inicio >= break1_fin):
+                raise forms.ValidationError(
+                    "El horario seleccionado se superpone con el break de comida obligatorio de 10:00 a 10:30."
+                )
+            
+            # Break 2: 13:00 a 14:00
+            break2_inicio = dt_time(13, 0)
+            break2_fin = dt_time(14, 0)
+            if not (hora_fin <= break2_inicio or hora_inicio >= break2_fin):
+                raise forms.ValidationError(
+                    "El horario seleccionado se superpone con el break de comida obligatorio de 13:00 a 14:00."
+                )
+
         # Validar bloques de 30 minutos
         inicio_dt = datetime.combine(fecha, hora_inicio)
         fin_dt = datetime.combine(fecha, hora_fin)
@@ -442,26 +538,8 @@ class TurnoReservaForm(forms.ModelForm):
                         f"Por favor, seleccione otro horario disponible."
                     )
 
-        # Validar límite de 2 turnos consecutivos para usuarios no Admin/Logística
-        if self.user:
-            user_groups = [g.name for g in self.user.groups.all()]
-            is_admin_or_logistica = (
-                self.user.is_superuser or 
-                'Admin' in user_groups or 
-                'Logistica' in user_groups or
-                'Logística' in user_groups
-            )
-
-            if not is_admin_or_logistica:
-                # Calcular cantidad de bloques de 30 minutos
-                bloques_solicitados = int(duracion_minutos / 30)
-                
-                if bloques_solicitados > 2:
-                    raise forms.ValidationError(
-                        f"Ha solicitado {bloques_solicitados} bloques de 30 minutos ({int(duracion_minutos)} minutos en total). "
-                        f"Los usuarios sin permisos de Admin o Logística solo pueden reservar hasta 2 bloques consecutivos (1 hora máximo). "
-                        f"Por favor, reduzca la duración de su reserva o contacte al administrador para solicitar permisos especiales."
-                    )
+        # Validación de límite de bloques removida a pedido
+        pass
 
         return cleaned_data
 
@@ -473,37 +551,67 @@ class TurnoReservaForm(forms.ModelForm):
 
     def clean_orden_compra(self):
         """
-        Validar y procesar órdenes de compra múltiples
-        Convierte lista de OCs en string separado por pipe: " 0000100012634| 0000100012635"
-        Para edición: acepta string existente (desde campo hidden) sin modificación
+        Validar y procesar órdenes de compra.
+        Asegura que se guarde como representación de lista Python: ['OC1', 'OC2']
+        Usa self.data.getlist para capturar todos los valores de SelectMultiple y campos hidden.
         """
-        orden_compra = self.cleaned_data.get('orden_compra')
-        
-        # Si el estado NO es RESERVADO, permitir campo vacío
-        if self.instance and self.instance.pk:
-            if self.instance.estado and self.instance.estado.nombre != 'RESERVADO':
-                if not orden_compra:
-                    return ''
-        
-        # Para estado RESERVADO o turnos nuevos, mantener validación original
-        if not orden_compra:
-            raise forms.ValidationError("Debe seleccionar al menos una orden de compra")
-        
-        # Si es lista (viene del SelectMultiple en creación)
-        if isinstance(orden_compra, list):
-            if not orden_compra:
-                raise forms.ValidationError("Debe seleccionar al menos una orden de compra")
-            # Unir con pipe como separador, preservando espacios iniciales
-            orden_compra = '|'.join([str(oc).strip() for oc in orden_compra])
+        tipo_reg = self.data.get('tipo_registro', 'TURNO')
+        if tipo_reg == 'BLOQUEO' or (self.instance and self.instance.pk and self.instance.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']):
+            return "['BLOQ']"
+            
+        # Capturamos todos los valores posibles (soporta widget múltiple y campo oculto)
+        if hasattr(self.data, 'getlist'):
+            raw_val = self.data.getlist('orden_compra')
         else:
-            # Si es string (viene del campo hidden en edición), limpiar espacios extra
-            orden_compra = str(orden_compra).strip()
+            raw_val = self.data.get('orden_compra')
+            if not isinstance(raw_val, list):
+                raw_val = [raw_val] if raw_val else []
         
-        # Validar que no esté vacío después del procesamiento
-        if not orden_compra:
-            raise forms.ValidationError("Las órdenes de compra no pueden estar vacías")
+        if not raw_val:
+            # Fallback a cleaned_data si no está en POST (ej: carga inicial o limpieza de Django)
+            raw_val = self.cleaned_data.get('orden_compra')
+            if not isinstance(raw_val, list):
+                raw_val = [raw_val] if raw_val else []
         
-        return orden_compra
+        lista_final = []
+        for item in raw_val:
+            if not item: continue
+            item_limpio = str(item).strip()
+            
+            # Si el item ya es una representación de lista, la evaluamos para extraer las OCs
+            if item_limpio.startswith('['):
+                try:
+                    # ast.literal_eval es seguro para evaluar literales de Python
+                    parsed = ast.literal_eval(item_limpio)
+                    if isinstance(parsed, list):
+                        lista_final.extend([str(x).strip() for x in parsed if str(x).strip()])
+                    else:
+                        lista_final.append(str(parsed).strip())
+                except (ValueError, SyntaxError):
+                    lista_final.append(item_limpio)
+            else:
+                # Soporte para formatos legacy o ingreso manual (pipes o comas)
+                if '|' in item_limpio or ',' in item_limpio:
+                    lista_final.extend([x.strip() for x in item_limpio.replace('|', ',').split(',') if x.strip()])
+                else:
+                    lista_final.append(item_limpio)
+        
+        # Limpieza de duplicados manteniendo el orden
+        lista_unica = []
+        for x in lista_final:
+            if x and x not in lista_unica:
+                lista_unica.append(x)
+        
+        # Validación final
+        if not lista_unica:
+            # Solo permitir vacío si no es estado RESERVADO
+            if self.instance and self.instance.pk:
+                if self.instance.estado and self.instance.estado.nombre != 'RESERVADO':
+                    return ''
+            raise forms.ValidationError("Debe seleccionar al menos una orden de compra")
+            
+        # Retornamos el formato exacto esperado: ['OC1', 'OC2']
+        return str(lista_unica)
 
     def clean_fecha(self):
         """
@@ -520,21 +628,26 @@ class TurnoReservaForm(forms.ModelForm):
             return fecha
         
         # Es creación - validar que no sea hoy ni pasado
+        tipo_reg = self.data.get('tipo_registro', 'TURNO')
         if fecha:
             hoy = date.today()
-            if fecha < hoy:
-                dias_diferencia = (hoy - fecha).days
-                raise forms.ValidationError(
-                    f"No se puede reservar para una fecha pasada. La fecha seleccionada ({fecha.strftime('%d/%m/%Y')}) "
-                    f"fue hace {dias_diferencia} día{'s' if dias_diferencia > 1 else ''}. "
-                    f"Por favor, seleccione una fecha a partir de mañana ({(hoy + timedelta(days=1)).strftime('%d/%m/%Y')})."
-                )
-            elif fecha == hoy:
-                raise forms.ValidationError(
-                    f"No se puede crear una reserva para el día de hoy ({hoy.strftime('%d/%m/%Y')}). "
-                    f"Las reservas deben realizarse con al menos un día de anticipación. "
-                    f"La primera fecha disponible es mañana ({(hoy + timedelta(days=1)).strftime('%d/%m/%Y')})."
-                )
+            if tipo_reg == 'BLOQUEO':
+                if fecha < hoy:
+                    raise forms.ValidationError("No se puede bloquear una fecha pasada.")
+            else:
+                if fecha < hoy:
+                    dias_diferencia = (hoy - fecha).days
+                    raise forms.ValidationError(
+                        f"No se puede reservar para una fecha pasada. La fecha seleccionada ({fecha.strftime('%d/%m/%Y')}) "
+                        f"fue hace {dias_diferencia} día{'s' if dias_diferencia > 1 else ''}. "
+                        f"Por favor, seleccione una fecha a partir de mañana ({(hoy + timedelta(days=1)).strftime('%d/%m/%Y')})."
+                    )
+                elif fecha == hoy:
+                    raise forms.ValidationError(
+                        f"No se puede crear una reserva para el día de hoy ({hoy.strftime('%d/%m/%Y')}). "
+                        f"Las reservas deben realizarse con al menos un día de anticipación. "
+                        f"La primera fecha disponible es mañana ({(hoy + timedelta(days=1)).strftime('%d/%m/%Y')})."
+                    )
         return fecha
 
 

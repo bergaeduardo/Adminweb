@@ -153,3 +153,30 @@ def calcular_densidad(articulo):
         return 0
     except (TypeError, ZeroDivisionError):
         return 0
+
+@register.filter
+def formatear_oc(value):
+    """
+    Formatea el campo orden_compra para mostrarlo de forma legible.
+    Limpia formatos como "['OC1', 'OC2']" o "OC1|OC2" y devuelve "OC1, OC2".
+    """
+    if not value:
+        return ""
+    
+    # Asegurarse de que sea string
+    s = str(value)
+    
+    # Remover caracteres de lista Python/JSON si existen
+    s = s.replace("[", "").replace("]", "").replace("'", "").replace('"', "")
+    
+    # Reemplazar pipes o múltiples espacios por comas si es necesario
+    s = s.replace("|", ", ")
+    
+    # Limpiar comas duplicadas o espacios extras que pudieron quedar
+    partes = [p.strip() for p in s.split(",") if p.strip()]
+    return ", ".join(partes)
+
+@register.filter
+def split(value, arg):
+    """Divide un string por el argumento dado"""
+    return value.split(arg)

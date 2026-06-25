@@ -260,8 +260,8 @@ document.addEventListener('DOMContentLoaded', function() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
-        slotMinTime: '08:00:00',
-        slotMaxTime: '18:00:00',
+        slotMinTime: '07:00:00',
+        slotMaxTime: '16:00:00',
         slotDuration: '00:30:00',  // Bloques de 30 minutos
         slotLabelInterval: '01:00', // Etiquetas cada hora
         slotLabelFormat: {
@@ -274,12 +274,34 @@ document.addEventListener('DOMContentLoaded', function() {
         selectable: true,
         selectMirror: true,
         nowIndicator: true,
-        weekends: true,
-        businessHours: {
-            daysOfWeek: [1, 2, 3, 4, 5], // Lunes a viernes
-            startTime: '08:00',
-            endTime: '18:00',
-        },
+        hiddenDays: [0], // Ocultar domingos
+        businessHours: [
+            // Lunes a Viernes: Bloque 1 (07:00 - 10:00)
+            {
+                daysOfWeek: [1, 2, 3, 4, 5],
+                startTime: '07:00',
+                endTime: '10:00'
+            },
+            // Lunes a Viernes: Bloque 2 (10:30 - 13:00)
+            {
+                daysOfWeek: [1, 2, 3, 4, 5],
+                startTime: '10:30',
+                endTime: '13:00'
+            },
+            // Lunes a Viernes: Bloque 3 (14:00 - 16:00)
+            {
+                daysOfWeek: [1, 2, 3, 4, 5],
+                startTime: '14:00',
+                endTime: '16:00'
+            },
+            // Sábados: Bloque único (07:00 - 10:00)
+            {
+                daysOfWeek: [6],
+                startTime: '07:00',
+                endTime: '10:00'
+            }
+        ],
+        selectConstraint: 'businessHours',
         
         // Cargar eventos desde el servidor
         events: function(info, successCallback, failureCallback) {
@@ -290,7 +312,46 @@ document.addEventListener('DOMContentLoaded', function() {
                     end: info.endStr
                 },
                 success: function(data) {
-                    successCallback(data);
+                    // Agregar bloqueos recurrentes
+                    var bloqueos = [
+                        {
+                            title: 'BREAK COMIDA',
+                            startTime: '10:00:00',
+                            endTime: '10:30:00',
+                            daysOfWeek: [1, 2, 3, 4, 5],
+                            color: '#e2e3e5',
+                            textColor: '#383d41',
+                            extendedProps: {
+                                isBlock: true
+                            }
+                        },
+                        {
+                            title: 'BREAK COMIDA',
+                            startTime: '13:00:00',
+                            endTime: '14:00:00',
+                            daysOfWeek: [1, 2, 3, 4, 5],
+                            color: '#e2e3e5',
+                            textColor: '#383d41',
+                            extendedProps: {
+                                isBlock: true
+                            }
+                        },
+                        {
+                            title: 'BLOQUEADO',
+                            startTime: '10:00:00',
+                            endTime: '16:00:00',
+                            daysOfWeek: [6],
+                            color: '#f8d7da',
+                            textColor: '#721c24',
+                            extendedProps: {
+                                isBlock: true
+                            }
+                        }
+                    ];
+                    
+                    // Combinar eventos de la BD con los bloqueos recurrentes
+                    var todosEventos = data.concat(bloqueos);
+                    successCallback(todosEventos);
                 },
                 error: function() {
                     failureCallback();
@@ -387,26 +448,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Al hacer clic en un evento
         eventClick: function(info) {
+            if (info.event.extendedProps.isBlock) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Horario Bloqueado',
+                    text: 'Este horario está reservado para breaks o fuera de la jornada laboral de este día.',
+                    confirmButtonColor: '#17a2b8'
+                });
+                return;
+            }
             currentTurnoId = info.event.id;
             var props = info.event.extendedProps;
             var permiteEditar = props.permite_editar !== false; // Asume true si no está definido
 
             var estadoColor = props.estado_color || '#6c757d';
-            var detalleHTML = `
-                <table class="table table-bordered">
-                    <tr><th>Código Proveedor:</th><td>${props.codigo_proveedor}</td></tr>
-                    <tr><th>Nombre Proveedor:</th><td>${props.nombre_proveedor}</td></tr>
-                    <tr><th>Fecha:</th><td>${info.event.start.toLocaleDateString('es-AR')}</td></tr>
-                    <tr><th>Horario:</th><td>${info.event.start.toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit'})} - ${info.event.end.toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit'})}</td></tr>
-                    <tr><th>Orden de Compra:</th><td>${props.orden_compra}</td></tr>
-                    <tr><th>Remitos:</th><td>${props.remitos}</td></tr>
-                    <tr><th>Cantidad Unidades:</th><td>${props.cantidad_unidades}</td></tr>
-                    <tr><th>Cantidad Bultos:</th><td>${props.cantidad_bultos}</td></tr>
-                    <tr><th>Estado:</th><td><span class="badge" style="background-color: ${estadoColor}; color: white; padding: 6px 12px; font-size: 0.9em;">${props.estado}</span></td></tr>
-                    <tr><th>Creado por:</th><td>${props.usuario_creador}</td></tr>
-                    ${props.observaciones ? `<tr><th>Observaciones:</th><td>${props.observaciones}</td></tr>` : ''}
-                </table>
-            `;
+            var detalleHTML;
+            
+            if (props.isManualBlock) {
+                detalleHTML = `
+                    <table class="table table-bordered">
+                        <tr><th>Bloqueo:</th><td><strong>${props.nombre_proveedor}</strong></td></tr>
+                        <tr><th>Fecha:</th><td>${info.event.start.toLocaleDateString('es-AR')}</td></tr>
+                        <tr><th>Horario:</th><td>${info.event.start.toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit'})} - ${info.event.end.toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit'})}</td></tr>
+                        <tr><th>Estado:</th><td><span class="badge" style="background-color: ${estadoColor}; color: white; padding: 6px 12px; font-size: 0.9em;">${props.estado}</span></td></tr>
+                        <tr><th>Creado por:</th><td>${props.usuario_creador}</td></tr>
+                        ${props.observaciones ? `<tr><th>Observaciones:</th><td>${props.observaciones}</td></tr>` : ''}
+                    </table>
+                `;
+            } else {
+                detalleHTML = `
+                    <table class="table table-bordered">
+                        <tr><th>Código Proveedor:</th><td>${props.codigo_proveedor}</td></tr>
+                        <tr><th>Nombre Proveedor:</th><td>${props.nombre_proveedor}</td></tr>
+                        <tr><th>Fecha:</th><td>${info.event.start.toLocaleDateString('es-AR')}</td></tr>
+                        <tr><th>Horario:</th><td>${info.event.start.toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit'})} - ${info.event.end.toLocaleTimeString('es-AR', {hour: '2-digit', minute: '2-digit'})}</td></tr>
+                        <tr><th>Orden de Compra:</th><td>${props.orden_compra}</td></tr>
+                        <tr><th>Remitos:</th><td>${props.remitos}</td></tr>
+                        <tr><th>Cantidad Unidades:</th><td>${props.cantidad_unidades}</td></tr>
+                        <tr><th>Cantidad Bultos:</th><td>${props.cantidad_bultos}</td></tr>
+                        <tr><th>Estado:</th><td><span class="badge" style="background-color: ${estadoColor}; color: white; padding: 6px 12px; font-size: 0.9em;">${props.estado}</span></td></tr>
+                        <tr><th>Creado por:</th><td>${props.usuario_creador}</td></tr>
+                        ${props.observaciones ? `<tr><th>Observaciones:</th><td>${props.observaciones}</td></tr>` : ''}
+                    </table>
+                `;
+            }
 
             $('#modalDetalleReservaBody').html(detalleHTML);
             
@@ -430,6 +515,13 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         eventContent: function(arg) {
+            if (arg.event.extendedProps.isBlock || arg.event.extendedProps.isManualBlock) {
+                return {
+                    html: `<div style="padding: 2px; font-size: 11px; overflow: hidden; font-weight: bold; text-align: center;">
+                        ${arg.event.title}
+                    </div>`
+                };
+            }
             return {
                 html: `<div style="padding: 2px; font-size: 11px; overflow: hidden;">
                     <b>${arg.event.extendedProps.codigo_proveedor}</b><br/>

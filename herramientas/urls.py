@@ -36,6 +36,9 @@ urlpatterns = [
     path('detalle_reserva/<int:turno_id>', views.detalle_reserva_turno, name='herramientas_detalle_reserva_turno'),
     path('reportar_incidencia/<int:turno_id>', views.reportar_incidencia, name='herramientas_reportar_incidencia'),
     path('listado_reservas', views.listado_reservas, name='herramientas_listado_reservas'),
+    path('historial_reservas', views.historial_general_reservas, name='herramientas_historial_general_reservas'),
+    path('descargar_reporte_reservas', views.descargar_reporte_reservas, name='herramientas_descargar_reporte_reservas'),
+    path('get_ordenes_compra_importadas', views.get_ordenes_compra_importadas, name='herramientas_get_ordenes_compra_importadas'),
     
     # URLs para Gestión de Estados de Turnos (Admin y Logistica_Sup)
     path('estados_turno/listado', views.listado_estados_turno, name='herramientas_listado_estados_turno'),

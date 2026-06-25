@@ -1,5 +1,6 @@
 {% extends "layouts/base.html" %}
 {% load static %}
+{% load volumen_filters %}
 
 {% block body_class %}sidebar-mini sidebar-collapse{% endblock body_class %}
 
@@ -68,7 +69,7 @@
                                     </tr>
                                     <tr>
                                         <th>Orden de Compra:</th>
-                                        <td>{{ turno.orden_compra }}</td>
+                                        <td>{{ turno.orden_compra|formatear_oc }}</td>
                                     </tr>
                                     <tr>
                                         <th>Remitos:</th>

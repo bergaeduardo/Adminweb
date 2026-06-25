@@ -21,9 +21,9 @@ DATABASES = {
     # Base de administracio de roles
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'BD_Pruebas',
-        'USER': 'openpg',
-        'PASSWORD': 'openpgpwd',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'P3RTU$',
         'HOST': '127.0.0.1',
         'DATABASE_PORT': '5232',
     },
@@ -33,11 +33,11 @@ DATABASES = {
             'NAME': 'LAKER_SA',
             'USER': 'sa',
             'PASSWORD': 'Axoft1988',
-            'HOST': 'SERVIDOR',
+            'HOST': 'XL-TANGO',
             'PORT': '1433',
 
             'OPTIONS': {
-                'driver': 'ODBC Driver 13 for SQL Server',
+                'driver': 'ODBC Driver 17 for SQL Server',
             },
             
     },
@@ -55,7 +55,7 @@ DATABASES = {
 
             'PORT': '1433',
             'OPTIONS': {
-                'driver': 'ODBC Driver 13 for SQL Server',
+                'driver': 'ODBC Driver 17 for SQL Server',
             },
             
     },
@@ -65,11 +65,11 @@ DATABASES = {
             'NAME': 'LOCALES_LAKERS',
             'USER': 'sa',
             'PASSWORD': 'Axoft',
-            'HOST': 'LAKERBIS',
+            'HOST': 'XL-LAKERBIS',
             'PORT': '1433',
 
             'OPTIONS': {
-                'driver': 'ODBC Driver 13 for SQL Server',
+                'driver': 'ODBC Driver 17 for SQL Server',
             },
             
     },

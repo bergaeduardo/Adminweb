@@ -6,12 +6,40 @@
 
 <form id="formNuevaReserva" method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    <input type="hidden" name="tipo_registro" id="id_tipo_registro" value="TURNO">
+    
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <label class="d-block">Tipo de Registro:</label>
+            <div class="btn-group btn-group-toggle d-flex" data-toggle="buttons">
+                <label class="btn btn-outline-primary active flex-fill" id="btnTipoTurno">
+                    <input type="radio" name="tipo_registro_selector" value="TURNO" checked>
+                    <i class="fas fa-truck mr-1"></i> Turno Proveedor
+                </label>
+                <label class="btn btn-outline-info flex-fill" id="btnTipoImportado">
+                    <input type="radio" name="tipo_registro_selector" value="IMPORTADO">
+                    <i class="fas fa-file-import mr-1"></i> Turno Proveedor (Importado)
+                </label>
+                <label class="btn btn-outline-danger flex-fill" id="btnTipoBloqueo">
+                    <input type="radio" name="tipo_registro_selector" value="BLOQUEO">
+                    <i class="fas fa-ban mr-1"></i> Bloqueo de Agenda (Tarea)
+                </label>
+            </div>
+        </div>
+    </div>
     
     <div class="row">
         <div class="col-md-6">
             <div class="form-group">
-                <label for="{{ form.codigo_proveedor.id_for_label }}">Código Proveedor *</label>
+                <label for="{{ form.codigo_proveedor.id_for_label }}" id="labelCodigoProveedor">Código Proveedor *</label>
                 {{ form.codigo_proveedor }}
+                <select id="selectTareaBloqueo" class="form-control" style="display: none;">
+                    <option value="">-- Seleccione una Tarea --</option>
+                    <option value="HOT">Hot Sale</option>
+                    <option value="INV">Inventario</option>
+                    <option value="CYBER">Cyber</option>
+                    <option value="ALTA">Alta Demanda</option>
+                </select>
                 {% if form.codigo_proveedor.errors %}
                     <div class="text-danger">{{ form.codigo_proveedor.errors }}</div>
                 {% endif %}
@@ -55,11 +83,14 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row" id="rowOrdenCompraRemitos">
         <div class="col-md-6">
             <div class="form-group">
                 <label for="{{ form.orden_compra.id_for_label }}">Orden de Compra *</label>
                 {{ form.orden_compra }}
+                <select id="selectOrdenCompraImportada" name="orden_compra" class="form-control" style="display: none;">
+                    <option value="">-- Seleccione una OC Importada --</option>
+                </select>
                 {% if form.orden_compra.errors %}
                     <div class="text-danger">{{ form.orden_compra.errors }}</div>
                 {% endif %}
@@ -76,7 +107,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row" id="rowCantidades">
         <div class="col-md-6">
             <div class="form-group">
                 <label for="{{ form.cantidad_unidades.id_for_label }}">Cantidad Unidades *</label>
@@ -110,7 +141,7 @@
     </div>
 
     <!-- Sección de Documentos Adjuntos -->
-    <div class="card card-outline card-primary mb-3">
+    <div class="card card-outline card-primary mb-3" id="cardAdjuntos">
         <div class="card-header py-2" data-toggle="collapse" data-target="#collapseAdjuntosNuevo" style="cursor: pointer;">
             <h6 class="mb-0">
                 <i class="fas fa-paperclip"></i> Documentos Adjuntos (Opcional)
@@ -174,7 +205,154 @@ $(document).ready(function() {
         theme: 'bootstrap4',
         placeholder: 'Seleccione órdenes de compra...',
         allowClear: true,
-        width: '100%'
+        width: '100%',
+        dropdownParent: $('#formNuevaReserva')
+    });
+    
+    // Inicializar Select2 para importaciones con búsqueda dinámica (mínimo 3 dígitos)
+    $('#selectOrdenCompraImportada').select2({
+        theme: 'bootstrap4',
+        placeholder: 'Buscar por Orden de Compra (ingrese 3 o más dígitos)...',
+        minimumInputLength: 3,
+        allowClear: true,
+        width: '100%',
+        dropdownParent: $('#formNuevaReserva'),
+        ajax: {
+            url: '{% url "herramientas:herramientas_get_ordenes_compra_importadas" %}',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data.ordenes
+                };
+            },
+            cache: true
+        }
+    });
+    
+    // Ocultar por defecto el contenedor select2 de importación
+    $('#selectOrdenCompraImportada').next('.select2-container').hide();
+    
+    // Toggle entre Turno, Importado y Bloqueo
+    $('input[name="tipo_registro_selector"]').on('change', function() {
+        var valor = $(this).val();
+        $('#id_tipo_registro').val(valor);
+        
+        if (valor === 'BLOQUEO') {
+            // Cambiar vista a modo Bloqueo
+            $('#labelCodigoProveedor').text('Tarea de Bloqueo *');
+            $('#codigoProveedor').hide().val('').prop('required', false);
+            $('#selectTareaBloqueo').show().prop('required', true);
+            $('#nombreProveedor').val('');
+            
+            // Ocultar filas no necesarias
+            $('#rowOrdenCompraRemitos').hide();
+            $('#rowCantidades').hide();
+            $('#cardAdjuntos').hide();
+            
+            // Remover required para evitar errores de validación de elementos ocultos
+            $('#ordenCompraSelect').prop('required', false).attr('name', 'orden_compra_normal');
+            $('#ordenCompraSelect').next('.select2-container').hide();
+            $('#selectOrdenCompraImportada').prop('required', false).attr('name', 'orden_compra_importada');
+            $('#selectOrdenCompraImportada').next('.select2-container').hide();
+            $('#id_remitos').prop('required', false);
+            $('#id_cantidad_unidades').prop('required', false);
+            
+            // Limpiar y pre-llenar valores técnicos
+            $('#ordenCompraSelect').val(null).trigger('change');
+            $('#id_remitos').val('BLOQ');
+            $('#id_cantidad_unidades').val('0');
+            $('#id_cantidad_bultos').val('0');
+        } else if (valor === 'IMPORTADO') {
+            // Cambiar vista a modo Importación
+            $('#labelCodigoProveedor').text('Código Proveedor *');
+            $('#codigoProveedor').show().val('').prop('required', true).prop('readonly', true);
+            $('#selectTareaBloqueo').hide().val('').prop('required', false);
+            $('#nombreProveedor').val('');
+            
+            // Mostrar fila de OC y ocultar cantidades / adjuntos (como en bloqueo)
+            $('#rowOrdenCompraRemitos').show();
+            $('#rowCantidades').hide();
+            $('#cardAdjuntos').hide();
+            
+            // Ocultar normal select y mostrar el de importación
+            $('#ordenCompraSelect').next('.select2-container').hide();
+            $('#ordenCompraSelect').prop('required', false).attr('name', 'orden_compra_normal');
+            
+            $('#selectOrdenCompraImportada').next('.select2-container').show();
+            $('#selectOrdenCompraImportada').prop('required', true).attr('name', 'orden_compra');
+            
+            // Desactivar validaciones de otros campos
+            $('#id_remitos').prop('required', false).val('IMPORTADO');
+            $('#id_cantidad_unidades').prop('required', false).val('0');
+            $('#id_cantidad_bultos').prop('required', false).val('0');
+        } else {
+            // Cambiar vista a modo Turno
+            $('#labelCodigoProveedor').text('Código Proveedor *');
+            $('#codigoProveedor').show().val('').prop('required', true).prop('readonly', false);
+            $('#selectTareaBloqueo').hide().val('').prop('required', false);
+            $('#nombreProveedor').val('');
+            
+            // Mostrar filas
+            $('#rowOrdenCompraRemitos').show();
+            $('#ordenCompraSelect').next('.select2-container').show();
+            $('#ordenCompraSelect').prop('required', true).attr('name', 'orden_compra');
+            
+            $('#selectOrdenCompraImportada').next('.select2-container').hide();
+            $('#selectOrdenCompraImportada').prop('required', false).attr('name', 'orden_compra_importada');
+            
+            // ...
+            $('#rowCantidades').show();
+            $('#cardAdjuntos').show();
+            
+            // Restaurar required
+            $('#id_remitos').prop('required', true);
+            $('#id_cantidad_unidades').prop('required', true);
+            
+            // Limpiar valores
+            $('#ordenCompraSelect').val(null).trigger('change');
+            $('#id_remitos').val('');
+            $('#id_cantidad_unidades').val('');
+            $('#id_cantidad_bultos').val('');
+        }
+    });
+
+    // Auto-completar proveedor cuando se selecciona una OC importada en Select2
+    $('#selectOrdenCompraImportada').on('select2:select', function(e) {
+        var data = e.params.data;
+        var proveedor = data.proveedor || '';
+        var cod_provee = data.codigo_proveedor || '';
+        $('#nombreProveedor').val(proveedor);
+        $('#codigoProveedor').val(cod_provee);
+    });
+    
+    $('#selectOrdenCompraImportada').on('select2:clear', function(e) {
+        $('#nombreProveedor').val('');
+        $('#codigoProveedor').val('');
+    });
+
+    // Cambiar la tarea del bloqueo manual
+    $('#selectTareaBloqueo').on('change', function() {
+        var cod = $(this).val();
+        $('#codigoProveedor').val(cod);
+        
+        var nombres = {
+            'HOT': 'Bloqueo: Hot Sale',
+            'INV': 'Bloqueo: Inventario',
+            'CYBER': 'Bloqueo: Cyber',
+            'ALTA': 'Bloqueo: Alta Demanda'
+        };
+        
+        if (cod && nombres[cod]) {
+            $('#nombreProveedor').val(nombres[cod]);
+        } else {
+            $('#nombreProveedor').val('');
+        }
     });
     
     // Auto-completar nombre proveedor y cargar OCs activas al perder foco

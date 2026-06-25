@@ -38,10 +38,14 @@ INSTALLED_APPS = [
     'apps.home',  # Enable the inner home (home)
     'django_filters',
     'bootstrapform',
-    'Transportes',
+    #'Transportes',
     'consultasTango',
     'consultasWMS',
     'consultasLakersBis',
+    'dashboard',
+    'reportes',
+    'herramientas',
+    'extras',
     
 ]
 
