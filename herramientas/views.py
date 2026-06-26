@@ -3259,3 +3259,399 @@ def gestion_sucursales_ecommerce(request):
             'sucursal_activa': None,
             'titulo': 'Gestión de Sucursales E-commerce'
         })
+
+
+# ---------------------------------------------------------------------------
+# Validación de Artículos
+# ---------------------------------------------------------------------------
+
+@login_required(login_url="/login/")
+def validacion_articulos(request):
+    """
+    GET:  Renderiza el formulario con los dropdowns precargados y Fecha Desde
+          pre-seteada a 24 meses atrás.
+    POST (AJAX, Content-Type application/json):
+          Ejecuta el SP de validación y retorna JsonResponse con la lista de filas.
+    """
+    import json as _json
+    import os as _os
+    from dateutil.relativedelta import relativedelta
+
+    if request.method == 'POST':
+        try:
+            body = _json.loads(request.body)
+            filtros = {
+                'rubro':           body.get('rubro', ''),
+                'proveedor':       body.get('proveedor', ''),
+                'temporada':       body.get('temporada', ''),
+                'familia':         body.get('familia', ''),
+                'fecha_desde':     body.get('fecha_desde', ''),
+                'fecha_hasta':     body.get('fecha_hasta', ''),
+                'codigo_articulo': body.get('codigo_articulo', ''),
+                'solo_con_errores': body.get('solo_con_errores', False),
+            }
+            filas = ejecutar_validacion_articulos(filtros)
+            # Serializar fechas a string
+            for fila in filas:
+                for k, v in fila.items():
+                    if hasattr(v, 'isoformat'):
+                        fila[k] = v.isoformat()
+                    elif v is None:
+                        fila[k] = ''
+            return JsonResponse({'ok': True, 'data': filas})
+        except Exception as exc:
+            return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+
+    # GET — cargar dropdowns y fecha_desde por defecto
+    try:
+        filtros_opciones = obtener_filtros_validacion_articulos()
+    except Exception:
+        filtros_opciones = {'rubros': [], 'proveedores': [], 'temporadas': [], 'familias': []}
+
+    fecha_desde_default = (timezone.now().date() - relativedelta(months=24)).strftime('%Y-%m-%d')
+
+    # Leer configuración de acciones sugeridas desde archivo JSON editable
+    _json_path = _os.path.join(_os.path.dirname(__file__), 'acciones_validacion.json')
+    try:
+        with open(_json_path, encoding='utf-8') as _f:
+            acciones_config = _json.load(_f)
+    except Exception:
+        acciones_config = {}
+
+    return render(request, 'herramientas/validacion_articulos/list.html', {
+        'filtros_opciones': filtros_opciones,
+        'fecha_desde_default': fecha_desde_default,
+        'acciones_config_json': _json.dumps(acciones_config, ensure_ascii=False),
+    })
+
+
+@login_required(login_url="/login/")
+def validacion_articulos_export(request):
+    """
+    POST: Recibe los mismos filtros que validacion_articulos, re-ejecuta el SP
+    y descarga un archivo .xlsx con las filas coloreadas por estado/severidad.
+    """
+    import io
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from openpyxl.utils import get_column_letter
+
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    filtros = {
+        'rubro':           request.POST.get('rubro', ''),
+        'proveedor':       request.POST.get('proveedor', ''),
+        'temporada':       request.POST.get('temporada', ''),
+        'familia':         request.POST.get('familia', ''),
+        'fecha_desde':     request.POST.get('fecha_desde', ''),
+        'fecha_hasta':     request.POST.get('fecha_hasta', ''),
+        'codigo_articulo': request.POST.get('codigo_articulo', ''),
+        'solo_con_errores': request.POST.get('solo_con_errores') == '1',
+    }
+
+    try:
+        filas = ejecutar_validacion_articulos(filtros)
+    except Exception as exc:
+        messages.error(request, f'Error al ejecutar la validación: {str(exc)}')
+        return redirect('herramientas:validacion_articulos')
+
+    # Cargar configuración de Acciones Sugeridas
+    import os as _os
+    import json as _json
+    _json_path = _os.path.join(_os.path.dirname(__file__), 'acciones_validacion.json')
+    try:
+        with open(_json_path, encoding='utf-8') as _f:
+            acciones_cfg = _json.load(_f)
+    except Exception:
+        acciones_cfg = {}
+
+    def _accion_sugerida(codigo_error, campo):
+        codigo = 'OK' if not codigo_error or codigo_error == 'OK' else codigo_error
+        campo  = (campo or '').strip()
+        err_cfg = acciones_cfg.get(codigo) or acciones_cfg.get('*') or {}
+        return err_cfg.get(campo) or err_cfg.get('*') or 'Revisar el error indicado y corregir según corresponda.'
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Validación Artículos'
+
+    # Estilos de encabezado
+    header_font  = Font(bold=True, color='FFFFFF')
+    header_fill  = PatternFill(start_color='2C3E50', end_color='2C3E50', fill_type='solid')
+    header_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
+
+    # Fills por estado / severidad
+    fill_ok   = PatternFill(start_color='D5F5E3', end_color='D5F5E3', fill_type='solid')  # verde
+    fill_crit = PatternFill(start_color='FADBD8', end_color='FADBD8', fill_type='solid')  # rojo
+    fill_adv  = PatternFill(start_color='FDEBD0', end_color='FDEBD0', fill_type='solid')  # naranja
+    fill_info = PatternFill(start_color='D6EAF8', end_color='D6EAF8', fill_type='solid')  # azul
+
+    headers = [
+        'Código Artículo', 'Descripción', 'Rubro', 'Proveedor',
+        'Temporada', 'Familia', 'Fecha Alta',
+        'Tabla Validación', 'Campo Validación', 'Mensaje Validación',
+        'Código Error', 'Nivel Severidad', 'Estado', 'Desc. Severidad',
+        'Acción Sugerida',
+    ]
+    col_keys = [
+        'COD_ARTICU', 'DESCRIPCION', 'RUBRO', 'PROVEEDOR',
+        'TEMPORADA', 'FAMILIA', 'FECHA_ALTA',
+        'TablaValidacion', 'CampoValidacion', 'MensajeValidacion',
+        'CodigoError', 'NivelSeveridad', 'Estado', 'DescripcionSeveridad',
+        '_AccionSugerida',
+    ]
+
+    # Escribir encabezados
+    for col_idx, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_idx, value=header)
+        cell.font   = header_font
+        cell.fill   = header_fill
+        cell.alignment = header_align
+
+    ws.row_dimensions[1].height = 30
+
+    # Escribir datos
+    for row_idx, fila in enumerate(filas, 2):
+        estado     = str(fila.get('Estado', '')).upper()
+        severidad  = fila.get('NivelSeveridad', 1)
+
+        if estado == 'OK':
+            row_fill = fill_ok
+        elif severidad == 3:
+            row_fill = fill_crit
+        elif severidad == 2:
+            row_fill = fill_adv
+        else:
+            row_fill = fill_info
+
+        fila['_AccionSugerida'] = _accion_sugerida(fila.get('CodigoError', ''), fila.get('CampoValidacion', ''))
+
+        for col_idx, key in enumerate(col_keys, 1):
+            val = fila.get(key, '')
+            if hasattr(val, 'isoformat'):
+                val = val.isoformat()
+            cell = ws.cell(row=row_idx, column=col_idx, value=val)
+            cell.fill = row_fill
+
+    # Anchos de columna
+    col_widths = [18, 40, 20, 30, 18, 18, 14, 30, 25, 55, 15, 8, 10, 15, 60]
+    for i, w in enumerate(col_widths, 1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+
+    # Congelar primera fila
+    ws.freeze_panes = 'A2'
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    response = HttpResponse(
+        output.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="ValidacionArticulos.xlsx"'
+    response.set_cookie('va_export_done', '1', max_age=60, path='/')
+    return response
+
+
+# ============================================================================
+# VISTAS PARA ADJUNTOS DE TURNOS DE RESERVA
+# ============================================================================
+
+from consultasTango.models import AdjuntoTurnoReserva
+import mimetypes
+
+# Constantes para adjuntos
+MAX_FILE_SIZE_MB = 5
+MAX_FILES_PER_TURNO = 5
+EXTENSIONES_PERMITIDAS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.xlsx', '.xls', '.csv', '.doc', '.docx']
+
+
+@login_required(login_url="/login/")
+@require_http_methods(["POST"])
+def subir_adjunto_turno(request, turno_id):
+    """
+    Vista AJAX para subir un archivo adjunto a un turno.
+    Valida tamaño máximo (5MB), extensiones permitidas y límite de archivos por turno.
+    """
+    try:
+        turno = get_object_or_404(TurnoReserva, pk=turno_id)
+        
+        # Verificar que el archivo fue enviado
+        if 'archivo' not in request.FILES:
+            return JsonResponse({'success': False, 'error': 'No se recibió ningún archivo'}, status=400)
+        
+        archivo = request.FILES['archivo']
+        tipo_documento = request.POST.get('tipo_documento', 'OTRO')
+        
+        # Validar cantidad máxima de archivos por turno
+        cantidad_actual = AdjuntoTurnoReserva.objects.filter(turno=turno).count()
+        if cantidad_actual >= MAX_FILES_PER_TURNO:
+            return JsonResponse({
+                'success': False, 
+                'error': f'Se alcanzó el límite máximo de {MAX_FILES_PER_TURNO} archivos por turno'
+            }, status=400)
+        
+        # Validar tamaño del archivo (máximo 5MB)
+        if archivo.size > MAX_FILE_SIZE_MB * 1024 * 1024:
+            return JsonResponse({
+                'success': False, 
+                'error': f'El archivo excede el tamaño máximo permitido ({MAX_FILE_SIZE_MB}MB)'
+            }, status=400)
+        
+        # Validar extensión
+        ext = os.path.splitext(archivo.name)[1].lower()
+        if ext not in EXTENSIONES_PERMITIDAS:
+            return JsonResponse({
+                'success': False, 
+                'error': f'Extensión no permitida. Extensiones válidas: {", ".join(EXTENSIONES_PERMITIDAS)}'
+            }, status=400)
+        
+        # Detectar tipo MIME
+        tipo_mime, _ = mimetypes.guess_type(archivo.name)
+        if not tipo_mime:
+            tipo_mime = 'application/octet-stream'
+        
+        # Crear el registro de adjunto
+        adjunto = AdjuntoTurnoReserva(
+            turno=turno,
+            archivo=archivo,
+            tipo_documento=tipo_documento,
+            nombre_original=archivo.name,
+            tipo_archivo=tipo_mime,
+            tamaño_bytes=archivo.size,
+            usuario_subio=request.user.username
+        )
+        adjunto.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Archivo subido exitosamente',
+            'adjunto': {
+                'id': adjunto.id_adjunto,
+                'nombre': adjunto.nombre_original,
+                'tipo_documento': adjunto.get_tipo_documento_display(),
+                'tamaño': adjunto.get_tamaño_legible(),
+                'es_imagen': adjunto.es_imagen(),
+                'url': adjunto.archivo.url,
+                'fecha_subida': adjunto.fecha_subida.strftime('%d/%m/%Y %H:%M'),
+                'usuario': adjunto.usuario_subio,
+                'puede_eliminar': adjunto.puede_eliminar()
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': f'Error al subir el archivo: {str(e)}'
+        }, status=500)
+
+
+@login_required(login_url="/login/")
+@require_http_methods(["POST", "DELETE"])
+def eliminar_adjunto_turno(request, adjunto_id):
+    """
+    Vista AJAX para eliminar un archivo adjunto.
+    Solo permite eliminar si el turno está en estado RESERVADO.
+    """
+    try:
+        adjunto = get_object_or_404(AdjuntoTurnoReserva, pk=adjunto_id)
+        
+        # Verificar que el turno está en estado RESERVADO
+        if not adjunto.puede_eliminar():
+            return JsonResponse({
+                'success': False, 
+                'error': 'No se puede eliminar el adjunto. El turno no está en estado RESERVADO.'
+            }, status=403)
+        
+        # Guardar nombre para mensaje
+        nombre_archivo = adjunto.nombre_original
+        
+        # Eliminar (el método delete del modelo también elimina el archivo físico)
+        adjunto.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Archivo "{nombre_archivo}" eliminado exitosamente'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': f'Error al eliminar el archivo: {str(e)}'
+        }, status=500)
+
+
+@login_required(login_url="/login/")
+def descargar_adjunto_turno(request, adjunto_id):
+    """
+    Vista para descargar un archivo adjunto.
+    Fuerza la descarga en lugar de mostrar en el navegador.
+    """
+    try:
+        adjunto = get_object_or_404(AdjuntoTurnoReserva, pk=adjunto_id)
+        
+        # Abrir el archivo y preparar la respuesta
+        file_path = adjunto.archivo.path
+        
+        if not os.path.exists(file_path):
+            return JsonResponse({'error': 'Archivo no encontrado'}, status=404)
+        
+        with open(file_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type=adjunto.tipo_archivo)
+            response['Content-Disposition'] = f'attachment; filename="{adjunto.nombre_original}"'
+            response['Content-Length'] = adjunto.tamaño_bytes
+            return response
+            
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error al descargar el archivo: {str(e)}'
+        }, status=500)
+
+
+@login_required(login_url="/login/")
+def listar_adjuntos_turno(request, turno_id):
+    """
+    Vista AJAX para listar los adjuntos de un turno.
+    Retorna JSON con la lista de archivos.
+    """
+    try:
+        turno = get_object_or_404(TurnoReserva, pk=turno_id)
+        adjuntos = AdjuntoTurnoReserva.objects.filter(turno=turno)
+        
+        adjuntos_lista = []
+        for adjunto in adjuntos:
+            adjuntos_lista.append({
+                'id': adjunto.id_adjunto,
+                'nombre': adjunto.nombre_original,
+                'tipo_documento': adjunto.get_tipo_documento_display(),
+                'tipo_documento_key': adjunto.tipo_documento,
+                'tamaño': adjunto.get_tamaño_legible(),
+                'es_imagen': adjunto.es_imagen(),
+                'es_pdf': adjunto.es_pdf(),
+                'url': adjunto.archivo.url,
+                'fecha_subida': adjunto.fecha_subida.strftime('%d/%m/%Y %H:%M'),
+                'usuario': adjunto.usuario_subio,
+                'puede_eliminar': adjunto.puede_eliminar()
+            })
+        
+        # Estado del turno para saber si permite subir más archivos
+        puede_subir = turno.estado and turno.estado.nombre == 'RESERVADO'
+        archivos_restantes = MAX_FILES_PER_TURNO - len(adjuntos_lista)
+        
+        return JsonResponse({
+            'success': True,
+            'adjuntos': adjuntos_lista,
+            'total': len(adjuntos_lista),
+            'puede_subir': puede_subir,
+            'archivos_restantes': archivos_restantes,
+            'max_archivos': MAX_FILES_PER_TURNO,
+            'max_tamaño_mb': MAX_FILE_SIZE_MB
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': f'Error al listar adjuntos: {str(e)}'
+        }, status=500)

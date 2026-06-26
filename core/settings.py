@@ -14,7 +14,7 @@ CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 # load production server from .env
 # ALLOWED_HOSTS = ['192.168.0.13','localhost', '127.0.0.1', config('SERVER', default='127.0.0.1')]
@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'apps.home',  # Enable the inner home (home)
     'django_filters',
     'bootstrapform',
-    #'Transportes',
+    # 'Transportes',
     'consultasTango',
     'consultasWMS',
     'consultasLakersBis',
@@ -132,7 +132,7 @@ STATICFILES_DIRS = [CORE_DIR + '/apps/static']
 
 # IMPORT_EXPORT_USE_TRANSACTIONS = True # Use Django transactions 
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(CORE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 REST_FRAMEWORK = {
@@ -154,6 +154,13 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:80",
     "http://localhost:80",
     "http://app.xl.com.ar",
+    "https://app.xl.com.ar",
+    "http://192.168.0.9:8000",
+    "http://192.168.0.9",
+    "https://192.168.0.9:443",
+    "https://192.168.0.9",
+    "https://intranet.xl.com.ar",
+    "https://190.2.24.197:443"
     # Agrega los orígenes permitidos aquí
 ]
 
