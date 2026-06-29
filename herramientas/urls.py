@@ -50,6 +50,7 @@ urlpatterns = [
     path('conversorCSV', views.conversorCSV, name='herramientas_conversor_csv'),
     path('conversorCSV/sheets', views.conversorCSV_sheets, name='herramientas_conversor_csv_sheets'),
     path('Comercial/ActualizacionPrecios/', views.ActualizacionPrecios, name='herramientas_actualizacion_precios'),
+    path('comercial/administradorSupervisoras/', views.administradorSupervisoras, name='herramientas_administrador_supervisoras'),
     # Mayoristas
     path('gestionPedidos', views.gestionPedidos, name='herramientas_gestion_pedidos'),
     # Ecommerce

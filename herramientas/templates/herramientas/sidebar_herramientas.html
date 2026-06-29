@@ -489,7 +489,7 @@
         class="nav-link {% if 'conversorCSV' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>Conversor CSV</p>
-        <span class="badge badge-info right">New</span>
+        <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
     {# Actualización de Precios - Solo usuario ID 83 #}
@@ -503,6 +503,18 @@
       </a>
     </li>
     {% endif %}
+
+    {% endif %}
+    {% if request.user|has_any_group:"admin,Comercial_sup" or request.user.id == 6 %}
+    <li class="nav-item">
+      <a href="{% url 'herramientas:herramientas_administrador_supervisoras' %}"
+        class="nav-link {% if 'administradorSupervisoras' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Adm. Supervisoras</p>
+         <span class="badge badge-info right">New</span>
+      </a>
+    </li>
+
     {% endif %}
     {% if request.user|has_any_group:"admin,Comercial_may,Comercial_fr,Comercial_suc,Comercial_sup" %}
     <!-- accesos del area aqui -->
