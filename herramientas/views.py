@@ -1489,6 +1489,13 @@ def conversorCSV_sheets(request):
             return JsonResponse({'sheets': []})
     return JsonResponse({'sheets': []})
 
+@login_required(login_url="/login/")
+def administradorSupervisoras(request):
+    Nombre = 'Administrador de Supervisoras'
+    dir_iframe = DIR_HERAMIENTAS['administradorSupervisoras']
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+
+
 # Mayoristas
 @login_required(login_url="/login/")
 def gestionPedidos(request):
