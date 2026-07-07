@@ -16,7 +16,6 @@ urlpatterns = [
     path('Logistica/stockcUY', views.stockcUY, name='reportes_logistica_stock_cuy'),
     path('Logistica/pendiente_despacho', views.Pedidos_pendiente_despacho, name='reportes_logistica_pedidos_pendiente_despacho'),
     path('Logistica/MovimientosWms', views.MovimientosWms, name='reportes_logistica_movimientos_wms'),
-    path('Logistica/ConsultaDestino', views.ConsultaDestino, name='reportes_logistica_consulta_destino'),
     path('Logistica/GestionTransferencias', views.GestionTransferencias, name='reportes_logistica_gestion_transferencias'),
 
     # Abastecimiento
@@ -42,6 +41,7 @@ urlpatterns = [
     path('Comercial/auditoriasPromocionesVTEX/', views.auditoriasPromocionesVTEX, name='reportes_comercial_auditorias_promociones_vtex'),
     path('Comercial/ControlCads', views.ControlCads, name='reportes_comercial_control_cads'),
     path('Comercial/StockFranquicias', views.StockFranquicias, name='reportes_comercial_stock_franquicias'),
+    path('Comercial/ConsultaDestino', views.ConsultaDestino, name='reportes_comercial_consulta_destino'),
     # Mayoristas
     path('Mayoristas/Tracking_pedidos_mayoristas', views.Tracking_pedidos_mayoristas, name='reportes_mayoristas_tracking_pedidos_mayoristas'),
 

@@ -61,12 +61,6 @@ def MovimientosWms(request):
     return render(request,'appConsultasWMS/Mov_WMS.html',{'myFilter':myFilter,'registros':datos,'Nombre':Nombre})
 
 @login_required(login_url="/login/")
-def ConsultaDestino(request):
-    Nombre='Consulta de Destino'
-    dir_iframe = DIR_REPORTES['ConsultaDestino']
-    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
-
-@login_required(login_url="/login/")
 def GestionTransferencias(request):
     Nombre='Gestión de Transferencias'
     dir_iframe = DIR_REPORTES['GestionTransferencias']
@@ -177,6 +171,12 @@ def ControlCads(request):
 def StockFranquicias(request): 
     Nombre='Stock Franquicias'
     dir_iframe = DIR_REPORTES['StockFranquicias']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
+@login_required(login_url="/login/")
+def ConsultaDestino(request):
+    Nombre='Consulta de Destino'
+    dir_iframe = DIR_REPORTES['ConsultaDestino']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
 # Mayoristas

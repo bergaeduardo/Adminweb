@@ -28,7 +28,6 @@ DIR_PBI = {
 DIR_REPORTES = {
     # Logistica
     'Pedidos_pendiente_despacho':SERVIDOR['production'] + 'sistemas/cronoDespacho/pedidos.php',
-    'ConsultaDestino':SERVIDOR['production'] + 'sistemas/maestroDestinos/indexMob.php',
     'GestionTransferencias':SERVIDOR['production'] + 'comercial/SolicitudesTransferencias/public/logistica',
     # Abastecimiento
     'CategoriasDeProductos':SERVIDOR['production']  + 'comercial/producto/consultaCategoriaProductos.php',
@@ -50,6 +49,7 @@ DIR_REPORTES = {
     'auditoriasPromocionesVTEX':SERVIDOR['production']  + 'comercial/auditoria/promociones/index.php',
     'ControlCads':SERVIDOR['production'] + 'comercial/cads',
     'StockFranquicias':SERVIDOR['production'] + 'comercial/franquicias/stock/index.php',
+    'ConsultaDestino':SERVIDOR['production'] + 'comercial/abastecimiento/consultas/',
 
 
     # Mayoristas
