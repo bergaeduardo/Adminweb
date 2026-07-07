@@ -492,6 +492,13 @@
         <span class="badge badge-info right">New</span>
       </a>
     </li>
+    <li class="nav-item">
+      <a href="{% url 'herramientas:herramientas_anulador' %}"
+        class="nav-link {% if 'anulador' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Anulador</p>
+      </a>
+    </li>
     {# Actualización de Precios - Solo usuario ID 83 #}
     {% if request.user|has_any_group:"admin" or request.user.id == 83 %}
     <li class="nav-item">

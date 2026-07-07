@@ -126,6 +126,7 @@ DIR_HERAMIENTAS = {
     'conversorCSV':'http://192.168.0.13:3000/conversor-csv',
     'ActualizacionPrecios':SERVIDOR['production'] + 'comercial/precios/index.php',
     'administradorSupervisoras':SERVIDOR['production'] + 'comercial/administradorSupervisoras/index.php',
+    'anulador':SERVIDOR['production'] + 'comercial/abastecimiento/anulador/',
     # Mayoristas
     'gestionPedidos':SERVIDOR['production']  + 'comercial/mayoristas/gestionPedidos/',
     # Ecommerce
