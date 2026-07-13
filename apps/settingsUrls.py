@@ -4,7 +4,7 @@ SERVIDOR = {
 }
 DIR_PBI = {
     # Logistica
-    'Kpis_Logistica':'https://app.powerbi.com/view?r=eyJrIjoiNTYxZDFlNGEtZTFiNy00ODM1LTk5NzYtZTg3NDljYTM3ZmVhIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
+    'Kpis_Logistica':'https://app.xl.com.ar/bi/logistica/index.php',
     # Abastecimiento
     # Comercial
     'Promociones':'https://app.powerbi.com/view?r=eyJrIjoiZTRlYWQ0Y2YtZjIwYi00Y2Y5LWFiOGMtZTcxOGU1ZjQ5Zjg5IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
