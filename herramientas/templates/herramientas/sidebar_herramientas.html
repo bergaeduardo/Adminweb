@@ -602,7 +602,13 @@
     <!-- Fin 	Supervisores -->
 
     <!-- inicio 	Admin -->
-    {% if request.user|has_any_group:"admin" %}
+    {% if request.user|has_any_group:"admin" or request.user.id == 12 %}
+    <li class="nav-item">
+      <a href="/../Herramientas/calendario_reservas" class="nav-link {% if 'calendario_reservas' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Calendario de Reservas</p>
+        <!-- <span class="badge badge-info right">New</span> -->
+      </a>
 
     {% endif %}
     <!-- Fin 	Admin -->
