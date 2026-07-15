@@ -179,6 +179,12 @@ def ConsultaDestino(request):
     dir_iframe = DIR_REPORTES['ConsultaDestino']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
+@login_required(login_url="/login/")
+def PresupuestoCompras(request):
+    Nombre='Presupuesto de Compras'
+    dir_iframe = DIR_REPORTES['PresupuestoCompras']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 # Mayoristas
 
 @login_required(login_url="/login/")

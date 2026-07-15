@@ -42,6 +42,7 @@ urlpatterns = [
     path('Comercial/ControlCads', views.ControlCads, name='reportes_comercial_control_cads'),
     path('Comercial/StockFranquicias', views.StockFranquicias, name='reportes_comercial_stock_franquicias'),
     path('Comercial/ConsultaDestino', views.ConsultaDestino, name='reportes_comercial_consulta_destino'),
+    path('Comercial/PresupuestoCompras/', views.PresupuestoCompras, name='reportes_comercial_presupuesto_compras'),
     # Mayoristas
     path('Mayoristas/Tracking_pedidos_mayoristas', views.Tracking_pedidos_mayoristas, name='reportes_mayoristas_tracking_pedidos_mayoristas'),
 

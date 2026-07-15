@@ -50,10 +50,9 @@ DIR_REPORTES = {
     'ControlCads':SERVIDOR['production'] + 'comercial/cads',
     'StockFranquicias':SERVIDOR['production'] + 'comercial/franquicias/stock/index.php',
     'ConsultaDestino':SERVIDOR['production'] + 'comercial/abastecimiento/consultas/',
-
-
+    'PresupuestoCompras':SERVIDOR['production'] + 'compras/presupuestos/',
     # Mayoristas
-    'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'comercial/mayoristas/despacho/tracking.php',
+    'Tracking_pedidos_mayoristas':SERVIDOR['production']  + 'comercial/mayoristas/despacho/tracking.php',
     # Ecommerce
     'Pedidos': SERVIDOR['production'] + 'ECOMMERCE/',
     'Tracking_Ecommerce':SERVIDOR['production'] + 'ecommerce/seguimientoPedidos/',
