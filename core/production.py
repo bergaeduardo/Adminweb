@@ -86,6 +86,14 @@ DATABASES = {
             },
             
     },
+    'db_proveedores': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': config('DB_PROVEEDORES_NAME', default='proveedores_xl'),
+        'USER': config('DB_PROVEEDORES_USER', default='postgres'),
+        'PASSWORD': config('DB_PROVEEDORES_PASSWORD', default=config('DB_DEFAULT_PASSWORD', default='')),
+        'HOST': config('DB_PROVEEDORES_HOST', default='127.0.0.1'),
+        'PORT': config('DB_PROVEEDORES_PORT', default='5432'),
+    },
 }
 
 DATABASE_ROUTERS = ['consultasTango.routers.MiApp2Router','consultasLakersBis.routers.MiApp4Router','consultasWMS.routers.MiApp3Router']

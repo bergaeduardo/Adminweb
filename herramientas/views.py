@@ -637,6 +637,201 @@ def nueva_reserva_turno(request):
     })
 
 
+def obtener_email_proveedor(codigo_proveedor):
+    from django.db import connections
+    if not codigo_proveedor or str(codigo_proveedor).strip().upper() in ['HOT', 'INV', 'CYBER', 'ALTA']:
+        return None
+    try:
+        with connections['db_proveedores'].cursor() as cursor:
+            cursor.execute(
+                'SELECT "E_MAIL" FROM proveedores_proveedor WHERE TRIM(UPPER("COD_CPA01")) = %s',
+                [str(codigo_proveedor).strip().upper()]
+            )
+            row = cursor.fetchone()
+            if row and row[0]:
+                return row[0].strip()
+    except Exception as e:
+        print(f"Error al obtener email del proveedor {codigo_proveedor}: {e}")
+    return None
+
+
+def enviar_mail_cambio_estado(turno, estado_anterior_nombre, estado_nuevo_nombre, hubo_cambio_estado=True, hubo_cambio_detalle=False):
+    import os
+    from django.core.mail import get_connection, EmailMultiAlternatives
+
+    destinatarios = [
+        'analia.jarc@xl.com.ar',
+        'lucas.navarro@xl.com.ar',
+        'franco.pertus@xl.com.ar',
+        'natalia.bontempo@xl.com.ar',
+        'ramiro.orozco@xl.com.ar'
+    ]
+
+    # Determinar si se debe notificar al proveedor:
+    # 1. Modificación de fecha o el horario (hubo_cambio_detalle es True)
+    # 2. Cambio de estado de RESERVADO a CONFIRMADO, o de RESERVADO a RECHAZADO.
+    notificar_proveedor = False
+    if hubo_cambio_detalle:
+        notificar_proveedor = True
+    elif hubo_cambio_estado:
+        est_ant = str(estado_anterior_nombre).strip().upper()
+        est_nue = str(estado_nuevo_nombre).strip().upper()
+        if est_ant == 'RESERVADO' and est_nue in ['CONFIRMADO', 'RECHAZADO']:
+            notificar_proveedor = True
+
+    if notificar_proveedor:
+        # Intentar obtener el correo del proveedor para notificarlo
+        email_proveedor = obtener_email_proveedor(turno.codigo_proveedor)
+        if email_proveedor and email_proveedor not in destinatarios:
+            destinatarios.append(email_proveedor)
+    
+    if hubo_cambio_estado and hubo_cambio_detalle:
+        subject = f'Cambio de Estado y Modificación - Turno #{turno.id_turno_reserva} - {turno.nombre_proveedor or "Proveedor"}'
+        subtitulo = "Notificación de Cambio de Estado y Modificación"
+    elif hubo_cambio_estado:
+        subject = f'Cambio de Estado - Turno #{turno.id_turno_reserva} - {turno.nombre_proveedor or "Proveedor"}'
+        subtitulo = "Notificación de Cambio de Estado"
+    else:
+        subject = f'Modificación de Turno - Turno #{turno.id_turno_reserva} - {turno.nombre_proveedor or "Proveedor"}'
+        subtitulo = "Notificación de Modificación de Turno"
+    
+    email_host = os.environ.get('HOST_EMAIL_RESERVAS', 'smtp.gmail.com')
+    try:
+        email_port = int(os.environ.get('PORT_EMAIL_RESERVAS', 587))
+    except ValueError:
+        email_port = 587
+    email_user = os.environ.get('USER_EMAIL_RESERVAS', 'notificaciones@xl.com.ar')
+    email_pass = os.environ.get('PASS_EMAIL_RESERVAS', 'ngqnipbuirpurafd')
+
+    fecha_str = turno.fecha.strftime('%d/%m/%Y') if turno.fecha else 'N/A'
+    hora_str = f"{turno.hora_inicio.strftime('%H:%M')} a {turno.hora_fin.strftime('%H:%M')}" if turno.hora_inicio and turno.hora_fin else 'N/A'
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #334155; margin: 0; padding: 0; }}
+        </style>
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #334155; margin: 0; padding: 40px 20px;">
+        <table cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); overflow: hidden; border-collapse: collapse;">
+            <!-- HEADER -->
+            <tr>
+                <td style="background-color: #0f172a; padding: 32px; text-align: center; border-bottom: 4px solid #2563eb;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;">CALENDARIO DE RESERVAS</h1>
+                    <p style="color: #94a3b8; margin: 8px 0 0 0; font-size: 13px; font-weight: 500;">{subtitulo}</p>
+                </td>
+            </tr>
+            
+            <!-- CONTENT -->
+            <tr>
+                <td style="padding: 32px;">
+                    <h2 style="color: #1e293b; font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 24px;">Turno #{turno.id_turno_reserva}</h2>
+                    
+                    <!-- SECCION 1: DETALLES GENERALES -->
+                    <h3 style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin: 0 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Detalles del Turno</h3>
+                    
+                    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 8px; margin-bottom: 24px; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 16px; vertical-align: top; width: 50%;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Proveedor</div>
+                                <div style="font-size: 13px; font-weight: 700; color: #1e293b;">{turno.nombre_proveedor or 'Sin Nombre'}</div>
+                                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Cód: {turno.codigo_proveedor}</div>
+                            </td>
+                            <td style="padding: 16px; vertical-align: top; width: 50%;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Fecha y Hora</div>
+                                <div style="font-size: 13px; font-weight: 700; color: #1e293b;">{fecha_str}</div>
+                                <div style="font-size: 11px; font-weight: 700; color: #2563eb; margin-top: 2px;">{hora_str}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Estado Anterior</div>
+                                <div style="font-size: 13px; font-weight: 600; color: #64748b; text-decoration: line-through;">{estado_anterior_nombre}</div>
+                            </td>
+                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Nuevo Estado</div>
+                                <div style="font-size: 14px; font-weight: 800; color: #16a34a; background-color: #f0fdf4; display: inline-block; padding: 2px 8px; border-radius: 4px;">{estado_nuevo_nombre}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Órdenes de Compra</div>
+                                <div style="font-size: 13px; font-weight: 600; color: #1e293b;">{turno.orden_compra}</div>
+                            </td>
+                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Remitos</div>
+                                <div style="font-size: 13px; font-weight: 600; color: #1e293b;">{turno.remitos}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Bultos / Unidades</div>
+                                <div style="font-size: 13px; font-weight: 700; color: #1e293b;">{turno.cantidad_bultos or 0} Bultos / {turno.cantidad_unidades or 0} Unidades</div>
+                            </td>
+                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Observaciones</div>
+                                <div style="font-size: 13px; color: #475569; font-style: italic;">{turno.observaciones or 'Sin observaciones'}</div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            
+            <!-- FOOTER -->
+            <tr>
+                <td style="background-color: #f8fafc; padding: 24px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
+                    <p style="margin: 0;">Este es un mensaje automático generado por el Calendario de Reservas.</p>
+                    <p style="margin: 4px 0 0 0;">Por favor, no respondas a este correo.</p>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    """
+
+    text_content = f"""
+Cambio de Estado de Turno (#{turno.id_turno_reserva})
+Se ha registrado un cambio de estado en el Calendario de Reservas:
+
+- Proveedor: {turno.nombre_proveedor or 'Sin Nombre'} ({turno.codigo_proveedor})
+- Fecha: {fecha_str}
+- Hora: {hora_str}
+- Estado Anterior: {estado_anterior_nombre}
+- Nuevo Estado: {estado_nuevo_nombre}
+- Órdenes de Compra: {turno.orden_compra}
+- Remitos: {turno.remitos}
+- Bultos: {turno.cantidad_bultos or 0}
+- Unidades: {turno.cantidad_unidades or 0}
+- Observaciones: {turno.observaciones or 'Sin observaciones'}
+
+Este es un mensaje automático generado por el Calendario de Reservas.
+    """
+
+    try:
+        connection = get_connection(
+            host=email_host,
+            port=email_port,
+            username=email_user,
+            password=email_pass,
+            use_tls=True
+        )
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email=email_user,
+            to=destinatarios,
+            connection=connection
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send(fail_silently=False)
+        print(f"Email enviado correctamente para el cambio de estado del turno {turno.id_turno_reserva}")
+    except Exception as email_err:
+        print(f"Error al enviar email para el cambio de estado del turno {turno.id_turno_reserva}: {str(email_err)}")
+
+
 @login_required(login_url="/login/")
 def editar_reserva_turno(request, turno_id):
     """
@@ -698,6 +893,16 @@ def editar_reserva_turno(request, turno_id):
                 )
             
             turno_actualizado.save()
+
+            if hubo_cambio_estado or cambios_detalles:
+                enviar_mail_cambio_estado(
+                    turno_actualizado,
+                    estado_anterior.nombre if estado_anterior else 'N/A',
+                    turno_actualizado.estado.nombre,
+                    hubo_cambio_estado=hubo_cambio_estado,
+                    hubo_cambio_detalle=bool(cambios_detalles)
+                )
+
             messages.success(request, 'Turno actualizado exitosamente.')
             # Redirigir a la misma página de edición para que el usuario vea el mensaje
             return redirect('herramientas:herramientas_editar_reserva_turno', turno_id=turno.id_turno_reserva)

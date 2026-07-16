@@ -1,5 +1,5 @@
 from core.settings import *
-# from decouple import config
+from decouple import config
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
@@ -72,6 +72,14 @@ DATABASES = {
                 'driver': 'ODBC Driver 17 for SQL Server',
             },
             
+    },
+    'db_proveedores': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': config('DB_PROVEEDORES_NAME', default='proveedores_xl'),
+        'USER': config('DB_PROVEEDORES_USER', default='postgres'),
+        'PASSWORD': config('DB_PROVEEDORES_PASSWORD', default=config('DB_DEFAULT_PASSWORD', default='')),
+        'HOST': config('DB_PROVEEDORES_HOST', default='192.168.0.9'),
+        'PORT': config('DB_PROVEEDORES_PORT', default='5432'),
     },
 }
 
