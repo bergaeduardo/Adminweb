@@ -658,14 +658,10 @@ def obtener_email_proveedor(codigo_proveedor):
 def enviar_mail_cambio_estado(turno, estado_anterior_nombre, estado_nuevo_nombre, hubo_cambio_estado=True, hubo_cambio_detalle=False):
     import os
     from django.core.mail import get_connection, EmailMultiAlternatives
+    from decouple import config
 
-    destinatarios = [
-        'analia.jarc@xl.com.ar',
-        'lucas.navarro@xl.com.ar',
-        'franco.pertus@xl.com.ar',
-        'natalia.bontempo@xl.com.ar',
-        'ramiro.orozco@xl.com.ar'
-    ]
+    destinatarios_raw = config('DESTINATARIOS_NOTIFICACIONES', default='')
+    destinatarios = [email.strip() for email in destinatarios_raw.split(',') if email.strip()]
 
     # Determinar si se debe notificar al proveedor:
     # 1. Modificación de fecha o el horario (hubo_cambio_detalle es True)
@@ -695,13 +691,13 @@ def enviar_mail_cambio_estado(turno, estado_anterior_nombre, estado_nuevo_nombre
         subject = f'Modificación de Turno - Turno #{turno.id_turno_reserva} - {turno.nombre_proveedor or "Proveedor"}'
         subtitulo = "Notificación de Modificación de Turno"
     
-    email_host = os.environ.get('HOST_EMAIL_RESERVAS', 'smtp.gmail.com')
+    email_host = config('HOST_EMAIL_RESERVAS', default='smtp.gmail.com')
     try:
-        email_port = int(os.environ.get('PORT_EMAIL_RESERVAS', 587))
+        email_port = int(config('PORT_EMAIL_RESERVAS', default=587))
     except ValueError:
         email_port = 587
-    email_user = os.environ.get('USER_EMAIL_RESERVAS', 'notificaciones@xl.com.ar')
-    email_pass = os.environ.get('PASS_EMAIL_RESERVAS', 'ngqnipbuirpurafd')
+    email_user = config('USER_EMAIL_RESERVAS', default='')
+    email_pass = config('PASS_EMAIL_RESERVAS', default='')
 
     fecha_str = turno.fecha.strftime('%d/%m/%Y') if turno.fecha else 'N/A'
     hora_str = f"{turno.hora_inicio.strftime('%H:%M')} a {turno.hora_fin.strftime('%H:%M')}" if turno.hora_inicio and turno.hora_fin else 'N/A'

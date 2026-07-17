@@ -363,65 +363,7 @@ class TurnoReservaForm(forms.ModelForm):
             else:
                 raise forms.ValidationError("Debe seleccionar una orden de compra de importación.")
         
-        # Validación de orden secuencial de estados (solo al editar)
-        if self.instance and self.instance.pk and nuevo_estado:
-            estado_actual = self.instance.estado
-            
-            # Solo validar si hay cambio de estado
-            if estado_actual and nuevo_estado != estado_actual:
-                from django.utils import timezone
-                
-                # Obtener fecha y hora del turno
-                turno_datetime = timezone.make_aware(
-                    datetime.combine(self.instance.fecha, self.instance.hora_inicio)
-                )
-                ahora = timezone.now()
-                tiempo_hasta_turno = (turno_datetime - ahora).total_seconds() / 60  # minutos
-                
-                # REGLA 1: RESERVADO -> CONFIRMADO solo hasta 30 min antes
-                if estado_actual.nombre == 'RESERVADO' and nuevo_estado.nombre == 'CONFIRMADO':
-                    if tiempo_hasta_turno < 30:
-                        minutos_faltantes = abs(int(tiempo_hasta_turno))
-                        raise forms.ValidationError(
-                            f"No se puede confirmar el turno. Solo puede cambiar de RESERVADO a CONFIRMADO "
-                            f"hasta 30 minutos antes del horario programado. "
-                            f"El turno es en {minutos_faltantes} minutos (o ya pasó). "
-                            f"Si el turno no se confirmó a tiempo, debe marcarse como NO CONFIRMADO."
-                        )
-                
-                # REGLA 2: Si la fecha/hora ya pasaron, solo permitir cambios desde estados activos (no cancelación)
-                if tiempo_hasta_turno < 0:  # El turno ya pasó
-                    estados_de_cancelacion = ['RESERVADO', 'NO CONFIRMADO', 'CANCELADO']
-                    if estado_actual.nombre in estados_de_cancelacion:
-                        raise forms.ValidationError(
-                            f"El turno programado para {self.instance.fecha.strftime('%d/%m/%Y')} a las "
-                            f"{self.instance.hora_inicio.strftime('%H:%M')} ya pasó. "
-                            f"No se pueden realizar cambios de estado desde '{estado_actual.nombre}'."
-                        )
-                
-                orden_actual = estado_actual.orden_ejecucion
-                orden_nuevo = nuevo_estado.orden_ejecucion
-                
-                # Si el nuevo estado tiene un orden mayor, verificar estados requeridos intermedios
-                if orden_nuevo > orden_actual:
-                    # EXCEPCIÓN: Permitir salto directo de RESERVADO a RECHAZADO
-                    if estado_actual.nombre == 'RESERVADO' and nuevo_estado.nombre == 'RECHAZADO':
-                        # Permitir este cambio sin validación de estados intermedios
-                        pass
-                    else:
-                        # Buscar estados requeridos que se estén saltando
-                        estados_intermedios_requeridos = EstadoTurno.objects.filter(
-                            orden_ejecucion__gt=orden_actual,
-                            orden_ejecucion__lt=orden_nuevo,
-                            es_requerido=True,
-                            activo=True
-                        ).order_by('orden_ejecucion')
-                        
-                        if estados_intermedios_requeridos.exists():
-                            nombres_estados = ', '.join([e.nombre for e in estados_intermedios_requeridos])
-                            raise forms.ValidationError(
-                                f"No puede saltarse estados requeridos. Primero debe pasar por: {nombres_estados}"
-                            )
+
 
 
         if not all([fecha, hora_inicio, hora_fin]):
