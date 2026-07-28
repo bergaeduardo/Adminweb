@@ -16,6 +16,7 @@ urlpatterns = [
     path('Gestion_guias_mayoristas', views.Gestion_guias_mayoristas, name='herramientas_gestion_guias_mayoristas'),
     path('registro', views.registro_turno, name='herramientas_registro_turno'),
     path('get_nombre_proveedor', views.get_nombre_proveedor, name='herramientas_get_nombre_proveedor'),
+    path('get_ordenes_compra_proveedor', views.get_ordenes_compra_proveedor, name='herramientas_get_ordenes_compra_proveedor'),
     path('listado', views.listado_turnos, name='herramientas_listado_turnos'),
     path('eliminar/<int:turno_id>', views.eliminar_turno, name='herramientas_eliminar_turno'),
     path('ver/<int:turno_id>', views.ver_turno, name='herramientas_ver_turno'),
@@ -24,6 +25,29 @@ urlpatterns = [
     path('crear_codigo_error', views.crear_codigo_error, name='herramientas_crear_codigo_error'),
     path('editar_codigo_error/<int:codigo_id>', views.editar_codigo_error, name='herramientas_editar_codigo_error'),
     path('eliminar_codigo_error/<int:codigo_id>', views.eliminar_codigo_error, name='herramientas_eliminar_codigo_error'),
+    
+    # Nuevas URLs para Calendario de Reservas
+    path('calendario_reservas', views.calendario_reservas, name='herramientas_calendario_reservas'),
+    path('obtener_turnos_calendario', views.obtener_turnos_calendario, name='herramientas_obtener_turnos_calendario'),
+    path('obtener_slots_disponibles', views.obtener_slots_disponibles, name='herramientas_obtener_slots_disponibles'),
+    path('nueva_reserva', views.nueva_reserva_turno, name='herramientas_nueva_reserva_turno'),
+    path('editar_reserva/<int:turno_id>', views.editar_reserva_turno, name='herramientas_editar_reserva_turno'),
+    path('eliminar_reserva/<int:turno_id>', views.eliminar_reserva_turno, name='herramientas_eliminar_reserva_turno'),
+    path('detalle_reserva/<int:turno_id>', views.detalle_reserva_turno, name='herramientas_detalle_reserva_turno'),
+    path('reportar_incidencia/<int:turno_id>', views.reportar_incidencia, name='herramientas_reportar_incidencia'),
+    path('listado_reservas', views.listado_reservas, name='herramientas_listado_reservas'),
+    path('historial_reservas', views.historial_general_reservas, name='herramientas_historial_general_reservas'),
+    path('descargar_reporte_reservas', views.descargar_reporte_reservas, name='herramientas_descargar_reporte_reservas'),
+    path('get_ordenes_compra_importadas', views.get_ordenes_compra_importadas, name='herramientas_get_ordenes_compra_importadas'),
+    
+    # URLs para Gestión de Estados de Turnos (Admin y Logistica_Sup)
+    path('estados_turno/listado', views.listado_estados_turno, name='herramientas_listado_estados_turno'),
+    path('estados_turno/crear', views.crear_estado_turno, name='herramientas_crear_estado_turno'),
+    path('estados_turno/editar/<int:estado_id>', views.editar_estado_turno, name='herramientas_editar_estado_turno'),
+    path('estados_turno/eliminar/<int:estado_id>', views.eliminar_estado_turno, name='herramientas_eliminar_estado_turno'),
+    path('estados_turno/reordenar', views.reordenar_estados_turno, name='herramientas_reordenar_estados_turno'),
+    path('estados_turno/marcar_no_confirmados', views.ejecutar_marcar_no_confirmados, name='herramientas_marcar_no_confirmados'),
+    
     path("cargaAnticipoGrupo", views.CargaAnticipoGrupo, name="herramientas_carga_anticipo_grupo"),
     path("ImpRotulos", views.ImpRotulos, name="herramientas_imprimir_rotulos"),
     path("ImpRemEcom", views.ImpRemEcom, name="herramientas_importar_rem_ecom"),
@@ -51,6 +75,7 @@ urlpatterns = [
     path('conversorCSV/sheets', views.conversorCSV_sheets, name='herramientas_conversor_csv_sheets'),
     path('Comercial/ActualizacionPrecios/', views.ActualizacionPrecios, name='herramientas_actualizacion_precios'),
     path('comercial/administradorSupervisoras/', views.administradorSupervisoras, name='herramientas_administrador_supervisoras'),
+    path('comercial/anulador/', views.anulador, name='herramientas_anulador'),
     # Mayoristas
     path('gestionPedidos', views.gestionPedidos, name='herramientas_gestion_pedidos'),
     # Ecommerce
@@ -162,6 +187,12 @@ urlpatterns = [
 
     # Gestión de Sucursales E-commerce
     path('gestion-sucursales-ecommerce/', views.gestion_sucursales_ecommerce, name='gestion_sucursales_ecommerce'),
+
+    # URLs para Adjuntos de Turnos de Reserva
+    path('adjuntos_turno/subir/<int:turno_id>/', views.subir_adjunto_turno, name='herramientas_subir_adjunto_turno'),
+    path('adjuntos_turno/eliminar/<int:adjunto_id>/', views.eliminar_adjunto_turno, name='herramientas_eliminar_adjunto_turno'),
+    path('adjuntos_turno/descargar/<int:adjunto_id>/', views.descargar_adjunto_turno, name='herramientas_descargar_adjunto_turno'),
+    path('adjuntos_turno/listar/<int:turno_id>/', views.listar_adjuntos_turno, name='herramientas_listar_adjuntos_turno'),
 
 ]
 

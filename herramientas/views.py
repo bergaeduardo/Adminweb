@@ -9,26 +9,51 @@ from django.http import HttpResponse, HttpResponseRedirect,JsonResponse
 from django.template import loader
 from django.urls import reverse
 from django.shortcuts import render, redirect,get_object_or_404
+from django.views.decorators.http import require_http_methods
 # from Transportes.models import Transporte
 # from Transportes.forms import TransporteForm
 from django.views import View
 from django.views.generic.list import ListView
 from apps.settingsUrls import *
-from consultasTango.forms import TurnoForm,TurnoEditForm,CodigoErrorForm,CategoriaForm, SubcategoriaForm, RelacionForm
-from consultasTango.models import Turno,CodigosError
+from consultasTango.forms import TurnoForm,TurnoEditForm,CodigoErrorForm,CategoriaForm, SubcategoriaForm, RelacionForm, TurnoReservaForm, EstadoTurnoForm
+from consultasTango.models import Turno,CodigosError, TurnoReserva, EstadoTurno, HistorialEstadoTurno, IncidenciasTurno
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import user_passes_test
 import openpyxl
 import pandas as pd
 import json
 from apps.home.SQL.Sql_Tango import * # Keep SQL imports
 from apps.home.SQL.Sql_WMS import * # Keep SQL imports
 import xlwt # Keep excel writing imports
+
+
+def formatear_orden_compra(orden_compra):
+    """
+    Formatea el campo orden_compra para mostrar de forma legible.
+    Convierte formatos como "['OC1', 'OC2']" o "OC1|OC2" en "OC1, OC2"
+    """
+    if not orden_compra:
+        return ''
+    
+    oc_str = str(orden_compra)
+    
+    # Remover corchetes y comillas de formato lista Python
+    oc_str = oc_str.replace('[', '').replace(']', '').replace("'", '').replace('"', '')
+    
+    # Reemplazar pipes por comas
+    oc_str = oc_str.replace('|', ', ')
+    
+    # Limpiar espacios extras
+    oc_str = ', '.join([oc.strip() for oc in oc_str.split(',') if oc.strip()])
+    
+    return oc_str
 import xlrd # Keep excel reading imports
 from numpy import int64, isnan # Keep numpy imports
+from datetime import datetime, timedelta, date, time as dt_time
 
 
 # @login_required(login_url="/login/")
@@ -70,7 +95,7 @@ def registro_turno(request):
         form = TurnoForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('herramientas:listado_turnos') # Updated redirect
+            return redirect('herramientas:herramientas_listado_turnos') # Updated redirect
     else:
         form = TurnoForm()
 
@@ -78,16 +103,62 @@ def registro_turno(request):
 
 @login_required(login_url="/login/")
 def get_nombre_proveedor(request):
-    codigo_proveedor = request.GET.get('codigo', '')
-    # Aquí deberías implementar la lógica para obtener el nombre del proveedor
-    # Por ahora, usaremos un diccionario de ejemplo
-    proveedores = {
-        'AGODIF': 'DI FALCO MARIO DI FALCO JOSE Y DI FALCO COSME SOC DE HECHO',
-        'BFBISE': 'BANCO MACRO S.A.',
-        # ... Añade el resto de los proveedores aquí
+    """
+    API que retorna nombre de proveedor consultando tabla CPA01 de Tango
+    Consulta dinámicamente la base de datos en lugar de usar diccionario estático
+    """
+    codigo_proveedor = request.GET.get('codigo', '').strip().upper()
+    
+    if not codigo_proveedor:
+        return JsonResponse({'nombre': '', 'error': 'Código no proporcionado'})
+    
+    try:
+        from apps.home.SQL.Sql_Tango import obtener_nombre_proveedor_por_codigo
+        nombre = obtener_nombre_proveedor_por_codigo(codigo_proveedor)
+        
+        if nombre:
+            return JsonResponse({'nombre': nombre})
+        else:
+            return JsonResponse({'nombre': '', 'error': 'Proveedor no encontrado'})
+    except Exception as e:
+        return JsonResponse({'nombre': '', 'error': f'Error al consultar proveedor: {str(e)}'})
+
+
+@login_required(login_url="/login/")
+def get_ordenes_compra_proveedor(request):
+    """
+    API AJAX que retorna órdenes de compra activas de un proveedor
+    Formato Select2 compatible para cargar dinámicamente en campo multi-selección
+    
+    Returns JSON con formato:
+    {
+        "ordenes": [
+            {"id": " 0000100012634", "text": " 0000100012634 - Emitida (01/12/2024)"},
+            ...
+        ]
     }
-    nombre_proveedor = proveedores.get(codigo_proveedor, '')
-    return JsonResponse({'nombre': nombre_proveedor})
+    """
+    codigo_proveedor = request.GET.get('codigo', '').strip().upper()
+    
+    if not codigo_proveedor:
+        return JsonResponse({'ordenes': [], 'error': 'Código no proporcionado'})
+    
+    try:
+        from apps.home.SQL.Sql_Tango import obtener_ordenes_compra_activas_proveedor
+        ordenes = obtener_ordenes_compra_activas_proveedor(codigo_proveedor)
+        
+        # Formatear para Select2
+        ordenes_lista = [
+            {
+                'id': orden[0].strip(),  # N_ORDEN_CO (string con espacio inicial)
+                'text': f"{orden[0].strip()} - {orden[2]} ({orden[1].strftime('%d/%m/%Y')})"
+            }
+            for orden in ordenes
+        ]
+        
+        return JsonResponse({'ordenes': ordenes_lista})
+    except Exception as e:
+        return JsonResponse({'ordenes': [], 'error': f'Error al consultar órdenes: {str(e)}'})
 
 @login_required(login_url="/login/")
 def listado_turnos(request):
@@ -167,7 +238,7 @@ def editar_turno(request, turno_id):
                 turno.PosicionadoFechaHora = timezone.now()
 
             turno.save()
-            return redirect('herramientas:ver_turno', turno_id=turno.IdTurno) # Updated redirect
+            return redirect('herramientas:herramientas_ver_turno', turno_id=turno.IdTurno) # Updated redirect
     else:
         form = TurnoEditForm(instance=turno)
 
@@ -184,31 +255,1162 @@ def crear_codigo_error(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Código de error creado exitosamente.')
-            return redirect('herramientas:lista_codigos_error') # Updated redirect
+            return redirect('herramientas:herramientas_lista_codigos_error') # Updated redirect
     else:
         form = CodigoErrorForm()
     return render(request, 'appConsultasTango/crear_editar_codigo_error.html', {'form': form, 'accion': 'Crear', 'Nombre': 'Crear Código de Error'})
 
 def editar_codigo_error(request, codigo_id):
-    codigo = get_object_or_404(CodigosError, pk=codigo_id)
+    codigo = get_object_or_404(CodigosError, CodigoError=codigo_id)
     if request.method == 'POST':
         form = CodigoErrorForm(request.POST, instance=codigo)
         if form.is_valid():
             form.save()
             messages.success(request, 'Código de error actualizado exitosamente.')
-            return redirect('herramientas:lista_codigos_error') # Updated redirect
+            return redirect('herramientas:herramientas_lista_codigos_error') # Updated redirect
     else:
         form = CodigoErrorForm(instance=codigo)
-    return render(request, 'appConsultasTango/crear_editar_codigo_error.html', {'form': form, 'accion': 'Editar', 'Nombre': 'Editar Código de Error'})
+    return render(request, 'appConsultasTango/crear_editar_codigo_error.html', {'form': form, 'codigo': codigo, 'accion': 'Editar', 'Nombre': 'Editar Código de Error'})
 
 def eliminar_codigo_error(request, codigo_id):
-    codigo = get_object_or_404(CodigosError, pk=codigo_id)
+    try:
+        codigo = CodigosError.objects.get(CodigoError=codigo_id)
+    except CodigosError.DoesNotExist:
+        messages.error(request, f'Código de error con ID {codigo_id} no encontrado.')
+        return redirect('herramientas:herramientas_lista_codigos_error')
+    except Exception as e:
+        messages.error(request, f'Error al buscar el código: {e}')
+        return redirect('herramientas:herramientas_lista_codigos_error')
+    
     if request.method == 'POST':
-        codigo.delete()
-        messages.success(request, 'Código de error eliminado exitosamente.')
-        return redirect('herramientas:lista_codigos_error') # Updated redirect
-    nombre_template = 'Eliminar Código de Error'
-    return render(request, 'appConsultasTango/confirmar_eliminar_codigo_error.html', {'codigo': codigo, 'Nombre': nombre_template})
+        try:
+            codigo.delete()
+            messages.success(request, 'Código de error eliminado exitosamente.')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar el código: {e}')
+        return redirect('herramientas:herramientas_lista_codigos_error')
+    
+    context = {
+        'codigo': codigo, 
+        'Nombre': 'Eliminar Código de Error'
+    }
+    
+
+# ============================================================================
+# NUEVAS VISTAS PARA CALENDARIO DE RESERVAS DE TURNOS
+# ============================================================================
+
+@login_required(login_url="/login/")
+def calendario_reservas(request):
+    """
+    Vista principal del calendario de reservas de turnos
+    Muestra calendario interactivo con FullCalendar
+    """
+    # Obtener todos los estados activos para la leyenda
+    estados = EstadoTurno.objects.filter(activo=True).order_by('orden_ejecucion')
+    
+    nombre_template = 'Calendario de Reservas'
+    return render(request, 'appConsultasTango/calendario_reservas.html', {
+        'Nombre': nombre_template,
+        'estados': estados
+    })
+
+
+@login_required(login_url="/login/")
+def obtener_turnos_calendario(request):
+    """
+    API endpoint para obtener turnos en formato FullCalendar
+    """
+    # Obtener parámetros de fecha del calendario
+    start = request.GET.get('start')
+    end = request.GET.get('end')
+    
+    try:
+        # Convertir strings a objetos date
+        if start:
+            start_date = datetime.fromisoformat(start.replace('Z', '')).date()
+        else:
+            start_date = date.today()
+            
+        if end:
+            end_date = datetime.fromisoformat(end.replace('Z', '')).date()
+        else:
+            end_date = start_date + timedelta(days=30)
+        
+        # Obtener turnos en el rango de fechas
+        # Solo mostrar turnos con estados activos (no cancelados)
+        turnos = TurnoReserva.objects.filter(
+            fecha__gte=start_date,
+            fecha__lte=end_date,
+            estado__activo=True  # Solo estados activos
+        ).select_related('estado')
+        
+        # Formatear para FullCalendar
+        eventos = []
+        for turno in turnos:
+            # Combinar fecha y hora para crear datetime
+            inicio = datetime.combine(turno.fecha, turno.hora_inicio)
+            fin = datetime.combine(turno.fecha, turno.hora_fin)
+            
+            es_bloqueo_manual = turno.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']
+            
+            if es_bloqueo_manual:
+                color = '#495057'  # Gris oscuro
+                # Mostrar el nombre descriptivo directamente
+                titulo = turno.nombre_proveedor or f"Bloqueo: {turno.codigo_proveedor}"
+            else:
+                color = turno.estado.color if turno.estado else '#17a2b8'
+                titulo = f'{turno.codigo_proveedor} - OC: {formatear_orden_compra(turno.orden_compra)}'
+            
+            eventos.append({
+                'id': turno.id_turno_reserva,
+                'title': titulo,
+                'start': inicio.isoformat(),
+                'end': fin.isoformat(),
+                'backgroundColor': color,
+                'borderColor': color,
+                'extendedProps': {
+                    'codigo_proveedor': turno.codigo_proveedor,
+                    'nombre_proveedor': turno.nombre_proveedor or '',
+                    'orden_compra': formatear_orden_compra(turno.orden_compra),
+                    'remitos': turno.remitos,
+                    'cantidad_unidades': turno.cantidad_unidades,
+                    'cantidad_bultos': turno.cantidad_bultos or 0,
+                    'observaciones': turno.observaciones or '',
+                    'estado': turno.estado.nombre if turno.estado else 'Sin Estado',
+                    'estado_id': turno.estado.id_estado if turno.estado else None,
+                    'estado_color': color,
+                    'permite_editar': turno.estado.permite_editar if turno.estado else True,
+                    'usuario_creador': turno.usuario_creador,
+                    'isManualBlock': es_bloqueo_manual
+                }
+            })
+        
+        return JsonResponse(eventos, safe=False)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required(login_url="/login/")
+def obtener_slots_disponibles(request):
+    """
+    API endpoint para obtener slots de tiempo disponibles en una fecha específica
+    Retorna bloques de 30 minutos disponibles
+    """
+    fecha_str = request.GET.get('fecha')
+    
+    if not fecha_str:
+        return JsonResponse({'error': 'Fecha requerida'}, status=400)
+    
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        
+        # Validar día de la semana
+        weekday = fecha.weekday()
+        if weekday == 6:  # Domingo
+            return JsonResponse({'slots': []})
+            
+        if weekday == 5:  # Sábado
+            hora_inicio = dt_time(7, 0)
+            hora_fin = dt_time(10, 0)
+        else:  # Lunes a Viernes
+            hora_inicio = dt_time(7, 0)
+            hora_fin = dt_time(16, 0)
+        
+        # Generar todos los slots de 30 minutos
+        slots_disponibles = []
+        current_time = datetime.combine(fecha, hora_inicio)
+        end_time = datetime.combine(fecha, hora_fin)
+        
+        while current_time < end_time:
+            slot_inicio = current_time.time()
+            slot_fin = (current_time + timedelta(minutes=30)).time()
+            
+            # Filtrar breaks de comida para Lunes a Viernes
+            if weekday < 5:  # L-V
+                # Break 10:00 a 10:30
+                if slot_inicio == dt_time(10, 0):
+                    current_time += timedelta(minutes=30)
+                    continue
+                # Break 13:00 a 14:00 (cubre 13:00-13:30 y 13:30-14:00)
+                if slot_inicio >= dt_time(13, 0) and slot_fin <= dt_time(14, 0):
+                    current_time += timedelta(minutes=30)
+                    continue
+            
+            # Verificar si el slot está ocupado
+            # Solo considerar turnos con estados activos
+            turnos_existentes = TurnoReserva.objects.filter(
+                fecha=fecha,
+                estado__activo=True
+            )
+            
+            ocupado = False
+            for turno in turnos_existentes:
+                # Verificar superposición
+                if not (slot_fin <= turno.hora_inicio or slot_inicio >= turno.hora_fin):
+                    ocupado = True
+                    break
+            
+            if not ocupado:
+                slots_disponibles.append({
+                    'inicio': slot_inicio.strftime('%H:%M'),
+                    'fin': slot_fin.strftime('%H:%M'),
+                    'display': f"{slot_inicio.strftime('%H:%M')} - {slot_fin.strftime('%H:%M')}"
+                })
+            
+            current_time += timedelta(minutes=30)
+        
+        return JsonResponse({'slots': slots_disponibles})
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required(login_url="/login/")
+def nueva_reserva_turno(request):
+    """
+    Vista para crear una nueva reserva de turno
+    Crea registro en historial de estados al crear
+    Procesa archivos adjuntos si se envían
+    """
+    if request.method == 'POST':
+        try:
+            # Obtener el primer estado antes de crear el formulario
+            primer_estado = EstadoTurno.objects.filter(activo=True).order_by('orden_ejecucion').first()
+            
+            # Crear una copia mutable de POST data
+            post_data = request.POST.copy()
+            
+            # Si no viene estado en POST, agregar el primer estado
+            if not post_data.get('estado') and primer_estado:
+                post_data['estado'] = primer_estado.id_estado
+            
+            form = TurnoReservaForm(post_data, user=request.user)
+            if form.is_valid():
+                turno = form.save(commit=False)
+                turno.usuario_creador = request.user.username
+                
+                # Asegurar que tiene estado (doble verificación)
+                if not turno.estado and primer_estado:
+                    turno.estado = primer_estado
+                
+                # Registrar datos de estado
+                turno.usuario_ultima_modificacion_estado = request.user.username
+                turno.estado_actual_desde = timezone.now()
+                
+                turno.save()
+                
+                # Si es un Turno Proveedor (Importado), actualizar la tabla RO_T_IMPORTACIONES_ENCABEZADO
+                tipo_registro = post_data.get('tipo_registro')
+                if tipo_registro == 'IMPORTADO':
+                    try:
+                        from datetime import datetime
+                        dt_recibido = datetime.combine(turno.fecha, turno.hora_inicio)
+                        
+                        oc_list_str = turno.orden_compra
+                        import ast
+                        try:
+                            oc_list = ast.literal_eval(oc_list_str)
+                            if isinstance(oc_list, list) and oc_list:
+                                oc_db_val = oc_list[0]
+                            else:
+                                oc_db_val = oc_list_str
+                        except Exception:
+                            oc_db_val = oc_list_str
+                        
+                        with connections['mi_db_2'].cursor() as cursor:
+                            cursor.execute("""
+                                UPDATE RO_T_IMPORTACIONES_ENCABEZADO 
+                                SET FECHA_RECIBIDO = %s 
+                                WHERE ORDEN_COMPRA = %s
+                            """, [dt_recibido, oc_db_val])
+                            connections['mi_db_2'].commit()
+                    except Exception as e_up:
+                        print(f"Error al actualizar FECHA_RECIBIDO: {str(e_up)}")
+                
+                # Crear registro en historial de estados
+                HistorialEstadoTurno.objects.create(
+                    turno=turno,
+                    estado_anterior=None,  # Es el primer estado
+                    estado_nuevo=turno.estado,
+                    usuario=request.user.username,
+                    observaciones="Creación de turno"
+                )
+                
+                # Procesar archivos adjuntos si los hay
+                archivos_subidos = 0
+                archivos_error = []
+                
+                for key in request.FILES:
+                    if key.startswith('archivo_'):
+                        archivo = request.FILES[key]
+                        tipo_key = 'tipo_documento_' + key.split('_')[1]
+                        tipo_documento = request.POST.get(tipo_key, 'OTRO')
+                        
+                        try:
+                            # Validar tamaño (5MB máximo)
+                            if archivo.size > 5 * 1024 * 1024:
+                                archivos_error.append(f'{archivo.name}: excede 5MB')
+                                continue
+                            
+                            # Validar extensión
+                            ext = os.path.splitext(archivo.name)[1].lower()
+                            if ext not in EXTENSIONES_PERMITIDAS:
+                                archivos_error.append(f'{archivo.name}: extensión no permitida')
+                                continue
+                            
+                            # Detectar tipo MIME
+                            tipo_mime, _ = mimetypes.guess_type(archivo.name)
+                            if not tipo_mime:
+                                tipo_mime = 'application/octet-stream'
+                            
+                            # Crear adjunto
+                            AdjuntoTurnoReserva.objects.create(
+                                turno=turno,
+                                archivo=archivo,
+                                tipo_documento=tipo_documento,
+                                nombre_original=archivo.name,
+                                tipo_archivo=tipo_mime,
+                                tamaño_bytes=archivo.size,
+                                usuario_subio=request.user.username
+                            )
+                            archivos_subidos += 1
+                            
+                        except Exception as e:
+                            archivos_error.append(f'{archivo.name}: {str(e)}')
+                
+                mensaje = 'Turno reservado exitosamente'
+                if archivos_subidos > 0:
+                    mensaje += f'. Se adjuntaron {archivos_subidos} archivo(s).'
+                if archivos_error:
+                    mensaje += f' Errores en archivos: {", ".join(archivos_error)}'
+                
+                return JsonResponse({
+                    'success': True, 
+                    'message': mensaje,
+                    'turno_id': turno.id_turno_reserva,
+                    'archivos_subidos': archivos_subidos,
+                    'archivos_error': archivos_error
+                })
+            else:
+                # Retornar errores del formulario
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                }, status=400)
+        except Exception as e:
+            # Capturar cualquier excepción no prevista y retornar error descriptivo
+            import traceback
+            error_detail = str(e)
+            traceback_detail = traceback.format_exc()
+            
+            # Log para debugging
+            print(f"Error al crear turno: {error_detail}")
+            print(traceback_detail)
+            
+            return JsonResponse({
+                'success': False,
+                'errors': {
+                    '__all__': [f'Error del sistema: {error_detail}']
+                }
+            }, status=400)
+    else:
+        # GET request - mostrar formulario
+        form = TurnoReservaForm(user=request.user)
+        
+        # Si viene fecha y hora por parámetro, pre-llenar
+        fecha = request.GET.get('fecha')
+        hora_inicio = request.GET.get('hora_inicio')
+        hora_fin = request.GET.get('hora_fin')
+        
+        if fecha:
+            form.fields['fecha'].initial = fecha
+        if hora_inicio:
+            form.fields['hora_inicio'].initial = hora_inicio
+        if hora_fin:
+            form.fields['hora_fin'].initial = hora_fin
+    
+    return render(request, 'appConsultasTango/nueva_reserva_turno.html', {
+        'form': form,
+        'Nombre': 'Nueva Reserva de Turno'
+    })
+
+
+def obtener_email_proveedor(codigo_proveedor):
+    from django.db import connections
+    if not codigo_proveedor or str(codigo_proveedor).strip().upper() in ['HOT', 'INV', 'CYBER', 'ALTA']:
+        return None
+    try:
+        with connections['mi_db_2'].cursor() as cursor:
+            cursor.execute(
+                "SELECT E_MAIL FROM CPA01 WHERE LTRIM(RTRIM(UPPER(COD_PROVEE))) = %s",
+                [str(codigo_proveedor).strip().upper()]
+            )
+            row = cursor.fetchone()
+            if row and row[0]:
+                return row[0].strip()
+    except Exception as e:
+        print(f"Error al obtener email del proveedor {codigo_proveedor}: {e}")
+    return None
+
+
+def enviar_mail_cambio_estado(turno, estado_anterior_nombre, estado_nuevo_nombre, hubo_cambio_estado=True, hubo_cambio_detalle=False):
+    import os
+    from django.core.mail import get_connection, EmailMultiAlternatives
+    from decouple import config
+
+    destinatarios_raw = config('DESTINATARIOS_NOTIFICACIONES', default='')
+    destinatarios = [email.strip() for email in destinatarios_raw.split(',') if email.strip()]
+
+    # Determinar si se debe notificar al proveedor:
+    # 1. Modificación de fecha o el horario (hubo_cambio_detalle es True)
+    # 2. Cambio de estado de RESERVADO a CONFIRMADO, o de RESERVADO a RECHAZADO.
+    notificar_proveedor = False
+    if hubo_cambio_detalle:
+        notificar_proveedor = True
+    elif hubo_cambio_estado:
+        est_ant = str(estado_anterior_nombre).strip().upper()
+        est_nue = str(estado_nuevo_nombre).strip().upper()
+        if est_ant == 'RESERVADO' and est_nue in ['CONFIRMADO', 'RECHAZADO']:
+            notificar_proveedor = True
+
+    if notificar_proveedor:
+        # Intentar obtener el correo del proveedor para notificarlo
+        email_proveedor = obtener_email_proveedor(turno.codigo_proveedor)
+        if email_proveedor and email_proveedor not in destinatarios:
+            destinatarios.append(email_proveedor)
+    
+    if hubo_cambio_estado and hubo_cambio_detalle:
+        subject = f'Cambio de Estado y Modificación - Turno #{turno.id_turno_reserva} - {turno.nombre_proveedor or "Proveedor"}'
+        subtitulo = "Notificación de Cambio de Estado y Modificación"
+    elif hubo_cambio_estado:
+        subject = f'Cambio de Estado - Turno #{turno.id_turno_reserva} - {turno.nombre_proveedor or "Proveedor"}'
+        subtitulo = "Notificación de Cambio de Estado"
+    else:
+        subject = f'Modificación de Turno - Turno #{turno.id_turno_reserva} - {turno.nombre_proveedor or "Proveedor"}'
+        subtitulo = "Notificación de Modificación de Turno"
+    
+    email_host = config('HOST_EMAIL_RESERVAS', default='smtp.gmail.com')
+    try:
+        email_port = int(config('PORT_EMAIL_RESERVAS', default=587))
+    except ValueError:
+        email_port = 587
+    email_user = config('USER_EMAIL_RESERVAS', default='')
+    email_pass = config('PASS_EMAIL_RESERVAS', default='')
+
+    fecha_str = turno.fecha.strftime('%d/%m/%Y') if turno.fecha else 'N/A'
+    hora_str = f"{turno.hora_inicio.strftime('%H:%M')} a {turno.hora_fin.strftime('%H:%M')}" if turno.hora_inicio and turno.hora_fin else 'N/A'
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #334155; margin: 0; padding: 0; }}
+        </style>
+    </head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #334155; margin: 0; padding: 40px 20px;">
+        <table cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); overflow: hidden; border-collapse: collapse;">
+            <!-- HEADER -->
+            <tr>
+                <td style="background-color: #0f172a; padding: 32px; text-align: center; border-bottom: 4px solid #2563eb;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;">CALENDARIO DE RESERVAS</h1>
+                    <p style="color: #94a3b8; margin: 8px 0 0 0; font-size: 13px; font-weight: 500;">{subtitulo}</p>
+                </td>
+            </tr>
+            
+            <!-- CONTENT -->
+            <tr>
+                <td style="padding: 32px;">
+                    <h2 style="color: #1e293b; font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 24px;">Turno #{turno.id_turno_reserva}</h2>
+                    
+                    <!-- SECCION 1: DETALLES GENERALES -->
+                    <h3 style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin: 0 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Detalles del Turno</h3>
+                    
+                    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 8px; margin-bottom: 24px; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 16px; vertical-align: top; width: 50%;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Proveedor</div>
+                                <div style="font-size: 13px; font-weight: 700; color: #1e293b;">{turno.nombre_proveedor or 'Sin Nombre'}</div>
+                                <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Cód: {turno.codigo_proveedor}</div>
+                            </td>
+                            <td style="padding: 16px; vertical-align: top; width: 50%;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Fecha y Hora</div>
+                                <div style="font-size: 13px; font-weight: 700; color: #1e293b;">{fecha_str}</div>
+                                <div style="font-size: 11px; font-weight: 700; color: #2563eb; margin-top: 2px;">{hora_str}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Estado Anterior</div>
+                                <div style="font-size: 13px; font-weight: 600; color: #64748b; text-decoration: line-through;">{estado_anterior_nombre}</div>
+                            </td>
+                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Nuevo Estado</div>
+                                <div style="font-size: 14px; font-weight: 800; color: #16a34a; background-color: #f0fdf4; display: inline-block; padding: 2px 8px; border-radius: 4px;">{estado_nuevo_nombre}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Órdenes de Compra</div>
+                                <div style="font-size: 13px; font-weight: 600; color: #1e293b;">{turno.orden_compra}</div>
+                            </td>
+                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Remitos</div>
+                                <div style="font-size: 13px; font-weight: 600; color: #1e293b;">{turno.remitos}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Bultos / Unidades</div>
+                                <div style="font-size: 13px; font-weight: 700; color: #1e293b;">{turno.cantidad_bultos or 0} Bultos / {turno.cantidad_unidades or 0} Unidades</div>
+                            </td>
+                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Observaciones</div>
+                                <div style="font-size: 13px; color: #475569; font-style: italic;">{turno.observaciones or 'Sin observaciones'}</div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            
+            <!-- FOOTER -->
+            <tr>
+                <td style="background-color: #f8fafc; padding: 24px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
+                    <p style="margin: 0;">Este es un mensaje automático generado por el Calendario de Reservas.</p>
+                    <p style="margin: 4px 0 0 0;">Por favor, no respondas a este correo.</p>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    """
+
+    text_content = f"""
+Cambio de Estado de Turno (#{turno.id_turno_reserva})
+Se ha registrado un cambio de estado en el Calendario de Reservas:
+
+- Proveedor: {turno.nombre_proveedor or 'Sin Nombre'} ({turno.codigo_proveedor})
+- Fecha: {fecha_str}
+- Hora: {hora_str}
+- Estado Anterior: {estado_anterior_nombre}
+- Nuevo Estado: {estado_nuevo_nombre}
+- Órdenes de Compra: {turno.orden_compra}
+- Remitos: {turno.remitos}
+- Bultos: {turno.cantidad_bultos or 0}
+- Unidades: {turno.cantidad_unidades or 0}
+- Observaciones: {turno.observaciones or 'Sin observaciones'}
+
+Este es un mensaje automático generado por el Calendario de Reservas.
+    """
+
+    try:
+        connection = get_connection(
+            host=email_host,
+            port=email_port,
+            username=email_user,
+            password=email_pass,
+            use_tls=True
+        )
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email=email_user,
+            to=destinatarios,
+            connection=connection
+        )
+        msg.attach_alternative(html_content, "text/html")
+        msg.send(fail_silently=False)
+        print(f"Email enviado correctamente para el cambio de estado del turno {turno.id_turno_reserva}")
+    except Exception as email_err:
+        print(f"Error al enviar email para el cambio de estado del turno {turno.id_turno_reserva}: {str(email_err)}")
+
+
+@login_required(login_url="/login/")
+def editar_reserva_turno(request, turno_id):
+    """
+    Vista para editar una reserva de turno existente
+    Registra cambios de estado en historial
+    Valida que no se puedan editar turnos de hoy o fechas pasadas
+    Muestra en modo solo lectura si el estado no permite editar
+    """
+    turno = get_object_or_404(TurnoReserva, pk=turno_id)
+    
+    # Verificar si el estado actual permite editar el turno
+    solo_lectura = turno.estado and not turno.estado.permite_editar
+    
+    # Verificar si la fecha del turno ya pasó
+    hoy = date.today()
+    turno_es_pasado = turno.fecha <= hoy
+    
+    if request.method == 'POST':
+        # Rechazar POST si está en modo solo lectura
+        if solo_lectura:
+            messages.error(request, 'No se pueden realizar modificaciones en este turno.')
+            return redirect('herramientas:herramientas_calendario_reservas')
+        
+        # Guardar estado y datos anteriores antes de aplicar cambios
+        estado_anterior = turno.estado
+        fecha_anterior = turno.fecha
+        hora_inicio_anterior = turno.hora_inicio
+        hora_fin_anterior = turno.hora_fin
+        
+        form = TurnoReservaForm(request.POST, instance=turno, user=request.user)
+        if form.is_valid():
+            turno_actualizado = form.save(commit=False)
+            
+            hubo_cambio_estado = estado_anterior != turno_actualizado.estado
+            
+            # Verificar si hubo cambio de fecha/horario
+            cambios_detalles = []
+            if fecha_anterior != turno_actualizado.fecha:
+                cambios_detalles.append(f"Fecha: {fecha_anterior.strftime('%d/%m/%Y')} → {turno_actualizado.fecha.strftime('%d/%m/%Y')}")
+            if hora_inicio_anterior != turno_actualizado.hora_inicio or hora_fin_anterior != turno_actualizado.hora_fin:
+                cambios_detalles.append(f"Horario: {hora_inicio_anterior.strftime('%H:%M')}-{hora_fin_anterior.strftime('%H:%M')} → {turno_actualizado.hora_inicio.strftime('%H:%M')}-{turno_actualizado.hora_fin.strftime('%H:%M')}")
+            
+            if hubo_cambio_estado or cambios_detalles:
+                observaciones_list = []
+                if hubo_cambio_estado:
+                    observaciones_list.append(f"Cambio de estado: {estado_anterior.nombre if estado_anterior else 'N/A'} → {turno_actualizado.estado.nombre}")
+                    turno_actualizado.usuario_ultima_modificacion_estado = request.user.username
+                    turno_actualizado.estado_actual_desde = timezone.now()
+                if cambios_detalles:
+                    observaciones_list.append(f"Modificación: {', '.join(cambios_detalles)}")
+                
+                # Crear registro en historial
+                HistorialEstadoTurno.objects.create(
+                    turno=turno_actualizado,
+                    estado_anterior=estado_anterior,
+                    estado_nuevo=turno_actualizado.estado,
+                    usuario=request.user.username,
+                    observaciones="; ".join(observaciones_list)
+                )
+            
+            turno_actualizado.save()
+
+            if hubo_cambio_estado or cambios_detalles:
+                enviar_mail_cambio_estado(
+                    turno_actualizado,
+                    estado_anterior.nombre if estado_anterior else 'N/A',
+                    turno_actualizado.estado.nombre,
+                    hubo_cambio_estado=hubo_cambio_estado,
+                    hubo_cambio_detalle=bool(cambios_detalles)
+                )
+
+            messages.success(request, 'Turno actualizado exitosamente.')
+            # Redirigir a la misma página de edición para que el usuario vea el mensaje
+            return redirect('herramientas:herramientas_editar_reserva_turno', turno_id=turno.id_turno_reserva)
+        # Si hay errores, no agregar mensaje adicional ya que form.errors ya los muestra
+    else:
+        form = TurnoReservaForm(instance=turno, user=request.user)
+    
+    # Obtener historial de estados para mostrar en el template
+    historial_estados = HistorialEstadoTurno.objects.filter(turno=turno).order_by('-fecha_cambio')
+    
+    # Obtener incidencias reportadas para este turno
+    incidencias = IncidenciasTurno.objects.filter(turno=turno).select_related('codigo_error').order_by('-fecha_registro')
+    
+    # Obtener códigos de error activos para el modal
+    codigos_error = CodigosError.objects.filter(Activo=True).order_by('Categoria', 'CodigoError')
+    
+    return render(request, 'appConsultasTango/editar_reserva_turno.html', {
+        'form': form,
+        'turno': turno,
+        'turno_es_pasado': turno_es_pasado,
+        'historial_estados': historial_estados,
+        'incidencias': incidencias,
+        'codigos_error': codigos_error,
+        'solo_lectura': solo_lectura,
+        'Nombre': f"{'Ver' if solo_lectura else 'Editar'} Turno #{turno.id_turno_reserva}"
+    })
+
+
+@login_required(login_url="/login/")
+def eliminar_reserva_turno(request, turno_id):
+    """
+    Vista para eliminar/cancelar una reserva de turno
+    """
+    turno = get_object_or_404(TurnoReserva, pk=turno_id)
+    
+    if request.method == 'POST':
+        try:
+            # En lugar de eliminar, cambiar estado a CANCELADO
+            turno.estado = 'CANCELADO'
+            turno.save()
+            messages.success(request, 'Turno cancelado exitosamente.')
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+
+@login_required(login_url="/login/")
+def detalle_reserva_turno(request, turno_id):
+    """
+    Vista para ver detalles de una reserva de turno
+    """
+    turno = get_object_or_404(TurnoReserva, pk=turno_id)
+    
+    return render(request, 'appConsultasTango/detalle_reserva_turno.html', {
+        'turno': turno,
+        'Nombre': 'Detalle de Reserva'
+    })
+
+
+@login_required(login_url="/login/")
+@require_http_methods(["POST"])
+def reportar_incidencia(request, turno_id):
+    """
+    Vista AJAX para reportar una incidencia en un turno
+    """
+    try:
+        turno = get_object_or_404(TurnoReserva, pk=turno_id)
+        codigo_error_id = request.POST.get('codigo_error')
+        cantidad_afectada = request.POST.get('cantidad_afectada')
+        detalle = request.POST.get('detalle')
+        
+        # Validar que se haya seleccionado un código de error
+        if not codigo_error_id:
+            return JsonResponse({'error': 'Debe seleccionar un código de error'}, status=400)
+        
+        # Obtener el código de error
+        try:
+            codigo_error = CodigosError.objects.get(CodigoError=codigo_error_id, Activo=True)
+        except CodigosError.DoesNotExist:
+            return JsonResponse({'error': 'El código de error seleccionado no es válido o está inactivo'}, status=400)
+        
+        # Crear la incidencia
+        incidencia = IncidenciasTurno.objects.create(
+            turno=turno,
+            codigo_error=codigo_error,
+            cantidad_afectada=int(cantidad_afectada) if cantidad_afectada else None,
+            detalle=detalle if detalle else None,
+            usuario_registro=request.user.username
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Incidencia reportada exitosamente',
+            'incidencia_id': incidencia.id_incidencia
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': f'Error al reportar incidencia: {str(e)}'}, status=500)
+
+
+@login_required(login_url="/login/")
+def listado_reservas(request):
+    """
+    Vista de listado de reservas (alternativa al calendario)
+    """
+    # Filtros opcionales
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    estado = request.GET.get('estado')
+    
+    turnos = TurnoReserva.objects.all().select_related('estado')
+    
+    if fecha_desde:
+        turnos = turnos.filter(fecha__gte=fecha_desde)
+    if fecha_hasta:
+        turnos = turnos.filter(fecha__lte=fecha_hasta)
+    if estado:
+        turnos = turnos.filter(estado=estado)
+    
+    turnos = turnos.order_by('-fecha', '-hora_inicio')
+    
+    estados = EstadoTurno.objects.filter(activo=True).order_by('orden_ejecucion')
+    
+    return render(request, 'appConsultasTango/listado_reservas.html', {
+        'turnos': turnos,
+        'estados': estados,
+        'Nombre': 'Listado de Reservas'
+    })
+
+
+@login_required(login_url="/login/")
+def historial_general_reservas(request):
+    """
+    Vista de historial general de cambios de reservas de turnos
+    """
+    historial = HistorialEstadoTurno.objects.all().select_related('turno', 'estado_anterior', 'estado_nuevo').order_by('-fecha_cambio')
+    
+    # Filtros opcionales
+    turno_id = request.GET.get('turno_id')
+    usuario = request.GET.get('usuario')
+    if turno_id:
+        historial = historial.filter(turno__id_turno_reserva=turno_id)
+    if usuario:
+        historial = historial.filter(usuario__icontains=usuario)
+        
+    # Paginación
+    paginator = Paginator(historial, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'appConsultasTango/historial_general_reservas.html', {
+        'Nombre': 'Historial de Cambios de Reservas',
+        'page_obj': page_obj
+    })
+
+
+@login_required(login_url="/login/")
+def descargar_reporte_reservas(request):
+    """
+    Genera y descarga un reporte Excel (.xlsx) con los turnos de reserva filtrados
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    estado = request.GET.get('estado')
+    
+    turnos = TurnoReserva.objects.all().select_related('estado')
+    
+    if fecha_desde:
+        turnos = turnos.filter(fecha__gte=fecha_desde)
+    if fecha_hasta:
+        turnos = turnos.filter(fecha__lte=fecha_hasta)
+    if estado:
+        turnos = turnos.filter(estado=estado)
+        
+    turnos = turnos.order_by('fecha', 'hora_inicio')
+    
+    # Crear Workbook de Excel
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Reporte de Reservas"
+    
+    # Estilos
+    font_header = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+    fill_header = PatternFill(start_color='1F4E78', end_color='1F4E78', fill_type='solid') # Azul oscuro premium
+    alignment_center = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    alignment_left = Alignment(horizontal='left', vertical='center')
+    border_thin = Border(
+        left=Side(style='thin', color='BFBFBF'),
+        right=Side(style='thin', color='BFBFBF'),
+        top=Side(style='thin', color='BFBFBF'),
+        bottom=Side(style='thin', color='BFBFBF')
+    )
+    
+    # Encabezados
+    headers = [
+        "ID", "Fecha", "Horario", "Código Prov.", "Proveedor / Tarea",
+        "Orden de Compra", "Remitos", "Unidades", "Bultos", "Estado", "Creador"
+    ]
+    
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.value = header
+        cell.font = font_header
+        cell.fill = fill_header
+        cell.alignment = alignment_center
+        cell.border = border_thin
+        
+    # Datos
+    for row_num, turno in enumerate(turnos, 2):
+        # Formatear OC
+        oc_str = formatear_orden_compra(turno.orden_compra)
+        
+        # Identificar si es bloqueo de tarea o turno regular
+        nombre_prov = turno.nombre_proveedor or ''
+        if turno.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']:
+            nombre_prov = turno.nombre_proveedor or f"Bloqueo: {turno.codigo_proveedor}"
+            
+        data_row = [
+            turno.id_turno_reserva,
+            turno.fecha.strftime('%d/%m/%Y'),
+            f"{turno.hora_inicio.strftime('%H:%M')} - {turno.hora_fin.strftime('%H:%M')}",
+            turno.codigo_proveedor,
+            nombre_prov,
+            oc_str,
+            turno.remitos,
+            turno.cantidad_unidades,
+            turno.cantidad_bultos or 0,
+            turno.estado.nombre if turno.estado else 'Sin Estado',
+            turno.usuario_creador
+        ]
+        
+        for col_num, val in enumerate(data_row, 1):
+            cell = ws.cell(row=row_num, column=col_num)
+            cell.value = val
+            cell.border = border_thin
+            
+            # Formatos de alineación y número
+            if col_num in [1, 2, 3, 4, 8, 9, 10]:
+                cell.alignment = alignment_center
+            else:
+                cell.alignment = alignment_left
+                
+            # Destacar bloqueos manuales
+            if turno.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']:
+                cell.fill = PatternFill(start_color='F2F2F2', end_color='F2F2F2', fill_type='solid')
+                
+    # Auto-ajustar ancho de columnas
+    for col in ws.columns:
+        max_len = 0
+        col_letter = col[0].column_letter
+        for cell in col:
+            if cell.value:
+                max_len = max(max_len, len(str(cell.value)))
+        ws.column_dimensions[col_letter].width = max(max_len + 3, 10)
+        
+    # Altura de filas
+    ws.row_dimensions[1].height = 28
+    for r in range(2, len(turnos) + 2):
+        ws.row_dimensions[r].height = 20
+        
+    # Retornar como HttpResponse
+    from django.http import HttpResponse
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    filename = f"reporte_reservas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    wb.save(response)
+    return response
+
+
+@login_required(login_url="/login/")
+def get_ordenes_compra_importadas(request):
+    """
+    Recupera las órdenes de compra de importación desde RO_T_IMPORTACIONES_ENCABEZADO
+    que están pendientes de recepción (FECHA_RECIBIDO IS NULL).
+    """
+    q = request.GET.get('q', '').strip()
+    if len(q) < 3:
+        return JsonResponse({'ordenes': []})
+        
+    try:
+        with connections['mi_db_2'].cursor() as cursor:
+            # Filtrar por término de búsqueda (coincidencia en OC o Proveedor)
+            cursor.execute("""
+                SELECT DISTINCT ORDEN_COMPRA, PROVEEDOR, COD_PROVEE 
+                FROM RO_T_IMPORTACIONES_ENCABEZADO 
+                WHERE ORDEN_COMPRA IS NOT NULL 
+                  AND FECHA_RECIBIDO IS NULL
+                  AND (LTRIM(RTRIM(ORDEN_COMPRA)) LIKE %s OR PROVEEDOR LIKE %s)
+                ORDER BY ORDEN_COMPRA
+            """, [f'%{q}%', f'%{q}%'])
+            rows = cursor.fetchall()
+            
+            ordenes = []
+            for r in rows:
+                oc_val = str(r[0]).strip()
+                prov_val = str(r[1]).strip() if r[1] else 'Sin Proveedor'
+                cod_provee = str(r[2]).strip() if r[2] else ''
+                if oc_val:
+                    ordenes.append({
+                        'id': r[0],
+                        'text': f"{oc_val} - {prov_val}",
+                        'proveedor': prov_val,
+                        'codigo_proveedor': cod_provee
+                    })
+            return JsonResponse({'ordenes': ordenes})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+# ============================================================================
+# FIN VISTAS CALENDARIO DE RESERVAS
+# ============================================================================
+
+# ============================================================================
+# FUNCIONES DE AYUDA PARA PERMISOS
+# ============================================================================
+
+def es_admin_o_logistica_sup(user):
+    """Verificar si el usuario pertenece a Admin o Logistica_Sup"""
+    if user.is_superuser:
+        return True
+    user_groups = [g.name for g in user.groups.all()]
+    return 'Admin' in user_groups or 'Logistica_Sup' in user_groups
+
+def es_admin_logistica_sup_o_logistica(user):
+    """Verificar si el usuario pertenece a Admin, Logistica_Sup o Logistica"""
+    if user.is_superuser:
+        return True
+    user_groups = [g.name for g in user.groups.all()]
+    return 'Admin' in user_groups or 'Logistica_Sup' in user_groups or 'Logistica' in user_groups
+
+# ============================================================================
+# VISTAS CRUD PARA GESTIÓN DE ESTADOS DE TURNOS
+# Solo accesibles para Admin y Logistica_Sup
+# ============================================================================
+
+@login_required(login_url="/login/")
+@user_passes_test(es_admin_o_logistica_sup, login_url="/login/")
+def listado_estados_turno(request):
+    """
+    Vista para listar todos los estados de turnos
+    Solo accesible para Admin y Logistica_Sup
+    """
+    estados = EstadoTurno.objects.all().order_by('orden_ejecucion')
+    
+    return render(request, 'appConsultasTango/estados/listado_estados.html', {
+        'estados': estados,
+        'Nombre': 'Gestión de Estados de Turnos'
+    })
+
+
+@login_required(login_url="/login/")
+@user_passes_test(es_admin_o_logistica_sup, login_url="/login/")
+def crear_estado_turno(request):
+    """
+    Vista para crear un nuevo estado de turno
+    Solo accesible para Admin y Logistica_Sup
+    """
+    if request.method == 'POST':
+        form = EstadoTurnoForm(request.POST)
+        if form.is_valid():
+            estado = form.save()
+            messages.success(request, f'Estado "{estado.nombre}" creado exitosamente.')
+            return redirect('herramientas:herramientas_listado_estados_turno')
+        else:
+            messages.error(request, 'Error al crear el estado. Verifique los datos.')
+    else:
+        form = EstadoTurnoForm()
+    
+    return render(request, 'appConsultasTango/estados/crear_estado.html', {
+        'form': form,
+        'Nombre': 'Crear Estado de Turno'
+    })
+
+
+@login_required(login_url="/login/")
+@user_passes_test(es_admin_o_logistica_sup, login_url="/login/")
+def editar_estado_turno(request, estado_id):
+    """
+    Vista para editar un estado de turno existente
+    Solo accesible para Admin y Logistica_Sup
+    """
+    estado = get_object_or_404(EstadoTurno, pk=estado_id)
+    
+    if request.method == 'POST':
+        form = EstadoTurnoForm(request.POST, instance=estado)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Estado "{estado.nombre}" actualizado exitosamente.')
+            return redirect('herramientas:herramientas_listado_estados_turno')
+        else:
+            messages.error(request, 'Error al actualizar el estado. Verifique los datos.')
+    else:
+        form = EstadoTurnoForm(instance=estado)
+    
+    return render(request, 'appConsultasTango/estados/editar_estado.html', {
+        'form': form,
+        'estado': estado,
+        'Nombre': 'Editar Estado de Turno'
+    })
+
+
+@login_required(login_url="/login/")
+@user_passes_test(es_admin_o_logistica_sup, login_url="/login/")
+def eliminar_estado_turno(request, estado_id):
+    """
+    Vista para eliminar un estado de turno
+    Solo accesible para Admin y Logistica_Sup
+    Valida que no haya turnos usando este estado
+    """
+    estado = get_object_or_404(EstadoTurno, pk=estado_id)
+    
+    # Verificar si hay turnos usando este estado
+    turnos_con_estado = TurnoReserva.objects.filter(estado=estado).count()
+    
+    if request.method == 'POST':
+        if turnos_con_estado > 0:
+            messages.error(
+                request, 
+                f'No se puede eliminar el estado "{estado.nombre}" porque hay {turnos_con_estado} turno(s) usándolo. '
+                'Por favor, cambie el estado de esos turnos primero o desactive el estado en lugar de eliminarlo.'
+            )
+            return redirect('herramientas:herramientas_listado_estados_turno')
+        
+        try:
+            nombre_estado = estado.nombre
+            estado.delete()
+            messages.success(request, f'Estado "{nombre_estado}" eliminado exitosamente.')
+            return redirect('herramientas:herramientas_listado_estados_turno')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar el estado: {str(e)}')
+            return redirect('herramientas:herramientas_listado_estados_turno')
+    
+    return render(request, 'appConsultasTango/estados/eliminar_estado.html', {
+        'estado': estado,
+        'turnos_con_estado': turnos_con_estado,
+        'Nombre': 'Eliminar Estado de Turno'
+    })
+
+
+@login_required(login_url="/login/")
+@user_passes_test(es_admin_o_logistica_sup, login_url="/login/")
+def reordenar_estados_turno(request):
+    """
+    Vista AJAX para reordenar estados mediante drag and drop
+    Recibe orden_ejecucion para cada estado
+    """
+    if request.method == 'POST':
+        try:
+            import json
+            data = json.loads(request.body)
+            
+            # data debe ser un array de objetos {id: X, orden: Y}
+            for item in data:
+                estado_id = item.get('id')
+                nuevo_orden = item.get('orden')
+                
+                if estado_id and nuevo_orden:
+                    EstadoTurno.objects.filter(pk=estado_id).update(orden_ejecucion=nuevo_orden)
+            
+            return JsonResponse({'success': True, 'message': 'Estados reordenados exitosamente'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    
+    return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+
+@login_required(login_url="/login/")
+@user_passes_test(es_admin_o_logistica_sup, login_url="/login/")
+def ejecutar_marcar_no_confirmados(request):
+    """
+    Vista para ejecutar manualmente el proceso de marcado de turnos NO CONFIRMADOS
+    Solo Admin y Logistica_Sup pueden ejecutarla
+    """
+    if request.method == 'POST':
+        try:
+            from apps.home.SQL.Sql_Tango import marcar_turnos_no_confirmados
+            
+            turnos_marcados = marcar_turnos_no_confirmados()
+            
+            if turnos_marcados > 0:
+                messages.success(
+                    request,
+                    f'Se marcaron {turnos_marcados} turno(s) como NO CONFIRMADO exitosamente.'
+                )
+            else:
+                messages.info(request, 'No hay turnos RESERVADOS que deban marcarse como NO CONFIRMADO.')
+            
+        except Exception as e:
+            messages.error(request, f'Error al ejecutar el proceso: {str(e)}')
+        
+        return redirect('herramientas:herramientas_listado_estados_turno')
+    
+    # GET request - mostrar confirmación
+    return render(request, 'appConsultasTango/estados/confirmar_marcar_no_confirmados.html', {
+        'Nombre': 'Marcar Turnos No Confirmados'
+    })
+
+
+# ============================================================================
+# FIN VISTAS CRUD ESTADOS
+# ============================================================================
+
+    return render(request, 'appConsultasTango/confirmar_eliminar_codigo_error.html', context)
 
 logger = logging.getLogger(__name__)
 
@@ -282,7 +1484,7 @@ def Eliminar_Turno(request):
         datos = Turno.objects.get(IdTurno=IdTurno)
         datos.delete()
         # Redirigir a la página de éxito
-        return redirect('herramientas:Listar_turno') # Updated redirect
+        return redirect('herramientas:herramientas_listar_turno') # Updated redirect
     else:
         IdTurno = request.GET.get('IdTurno')
         datos = Turno.objects.get(IdTurno=IdTurno)
@@ -296,7 +1498,7 @@ def Editar_Turno(request,IdTurno):
         if form.is_valid():
             form.save()
             # Redirigir a la página de éxito
-            return redirect('herramientas:Listar_turno') # Updated redirect
+            return redirect('herramientas:herramientas_listar_turno') # Updated redirect
     else:
         form = TurnoForm(instance=datos)
     return render(request, 'appConsultasTango/Editar_turno.html', {'form': form})
@@ -313,7 +1515,7 @@ def Crear_turno(request):
         if form.is_valid():
             form.save()
             # Redirigir a la página de éxito
-            return redirect('herramientas:Listar_turno') # Updated redirect
+            return redirect('herramientas:herramientas_listar_turno') # Updated redirect
     else:
         form = TurnoForm()
     return render(request, 'appConsultasTango/Crear_turno.html', {'form': form})
@@ -493,6 +1695,14 @@ def administradorSupervisoras(request):
     Nombre = 'Administrador de Supervisoras'
     dir_iframe = DIR_HERAMIENTAS['administradorSupervisoras']
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+
+@login_required(login_url="/login/")
+def anulador(request):
+    Nombre = 'Anulador'
+    dir_iframe = DIR_HERAMIENTAS['anulador']
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+
+
 
 # Mayoristas
 @login_required(login_url="/login/")
@@ -2458,3 +3668,205 @@ def validacion_articulos_export(request):
     response['Content-Disposition'] = 'attachment; filename="ValidacionArticulos.xlsx"'
     response.set_cookie('va_export_done', '1', max_age=60, path='/')
     return response
+
+
+# ============================================================================
+# VISTAS PARA ADJUNTOS DE TURNOS DE RESERVA
+# ============================================================================
+
+from consultasTango.models import AdjuntoTurnoReserva
+import mimetypes
+
+# Constantes para adjuntos
+MAX_FILE_SIZE_MB = 5
+MAX_FILES_PER_TURNO = 5
+EXTENSIONES_PERMITIDAS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.xlsx', '.xls', '.csv', '.doc', '.docx']
+
+
+@login_required(login_url="/login/")
+@require_http_methods(["POST"])
+def subir_adjunto_turno(request, turno_id):
+    """
+    Vista AJAX para subir un archivo adjunto a un turno.
+    Valida tamaño máximo (5MB), extensiones permitidas y límite de archivos por turno.
+    """
+    try:
+        turno = get_object_or_404(TurnoReserva, pk=turno_id)
+        
+        # Verificar que el archivo fue enviado
+        if 'archivo' not in request.FILES:
+            return JsonResponse({'success': False, 'error': 'No se recibió ningún archivo'}, status=400)
+        
+        archivo = request.FILES['archivo']
+        tipo_documento = request.POST.get('tipo_documento', 'OTRO')
+        
+        # Validar cantidad máxima de archivos por turno
+        cantidad_actual = AdjuntoTurnoReserva.objects.filter(turno=turno).count()
+        if cantidad_actual >= MAX_FILES_PER_TURNO:
+            return JsonResponse({
+                'success': False, 
+                'error': f'Se alcanzó el límite máximo de {MAX_FILES_PER_TURNO} archivos por turno'
+            }, status=400)
+        
+        # Validar tamaño del archivo (máximo 5MB)
+        if archivo.size > MAX_FILE_SIZE_MB * 1024 * 1024:
+            return JsonResponse({
+                'success': False, 
+                'error': f'El archivo excede el tamaño máximo permitido ({MAX_FILE_SIZE_MB}MB)'
+            }, status=400)
+        
+        # Validar extensión
+        ext = os.path.splitext(archivo.name)[1].lower()
+        if ext not in EXTENSIONES_PERMITIDAS:
+            return JsonResponse({
+                'success': False, 
+                'error': f'Extensión no permitida. Extensiones válidas: {", ".join(EXTENSIONES_PERMITIDAS)}'
+            }, status=400)
+        
+        # Detectar tipo MIME
+        tipo_mime, _ = mimetypes.guess_type(archivo.name)
+        if not tipo_mime:
+            tipo_mime = 'application/octet-stream'
+        
+        # Crear el registro de adjunto
+        adjunto = AdjuntoTurnoReserva(
+            turno=turno,
+            archivo=archivo,
+            tipo_documento=tipo_documento,
+            nombre_original=archivo.name,
+            tipo_archivo=tipo_mime,
+            tamaño_bytes=archivo.size,
+            usuario_subio=request.user.username
+        )
+        adjunto.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Archivo subido exitosamente',
+            'adjunto': {
+                'id': adjunto.id_adjunto,
+                'nombre': adjunto.nombre_original,
+                'tipo_documento': adjunto.get_tipo_documento_display(),
+                'tamaño': adjunto.get_tamaño_legible(),
+                'es_imagen': adjunto.es_imagen(),
+                'url': adjunto.archivo.url,
+                'fecha_subida': adjunto.fecha_subida.strftime('%d/%m/%Y %H:%M'),
+                'usuario': adjunto.usuario_subio,
+                'puede_eliminar': adjunto.puede_eliminar()
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': f'Error al subir el archivo: {str(e)}'
+        }, status=500)
+
+
+@login_required(login_url="/login/")
+@require_http_methods(["POST", "DELETE"])
+def eliminar_adjunto_turno(request, adjunto_id):
+    """
+    Vista AJAX para eliminar un archivo adjunto.
+    Solo permite eliminar si el turno está en estado RESERVADO.
+    """
+    try:
+        adjunto = get_object_or_404(AdjuntoTurnoReserva, pk=adjunto_id)
+        
+        # Verificar que el turno está en estado RESERVADO
+        if not adjunto.puede_eliminar():
+            return JsonResponse({
+                'success': False, 
+                'error': 'No se puede eliminar el adjunto. El turno no está en estado RESERVADO.'
+            }, status=403)
+        
+        # Guardar nombre para mensaje
+        nombre_archivo = adjunto.nombre_original
+        
+        # Eliminar (el método delete del modelo también elimina el archivo físico)
+        adjunto.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Archivo "{nombre_archivo}" eliminado exitosamente'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': f'Error al eliminar el archivo: {str(e)}'
+        }, status=500)
+
+
+@login_required(login_url="/login/")
+def descargar_adjunto_turno(request, adjunto_id):
+    """
+    Vista para descargar un archivo adjunto.
+    Fuerza la descarga en lugar de mostrar en el navegador.
+    """
+    try:
+        adjunto = get_object_or_404(AdjuntoTurnoReserva, pk=adjunto_id)
+        
+        # Abrir el archivo y preparar la respuesta
+        file_path = adjunto.archivo.path
+        
+        if not os.path.exists(file_path):
+            return JsonResponse({'error': 'Archivo no encontrado'}, status=404)
+        
+        with open(file_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type=adjunto.tipo_archivo)
+            response['Content-Disposition'] = f'attachment; filename="{adjunto.nombre_original}"'
+            response['Content-Length'] = adjunto.tamaño_bytes
+            return response
+            
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Error al descargar el archivo: {str(e)}'
+        }, status=500)
+
+
+@login_required(login_url="/login/")
+def listar_adjuntos_turno(request, turno_id):
+    """
+    Vista AJAX para listar los adjuntos de un turno.
+    Retorna JSON con la lista de archivos.
+    """
+    try:
+        turno = get_object_or_404(TurnoReserva, pk=turno_id)
+        adjuntos = AdjuntoTurnoReserva.objects.filter(turno=turno)
+        
+        adjuntos_lista = []
+        for adjunto in adjuntos:
+            adjuntos_lista.append({
+                'id': adjunto.id_adjunto,
+                'nombre': adjunto.nombre_original,
+                'tipo_documento': adjunto.get_tipo_documento_display(),
+                'tipo_documento_key': adjunto.tipo_documento,
+                'tamaño': adjunto.get_tamaño_legible(),
+                'es_imagen': adjunto.es_imagen(),
+                'es_pdf': adjunto.es_pdf(),
+                'url': adjunto.archivo.url,
+                'fecha_subida': adjunto.fecha_subida.strftime('%d/%m/%Y %H:%M'),
+                'usuario': adjunto.usuario_subio,
+                'puede_eliminar': adjunto.puede_eliminar()
+            })
+        
+        # Estado del turno para saber si permite subir más archivos
+        puede_subir = turno.estado and turno.estado.nombre == 'RESERVADO'
+        archivos_restantes = MAX_FILES_PER_TURNO - len(adjuntos_lista)
+        
+        return JsonResponse({
+            'success': True,
+            'adjuntos': adjuntos_lista,
+            'total': len(adjuntos_lista),
+            'puede_subir': puede_subir,
+            'archivos_restantes': archivos_restantes,
+            'max_archivos': MAX_FILES_PER_TURNO,
+            'max_tamaño_mb': MAX_FILE_SIZE_MB
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': f'Error al listar adjuntos: {str(e)}'
+        }, status=500)

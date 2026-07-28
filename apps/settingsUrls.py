@@ -4,7 +4,7 @@ SERVIDOR = {
 }
 DIR_PBI = {
     # Logistica
-    'Kpis_Logistica':'https://app.powerbi.com/view?r=eyJrIjoiNTYxZDFlNGEtZTFiNy00ODM1LTk5NzYtZTg3NDljYTM3ZmVhIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
+    'Kpis_Logistica':'https://app.xl.com.ar/bi/logistica/index.php',
     # Abastecimiento
     # Comercial
     'Promociones':'https://app.powerbi.com/view?r=eyJrIjoiZTRlYWQ0Y2YtZjIwYi00Y2Y5LWFiOGMtZTcxOGU1ZjQ5Zjg5IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
@@ -21,14 +21,13 @@ DIR_PBI = {
     'PromocionesEcommerce':'https://app.powerbi.com/view?r=eyJrIjoiN2VlNWMyMzgtMWMyMC00NmJhLThiMDUtZDA1YjI2MzBjZjg5IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     'Ventas_EcommerceUY':'https://app.powerbi.com/view?r=eyJrIjoiMzZhYWEwZDctNjM3YS00MjI4LTlhNGYtYjgyNjhkMjZiNGFjIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     # Gerencia
-    'PremiosComercial':'https://app.powerbi.com/view?r=eyJrIjoiOTI3NmI1MzMtNTU3MC00NDc0LThhMjktMzA2ZTA1OTA3NThlIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
+    'PremiosComercial':'https://app.xl.com.ar/bi/premios/',
 
     }
 
 DIR_REPORTES = {
     # Logistica
     'Pedidos_pendiente_despacho':SERVIDOR['production'] + 'sistemas/cronoDespacho/pedidos.php',
-    'ConsultaDestino':SERVIDOR['production'] + 'sistemas/maestroDestinos/indexMob.php',
     'GestionTransferencias':SERVIDOR['production'] + 'comercial/SolicitudesTransferencias/public/logistica',
     # Abastecimiento
     'CategoriasDeProductos':SERVIDOR['production']  + 'comercial/producto/consultaCategoriaProductos.php',
@@ -50,10 +49,10 @@ DIR_REPORTES = {
     'auditoriasPromocionesVTEX':SERVIDOR['production']  + 'comercial/auditoria/promociones/index.php',
     'ControlCads':SERVIDOR['production'] + 'comercial/cads',
     'StockFranquicias':SERVIDOR['production'] + 'comercial/franquicias/stock/index.php',
-
-
+    'ConsultaDestino':SERVIDOR['production'] + 'comercial/abastecimiento/consultas/',
+    'PresupuestoCompras':SERVIDOR['production'] + 'compras/presupuestos/',
     # Mayoristas
-    'Tracking_pedidos_mayoristas': SERVIDOR['production']  + 'comercial/mayoristas/despacho/tracking.php',
+    'Tracking_pedidos_mayoristas':SERVIDOR['production']  + 'comercial/mayoristas/despacho/tracking.php',
     # Ecommerce
     'Pedidos': SERVIDOR['production'] + 'ECOMMERCE/',
     'Tracking_Ecommerce':SERVIDOR['production'] + 'ecommerce/seguimientoPedidos/',
@@ -126,7 +125,7 @@ DIR_HERAMIENTAS = {
     'conversorCSV':'http://192.168.0.13:3000/conversor-csv',
     'ActualizacionPrecios':SERVIDOR['production'] + 'comercial/precios/index.php',
     'administradorSupervisoras':SERVIDOR['production'] + 'comercial/administradorSupervisoras/index.php',
-
+    'anulador':SERVIDOR['production'] + 'comercial/abastecimiento/anulador/',
     # Mayoristas
     'gestionPedidos':SERVIDOR['production']  + 'comercial/mayoristas/gestionPedidos/',
     # Ecommerce

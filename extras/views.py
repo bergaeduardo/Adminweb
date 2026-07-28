@@ -36,6 +36,8 @@ from django.core.files.storage import FileSystemStorage
 from consultasLakersBis.forms import sucursalesform, SucursalesLakersCompletaForm
 import os
 import subprocess
+import uuid
+from django.db import connections
 from django.templatetags.static import static
 
 
@@ -46,6 +48,50 @@ def usuario_es_admin_o_sistemas(user):
 def usuario_puede_editar_sucursal(user):
     """Verifica si el usuario puede editar (completo o básico) o es admin/Sistemas"""
     return user.groups.filter(name__in=['admin', 'Sistemas', 'Comercial_suc', 'Comercial_sup', 'Comercial_fr', 'Comercial_may']).exists() or user.is_superuser
+
+def _sync_punto_de_venta(nro_sucursal, nombre, activo):
+    """Crea o actualiza en PuntosDeVenta (base sistemas, XL-APPS) el registro
+    vinculado a una sucursal de SUCURSALES_LAKERS, matcheando por idTango = NUM_SUCURS.
+    Si ya existe y no cambió nombre/activo, no hace nada."""
+    if not nro_sucursal:
+        return
+    SISTEMA_PLACEHOLDER = '00000000-0000-0000-0000-000000000000'
+    with connections['mi_db_5'].cursor() as cursor:
+        cursor.execute(
+            "SELECT nombre, activo FROM PuntosDeVenta WHERE idTango = %s",
+            [nro_sucursal]
+        )
+        row = cursor.fetchone()
+        nuevo_activo = 1 if activo else 0
+        if row is None:
+            # Columnas que en la tabla nunca aparecen en NULL (numero, nombre, direccion,
+            # localidad, idProvincia, telefono, fax, email, web, idTipoPuntoVenta, idZona,
+            # esShopping, fechas/usuarios, activo, Grupo_Benchmark) se completan con un default
+            # neutro; idTango/local_referente/SupervisorAsignado sí admiten NULL.
+            cursor.execute(
+                """
+                INSERT INTO PuntosDeVenta
+                    (id, numero, idTango, nombre, direccion, localidad, idProvincia, telefono,
+                     fax, email, web, idTipoPuntoVenta, idZona, esShopping,
+                     fechaCreacion, usuarioCreacion, fechaUltMod, usuarioUltMod,
+                     activo, local_referente, Grupo_Benchmark, SupervisorAsignado)
+                VALUES (%s, 0, %s, %s, '', '', 1, '', '', '', '', 1, 1, 0,
+                        GETDATE(), %s, GETDATE(), %s, %s, NULL, 0, NULL)
+                """,
+                [str(uuid.uuid4()).upper(), nro_sucursal, nombre,
+                 SISTEMA_PLACEHOLDER, SISTEMA_PLACEHOLDER, nuevo_activo]
+            )
+        else:
+            db_nombre, db_activo = row
+            if db_nombre != nombre or db_activo != nuevo_activo:
+                cursor.execute(
+                    """
+                    UPDATE PuntosDeVenta
+                    SET nombre = %s, activo = %s, fechaUltMod = GETDATE(), usuarioUltMod = %s
+                    WHERE idTango = %s
+                    """,
+                    [nombre, nuevo_activo, SISTEMA_PLACEHOLDER, nro_sucursal]
+                )
 
 @login_required(login_url="/login/")
 def runscript(request):
@@ -87,6 +133,10 @@ def editarSucursal(request,id):
     if sucForm.is_valid() and request.POST:
         suc = sucForm.save(commit=False)
         suc.save()
+        try:
+            _sync_punto_de_venta(suc.nro_sucursal, suc.desc_sucursal, suc.habilitado)
+        except Exception as e:
+            messages.warning(request, f'La sucursal se guardó, pero no se pudo sincronizar con PuntosDeVenta: {e}')
         messages.success(request, 'OK')
         infForm = sucForm.cleaned_data
         # Redirige al listado del direccionario tras guardar
@@ -121,7 +171,11 @@ def editarSucursalCompleta(request, id):
     if request.method == 'POST':
         formulario = SucursalesLakersCompletaForm(request.POST, request.FILES, instance=sucursal)
         if formulario.is_valid():
-            formulario.save()
+            sucursal_guardada = formulario.save()
+            try:
+                _sync_punto_de_venta(sucursal_guardada.nro_sucursal, sucursal_guardada.desc_sucursal, sucursal_guardada.habilitado)
+            except Exception as e:
+                messages.warning(request, f'La sucursal se guardó, pero no se pudo sincronizar con PuntosDeVenta: {e}')
             messages.success(request, f'Sucursal {sucursal.nro_sucursal} - {sucursal.desc_sucursal} actualizada exitosamente.')
             return redirect('extras:extras_direccionario')
         else:
@@ -145,6 +199,10 @@ def registraSucursal(request):
             try:
                 sucursal = formulario.save(commit=False)
                 sucursal.save()
+                try:
+                    _sync_punto_de_venta(sucursal.nro_sucursal, sucursal.desc_sucursal, sucursal.habilitado)
+                except Exception as e:
+                    messages.warning(request, f'La sucursal se guardó, pero no se pudo sincronizar con PuntosDeVenta: {e}')
                 messages.success(request, 'Sucursal dada de alta exitosamente.')
                 return redirect('extras:extras_direccionario')
             except Exception as e:

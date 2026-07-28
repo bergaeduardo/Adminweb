@@ -1,5 +1,5 @@
 from core.settings import *
-# from decouple import config
+from decouple import config
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
@@ -21,9 +21,9 @@ DATABASES = {
     # Base de administracio de roles
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'BD_Pruebas',
-        'USER': 'openpg',
-        'PASSWORD': 'openpgpwd',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'P3RTU$',
         'HOST': '127.0.0.1',
         'DATABASE_PORT': '5232',
     },
@@ -33,11 +33,11 @@ DATABASES = {
             'NAME': 'LAKER_SA',
             'USER': 'sa',
             'PASSWORD': 'Axoft1988',
-            'HOST': 'SERVIDOR',
+            'HOST': 'XL-TANGO',
             'PORT': '1433',
 
             'OPTIONS': {
-                'driver': 'ODBC Driver 13 for SQL Server',
+                'driver': 'ODBC Driver 17 for SQL Server',
             },
             
     },
@@ -55,7 +55,7 @@ DATABASES = {
 
             'PORT': '1433',
             'OPTIONS': {
-                'driver': 'ODBC Driver 13 for SQL Server',
+                'driver': 'ODBC Driver 17 for SQL Server',
             },
             
     },
@@ -65,13 +65,35 @@ DATABASES = {
             'NAME': 'LOCALES_LAKERS',
             'USER': 'sa',
             'PASSWORD': 'Axoft',
-            'HOST': 'LAKERBIS',
+            'HOST': 'XL-LAKERBIS',
             'PORT': '1433',
 
             'OPTIONS': {
-                'driver': 'ODBC Driver 13 for SQL Server',
+                'driver': 'ODBC Driver 17 for SQL Server',
             },
             
+    },
+    # Base sistemas (XL-SALES) - tabla PuntosDeVenta
+    'mi_db_5':{
+            'ENGINE': 'mssql',
+            'NAME': 'sistemas',
+            'USER': 'sa',
+            'PASSWORD': 'Axoft1988',
+            'HOST': 'XL-APPS',
+            'PORT': '1433',
+
+            'OPTIONS': {
+                'driver': 'ODBC Driver 17 for SQL Server',
+            },
+
+    },
+    'db_proveedores': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': config('DB_PROVEEDORES_NAME', default='proveedores_xl'),
+        'USER': config('DB_PROVEEDORES_USER', default='postgres'),
+        'PASSWORD': config('DB_PROVEEDORES_PASSWORD', default=config('DB_DEFAULT_PASSWORD', default='')),
+        'HOST': config('DB_PROVEEDORES_HOST', default='192.168.0.9'),
+        'PORT': config('DB_PROVEEDORES_PORT', default='5432'),
     },
 }
 

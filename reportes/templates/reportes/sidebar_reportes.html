@@ -93,14 +93,6 @@
           </a>
         </li>
         <li class="nav-item">
-          {# Updated href for Consulta Destino (assuming Logistica section) #}
-          <a href="/Reportes/Logistica/ConsultaDestino" class="nav-link {% if 'ConsultaDestino' in request.path %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Consulta Destino</p>
-            <!-- <span class="badge badge-info right">New</span> -->
-          </a>
-        </li>
-        <li class="nav-item">
           {# Updated href for Gestión de Transferencias (assuming Logistica section) #}
           <a href="/Reportes/Logistica/GestionTransferencias" class="nav-link {% if 'GestionTransferencias' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
@@ -433,6 +425,7 @@
              <span class="badge badge-info right">New</span>
           </a>
         </li>
+        
 
         {# Presupuesto Comercial - Solo usuario ID 40 #}
         {% if request.user.id == 40 %}
@@ -440,6 +433,14 @@
           <a href="/Reportes/Comercial/PresupuestoComercial/" class="nav-link {% if 'PresupuestoComercial' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Presupuesto Comercial</p>
+            <!-- <span class="badge badge-danger right">New</span> -->
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a href="/Reportes/Comercial/PresupuestoCompras/" class="nav-link {% if 'PresupuestoCompras' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Presupuesto de Compras</p>
             <!-- <span class="badge badge-danger right">New</span> -->
           </a>
         </li>
@@ -459,6 +460,16 @@
           <a href="/Reportes/Comercial/StockFranquicias" class="nav-link {% if 'StockFranquicias' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>
             <p>Stock Franquicias</p>
+             <span class="badge badge-info right">New</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% if request.user|has_any_group:"Comercial_sup,admin,Logistica" %}
+        <li class="nav-item">
+          <a href="/Reportes/Comercial/ConsultaDestino" class="nav-link {% if 'ConsultaDestino' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Consulta Destino</p>
              <span class="badge badge-info right">New</span>
           </a>
         </li>
