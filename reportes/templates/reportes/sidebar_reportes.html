@@ -33,6 +33,15 @@
               <p>Gestión Horarios</p>
             </a>
           </li>
+          <li class="nav-item">
+            {# Updated href for Gestion Horarios (assuming RRHH section) #}
+            <a href="/Reportes/RRHH/costoPersonal"
+              class="nav-link {% if 'costoPersonal' in request.path %} active {% endif %}">
+              <i class="far fa-circle nav-icon"></i>
+              <p>Costo de Personal</p>
+              <span class="badge badge-info right">New</span>
+            </a>
+          </li>
         
         {% endif %}
         {% if request.user|has_any_group:"RRHH,admin" or request.user.id == 20 %}
