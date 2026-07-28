@@ -642,9 +642,9 @@ def obtener_email_proveedor(codigo_proveedor):
     if not codigo_proveedor or str(codigo_proveedor).strip().upper() in ['HOT', 'INV', 'CYBER', 'ALTA']:
         return None
     try:
-        with connections['db_proveedores'].cursor() as cursor:
+        with connections['mi_db_2'].cursor() as cursor:
             cursor.execute(
-                'SELECT "E_MAIL" FROM proveedores_proveedor WHERE TRIM(UPPER("COD_CPA01")) = %s',
+                "SELECT E_MAIL FROM CPA01 WHERE LTRIM(RTRIM(UPPER(COD_PROVEE))) = %s",
                 [str(codigo_proveedor).strip().upper()]
             )
             row = cursor.fetchone()
