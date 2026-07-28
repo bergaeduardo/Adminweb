@@ -75,9 +75,6 @@ DIR_REPORTES = {
     'cuentasParticulares':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/contabilidad.php',
     'alquileresFranquicias':SERVIDOR['production'] + 'administracion/impuestos/alquileresFranquicias',
     'SolicitudesTransferencias':SERVIDOR['production'] + 'comercial/SolicitudesTransferencias',
-    
-        # RRHH
-
     # Gerencia
     'DetalleRemitos599':SERVIDOR['production']  + 'finanzas/599/consultaderemitos.php?userName=',
     'ChequesRecibidos':SERVIDOR['production']  + 'finanzas/599/reportedecheques.php?userName=',
@@ -85,6 +82,7 @@ DIR_REPORTES = {
     'ReporteAnticipos':SERVIDOR['production'] + 'recursosHumanos/anticipoSueldos/reporteAnticipos.php',
     'gestionClientes':SERVIDOR['production'] + 'recursosHumanos/clientes/index.php',
     'gestionHorarios':SERVIDOR['production'] + 'comercial/horarios/rrhh.php',
+    'costoPersonal':SERVIDOR['production'] + 'comercial/tableros/costoPersonal/',
     # Supervisores
     'Proyectos':SERVIDOR['production'] + 'projects/adminProyectos/index.php',
     # Admin

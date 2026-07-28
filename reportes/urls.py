@@ -10,6 +10,7 @@ urlpatterns = [
     path('RRHH/reporteAnticipos', views.reporteAnticipos, name='reportes_rrhh_anticipos'),
     path('RRHH/gestionClientes', views.gestionClientes, name='reportes_rrhh_gestion_clientes'),
     path('RRHH/gestionHorarios', views.gestionHorarios, name='reportes_rrhh_gestion_horarios'),
+    path('RRHH/costoPersonal', views.costoPersonal, name='reportes_rrhh_costoPersonal'),
 
     # Logistica
     path('Logistica/stockcentral', views.stockcentral, name='reportes_logistica_stockcentral'),

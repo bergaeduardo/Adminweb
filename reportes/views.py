@@ -39,6 +39,12 @@ def gestionHorarios(request):
     dir_iframe = DIR_REPORTES['gestionHorarios']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
+@login_required(login_url="/login/")
+def costoPersonal(request):
+    Nombre='Costo Personal'
+    dir_iframe = DIR_REPORTES['costoPersonal']
+    return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 # Logistica
 
 @login_required(login_url="/login/")
