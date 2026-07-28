@@ -1,0 +1,604 @@
+{% load static %}
+
+<!-- Estilos Select2 (local) -->
+<link rel="stylesheet" href="/static/assets/plugins/select2/css/select2.min.css">
+<link rel="stylesheet" href="/static/assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+
+<form id="formNuevaReserva" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="tipo_registro" id="id_tipo_registro" value="TURNO">
+    
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <label class="d-block">Tipo de Registro:</label>
+            <div class="btn-group btn-group-toggle d-flex" data-toggle="buttons">
+                <label class="btn btn-outline-primary active flex-fill" id="btnTipoTurno">
+                    <input type="radio" name="tipo_registro_selector" value="TURNO" checked>
+                    <i class="fas fa-truck mr-1"></i> Turno Proveedor
+                </label>
+                <label class="btn btn-outline-info flex-fill" id="btnTipoImportado">
+                    <input type="radio" name="tipo_registro_selector" value="IMPORTADO">
+                    <i class="fas fa-file-import mr-1"></i> Turno Proveedor (Importado)
+                </label>
+                <label class="btn btn-outline-danger flex-fill" id="btnTipoBloqueo">
+                    <input type="radio" name="tipo_registro_selector" value="BLOQUEO">
+                    <i class="fas fa-ban mr-1"></i> Bloqueo de Agenda (Tarea)
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.codigo_proveedor.id_for_label }}" id="labelCodigoProveedor">Código Proveedor *</label>
+                {{ form.codigo_proveedor }}
+                <select id="selectTareaBloqueo" class="form-control" style="display: none;">
+                    <option value="">-- Seleccione una Tarea --</option>
+                    <option value="HOT">Hot Sale</option>
+                    <option value="INV">Inventario</option>
+                    <option value="CYBER">Cyber</option>
+                    <option value="ALTA">Alta Demanda</option>
+                </select>
+                {% if form.codigo_proveedor.errors %}
+                    <div class="text-danger">{{ form.codigo_proveedor.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.nombre_proveedor.id_for_label }}">Nombre Proveedor</label>
+                {{ form.nombre_proveedor }}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="{{ form.fecha.id_for_label }}">Fecha *</label>
+                {{ form.fecha }}
+                {% if form.fecha.errors %}
+                    <div class="text-danger">{{ form.fecha.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="{{ form.hora_inicio.id_for_label }}">Hora Inicio *</label>
+                {{ form.hora_inicio }}
+                {% if form.hora_inicio.errors %}
+                    <div class="text-danger">{{ form.hora_inicio.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="{{ form.hora_fin.id_for_label }}">Hora Fin *</label>
+                {{ form.hora_fin }}
+                {% if form.hora_fin.errors %}
+                    <div class="text-danger">{{ form.hora_fin.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="rowOrdenCompraRemitos">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.orden_compra.id_for_label }}">Orden de Compra *</label>
+                {{ form.orden_compra }}
+                <select id="selectOrdenCompraImportada" name="orden_compra" class="form-control" style="display: none;">
+                    <option value="">-- Seleccione una OC Importada --</option>
+                </select>
+                {% if form.orden_compra.errors %}
+                    <div class="text-danger">{{ form.orden_compra.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.remitos.id_for_label }}">Remitos *</label>
+                {{ form.remitos }}
+                {% if form.remitos.errors %}
+                    <div class="text-danger">{{ form.remitos.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="rowCantidades">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.cantidad_unidades.id_for_label }}">Cantidad Unidades *</label>
+                {{ form.cantidad_unidades }}
+                {% if form.cantidad_unidades.errors %}
+                    <div class="text-danger">{{ form.cantidad_unidades.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="{{ form.cantidad_bultos.id_for_label }}">Cantidad Bultos</label>
+                {{ form.cantidad_bultos }}
+                {% if form.cantidad_bultos.errors %}
+                    <div class="text-danger">{{ form.cantidad_bultos.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="{{ form.observaciones.id_for_label }}">Observaciones</label>
+                {{ form.observaciones }}
+                {% if form.observaciones.errors %}
+                    <div class="text-danger">{{ form.observaciones.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Documentos Adjuntos -->
+    <div class="card card-outline card-primary mb-3" id="cardAdjuntos">
+        <div class="card-header py-2" data-toggle="collapse" data-target="#collapseAdjuntosNuevo" style="cursor: pointer;">
+            <h6 class="mb-0">
+                <i class="fas fa-paperclip"></i> Documentos Adjuntos (Opcional)
+                <span class="badge badge-secondary ml-2" id="cantidadArchivosSeleccionados">0</span>
+                <i class="fas fa-chevron-down float-right"></i>
+            </h6>
+        </div>
+        <div id="collapseAdjuntosNuevo" class="collapse">
+            <div class="card-body py-2">
+                <small class="text-muted d-block mb-2">
+                    <i class="fas fa-info-circle"></i> Máximo 5 archivos, cada uno hasta 5MB.
+                    Formatos: JPG, PNG, GIF, PDF, Excel, CSV, Word.
+                </small>
+                
+                <!-- Lista de archivos a subir -->
+                <div id="listaArchivosAdjuntar" class="mb-2">
+                    <!-- Se llena dinámicamente -->
+                </div>
+                
+                <!-- Botón para agregar archivos -->
+                <div class="d-flex align-items-center">
+                    <input type="file" id="inputArchivosAdjuntos" multiple 
+                           accept=".jpg,.jpeg,.png,.gif,.pdf,.xlsx,.xls,.csv,.doc,.docx"
+                           style="display: none;">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAgregarArchivo">
+                        <i class="fas fa-plus"></i> Agregar Archivo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> 
+        <strong>Nota:</strong> Los turnos deben ser en bloques de 30 minutos. 
+        Usuarios sin permisos Admin/Logística solo pueden reservar hasta 2 bloques consecutivos (1 hora).
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Guardar Reserva
+        </button>
+    </div>
+</form>
+
+<script src="/static/assets/plugins/select2/js/select2.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// Variables para archivos adjuntos
+var archivosAdjuntos = [];
+var tiposDocumento = {}; // Almacenar tipos de documento por índice
+var maxArchivos = 5;
+var maxTamanoMB = 5;
+var extensionesPermitidas = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.xlsx', '.xls', '.csv', '.doc', '.docx'];
+
+$(document).ready(function() {
+    // Inicializar Select2 para campo de órdenes de compra
+    $('#ordenCompraSelect').select2({
+        theme: 'bootstrap4',
+        placeholder: 'Seleccione órdenes de compra...',
+        allowClear: true,
+        width: '100%',
+        dropdownParent: $('#formNuevaReserva')
+    });
+    
+    // Inicializar Select2 para importaciones con búsqueda dinámica (mínimo 3 dígitos)
+    $('#selectOrdenCompraImportada').select2({
+        theme: 'bootstrap4',
+        placeholder: 'Buscar por Orden de Compra (ingrese 3 o más dígitos)...',
+        minimumInputLength: 3,
+        allowClear: true,
+        width: '100%',
+        dropdownParent: $('#formNuevaReserva'),
+        ajax: {
+            url: '{% url "herramientas:herramientas_get_ordenes_compra_importadas" %}',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data.ordenes
+                };
+            },
+            cache: true
+        }
+    });
+    
+    // Ocultar por defecto el contenedor select2 de importación
+    $('#selectOrdenCompraImportada').next('.select2-container').hide();
+    
+    // Toggle entre Turno, Importado y Bloqueo
+    $('input[name="tipo_registro_selector"]').on('change', function() {
+        var valor = $(this).val();
+        $('#id_tipo_registro').val(valor);
+        
+        if (valor === 'BLOQUEO') {
+            // Cambiar vista a modo Bloqueo
+            $('#labelCodigoProveedor').text('Tarea de Bloqueo *');
+            $('#codigoProveedor').hide().val('').prop('required', false);
+            $('#selectTareaBloqueo').show().prop('required', true);
+            $('#nombreProveedor').val('');
+            
+            // Ocultar filas no necesarias
+            $('#rowOrdenCompraRemitos').hide();
+            $('#rowCantidades').hide();
+            $('#cardAdjuntos').hide();
+            
+            // Remover required para evitar errores de validación de elementos ocultos
+            $('#ordenCompraSelect').prop('required', false).attr('name', 'orden_compra_normal');
+            $('#ordenCompraSelect').next('.select2-container').hide();
+            $('#selectOrdenCompraImportada').prop('required', false).attr('name', 'orden_compra_importada');
+            $('#selectOrdenCompraImportada').next('.select2-container').hide();
+            $('#id_remitos').prop('required', false);
+            $('#id_cantidad_unidades').prop('required', false);
+            
+            // Limpiar y pre-llenar valores técnicos
+            $('#ordenCompraSelect').val(null).trigger('change');
+            $('#id_remitos').val('BLOQ');
+            $('#id_cantidad_unidades').val('0');
+            $('#id_cantidad_bultos').val('0');
+        } else if (valor === 'IMPORTADO') {
+            // Cambiar vista a modo Importación
+            $('#labelCodigoProveedor').text('Código Proveedor *');
+            $('#codigoProveedor').show().val('').prop('required', true).prop('readonly', true);
+            $('#selectTareaBloqueo').hide().val('').prop('required', false);
+            $('#nombreProveedor').val('');
+            
+            // Mostrar fila de OC y ocultar cantidades / adjuntos (como en bloqueo)
+            $('#rowOrdenCompraRemitos').show();
+            $('#rowCantidades').hide();
+            $('#cardAdjuntos').hide();
+            
+            // Ocultar normal select y mostrar el de importación
+            $('#ordenCompraSelect').next('.select2-container').hide();
+            $('#ordenCompraSelect').prop('required', false).attr('name', 'orden_compra_normal');
+            
+            $('#selectOrdenCompraImportada').next('.select2-container').show();
+            $('#selectOrdenCompraImportada').prop('required', true).attr('name', 'orden_compra');
+            
+            // Desactivar validaciones de otros campos
+            $('#id_remitos').prop('required', false).val('IMPORTADO');
+            $('#id_cantidad_unidades').prop('required', false).val('0');
+            $('#id_cantidad_bultos').prop('required', false).val('0');
+        } else {
+            // Cambiar vista a modo Turno
+            $('#labelCodigoProveedor').text('Código Proveedor *');
+            $('#codigoProveedor').show().val('').prop('required', true).prop('readonly', false);
+            $('#selectTareaBloqueo').hide().val('').prop('required', false);
+            $('#nombreProveedor').val('');
+            
+            // Mostrar filas
+            $('#rowOrdenCompraRemitos').show();
+            $('#ordenCompraSelect').next('.select2-container').show();
+            $('#ordenCompraSelect').prop('required', true).attr('name', 'orden_compra');
+            
+            $('#selectOrdenCompraImportada').next('.select2-container').hide();
+            $('#selectOrdenCompraImportada').prop('required', false).attr('name', 'orden_compra_importada');
+            
+            // ...
+            $('#rowCantidades').show();
+            $('#cardAdjuntos').show();
+            
+            // Restaurar required
+            $('#id_remitos').prop('required', true);
+            $('#id_cantidad_unidades').prop('required', true);
+            
+            // Limpiar valores
+            $('#ordenCompraSelect').val(null).trigger('change');
+            $('#id_remitos').val('');
+            $('#id_cantidad_unidades').val('');
+            $('#id_cantidad_bultos').val('');
+        }
+    });
+
+    // Auto-completar proveedor cuando se selecciona una OC importada en Select2
+    $('#selectOrdenCompraImportada').on('select2:select', function(e) {
+        var data = e.params.data;
+        var proveedor = data.proveedor || '';
+        var cod_provee = data.codigo_proveedor || '';
+        $('#nombreProveedor').val(proveedor);
+        $('#codigoProveedor').val(cod_provee);
+    });
+    
+    $('#selectOrdenCompraImportada').on('select2:clear', function(e) {
+        $('#nombreProveedor').val('');
+        $('#codigoProveedor').val('');
+    });
+
+    // Cambiar la tarea del bloqueo manual
+    $('#selectTareaBloqueo').on('change', function() {
+        var cod = $(this).val();
+        $('#codigoProveedor').val(cod);
+        
+        var nombres = {
+            'HOT': 'Bloqueo: Hot Sale',
+            'INV': 'Bloqueo: Inventario',
+            'CYBER': 'Bloqueo: Cyber',
+            'ALTA': 'Bloqueo: Alta Demanda'
+        };
+        
+        if (cod && nombres[cod]) {
+            $('#nombreProveedor').val(nombres[cod]);
+        } else {
+            $('#nombreProveedor').val('');
+        }
+    });
+    
+    // Auto-completar nombre proveedor y cargar OCs activas al perder foco
+    $('#codigoProveedor').on('blur', function() {
+        var codigo = $(this).val().trim().toUpperCase();
+        
+        if (codigo) {
+            // Obtener nombre del proveedor
+            $.ajax({
+                url: '{% url "herramientas:herramientas_get_nombre_proveedor" %}',
+                data: { codigo: codigo },
+                success: function(data) {
+                    if (data.nombre) {
+                        $('#nombreProveedor').val(data.nombre);
+                    } else if (data.error) {
+                        $('#nombreProveedor').val('');
+                        console.warn('Proveedor no encontrado: ' + data.error);
+                    }
+                },
+                error: function() {
+                    console.error('Error al obtener nombre de proveedor');
+                }
+            });
+            
+            // Cargar órdenes de compra activas
+            $.ajax({
+                url: '{% url "herramientas:herramientas_get_ordenes_compra_proveedor" %}',
+                data: { codigo: codigo },
+                success: function(data) {
+                    var $select = $('#ordenCompraSelect');
+                    
+                    if (data.ordenes && data.ordenes.length > 0) {
+                        // Limpiar opciones previas
+                        $select.empty();
+                        
+                        // Agregar opción vacía
+                        $select.append(
+                            $('<option></option>')
+                                .attr('value', '')
+                                .text('-- Seleccione órdenes de compra --')
+                        );
+                        
+                        // Agregar nuevas opciones
+                        $.each(data.ordenes, function(index, orden) {
+                            $select.append(
+                                $('<option></option>')
+                                    .attr('value', orden.id)
+                                    .text(orden.text)
+                            );
+                        });
+                        
+                        // Reinicializar Select2
+                        $select.trigger('change');
+                    } else {
+                        // Sin órdenes disponibles
+                        $select.empty().append(
+                            $('<option></option>')
+                                .attr('value', '')
+                                .text('No hay órdenes de compra activas')
+                        ).trigger('change');
+                    }
+                },
+                error: function() {
+                    var $select = $('#ordenCompraSelect');
+                    $select.empty().append(
+                        $('<option></option>')
+                            .attr('value', '')
+                            .text('Error al cargar órdenes')
+                    ).trigger('change');
+                }
+            });
+        } else {
+            // Si está vacío el código, limpiar nombre y OCs
+            $('#nombreProveedor').val('');
+            var $select = $('#ordenCompraSelect');
+            $select.empty().append(
+                $('<option></option>')
+                    .attr('value', '')
+                    .text('-- Ingrese código de proveedor --')
+            ).trigger('change');
+        }
+    });
+    
+    // === MANEJO DE ARCHIVOS ADJUNTOS ===
+    
+    // Botón agregar archivo
+    $('#btnAgregarArchivo').on('click', function() {
+        if (archivosAdjuntos.length >= maxArchivos) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Límite alcanzado',
+                text: 'Solo puede adjuntar un máximo de ' + maxArchivos + ' archivos.',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
+        $('#inputArchivosAdjuntos').click();
+    });
+    
+    // Input de archivos
+    $('#inputArchivosAdjuntos').on('change', function() {
+        var files = this.files;
+        
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            
+            // Validar cantidad
+            if (archivosAdjuntos.length >= maxArchivos) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Límite alcanzado',
+                    text: 'Solo puede adjuntar un máximo de ' + maxArchivos + ' archivos.',
+                    confirmButtonColor: '#ffc107'
+                });
+                break;
+            }
+            
+            // Validar tamaño
+            if (file.size > maxTamanoMB * 1024 * 1024) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Archivo muy grande',
+                    text: 'El archivo "' + file.name + '" excede el tamaño máximo de ' + maxTamanoMB + 'MB.',
+                    confirmButtonColor: '#dc3545'
+                });
+                continue;
+            }
+            
+            // Validar extensión
+            var ext = '.' + file.name.split('.').pop().toLowerCase();
+            if (extensionesPermitidas.indexOf(ext) === -1) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Formato no permitido',
+                    text: 'El archivo "' + file.name + '" no tiene un formato permitido.',
+                    confirmButtonColor: '#dc3545'
+                });
+                continue;
+            }
+            
+            // Agregar a la lista
+            archivosAdjuntos.push(file);
+            // Inicializar tipo de documento por defecto
+            tiposDocumento[archivosAdjuntos.length - 1] = 'OTRO';
+        }
+        
+        // Limpiar input y actualizar vista
+        $(this).val('');
+        actualizarListaArchivos();
+    });
+    
+    // Animación collapse
+    $('#collapseAdjuntosNuevo').on('show.bs.collapse', function () {
+        $(this).prev().find('.fa-chevron-down').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+    });
+    
+    $('#collapseAdjuntosNuevo').on('hide.bs.collapse', function () {
+        $(this).prev().find('.fa-chevron-up').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+    });
+});
+
+// Función para actualizar lista visual de archivos
+function actualizarListaArchivos() {
+    var $lista = $('#listaArchivosAdjuntar');
+    $lista.empty();
+    
+    $('#cantidadArchivosSeleccionados').text(archivosAdjuntos.length);
+    
+    if (archivosAdjuntos.length === 0) {
+        $lista.html('<p class="text-muted mb-0"><small>No hay archivos seleccionados</small></p>');
+        return;
+    }
+    
+    archivosAdjuntos.forEach(function(file, index) {
+        var tamano = (file.size / 1024).toFixed(1);
+        if (tamano > 1024) {
+            tamano = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+        } else {
+            tamano = tamano + ' KB';
+        }
+        
+        var icono = 'fa-file';
+        if (file.type.startsWith('image/')) icono = 'fa-file-image text-info';
+        else if (file.type === 'application/pdf') icono = 'fa-file-pdf text-danger';
+        else if (file.name.match(/\.(xlsx?|csv)$/i)) icono = 'fa-file-excel text-success';
+        else if (file.name.match(/\.(docx?)$/i)) icono = 'fa-file-word text-primary';
+        
+        var html = `
+            <div class="bg-light rounded p-3 mb-2" data-index="${index}">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div>
+                        <i class="fas ${icono} mr-2"></i>
+                        <span><strong>${file.name}</strong></span>
+                        <small class="text-muted ml-2">(${tamano})</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="quitarArchivo(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="form-group mb-0">
+                    <label for="tipoDoc_${index}" class="small mb-1">Tipo de Documento:</label>
+                    <select name="tipo_documento_${index}" id="tipoDoc_${index}" class="form-control form-control-sm" onchange="actualizarTipoDocumento(${index}, this.value)">
+                        <option value="REMITO">Remito</option>
+                        <option value="CONSOLIDADO">Detalle Consolidado de Carga</option>
+                        <option value="FACTURA">Factura</option>
+                        <option value="OTRO" selected>Otro Documento</option>
+                    </select>
+                </div>
+            </div>
+        `;
+        $lista.append(html);
+    });
+}
+
+// Función para quitar archivo de la lista
+function quitarArchivo(index) {
+    archivosAdjuntos.splice(index, 1);
+    // Limpiar tipo de documento asociado
+    delete tiposDocumento[index];
+    
+    // Reindexar tipos de documento
+    var nuevosTipos = {};
+    Object.keys(tiposDocumento).forEach(function(oldIndex, newIndex) {
+        if (parseInt(oldIndex) > index) {
+            nuevosTipos[oldIndex - 1] = tiposDocumento[oldIndex];
+        } else {
+            nuevosTipos[oldIndex] = tiposDocumento[oldIndex];
+        }
+    });
+    tiposDocumento = nuevosTipos;
+    
+    actualizarListaArchivos();
+}
+
+// Función para actualizar tipo de documento
+function actualizarTipoDocumento(index, tipo) {
+    tiposDocumento[index] = tipo;
+}
+
+// Obtener archivos adjuntos para envío del formulario
+function obtenerArchivosAdjuntos() {
+    return archivosAdjuntos;
+}
+
+// Obtener tipos de documento para envío del formulario
+function obtenerTiposDocumento() {
+    return tiposDocumento;
+}
+</script>

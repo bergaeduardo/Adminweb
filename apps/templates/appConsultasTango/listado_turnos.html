@@ -60,10 +60,34 @@
 
     <section class="content">
         <div class="container-fluid">
+            <!-- Mensajes de alerta -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle"></i>
+                    {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                    {% elif message.tags == 'info' %}
+                        <i class="fas fa-info-circle"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Listado de Turnos Asignados</h3>
                     <div class="card-tools">
+                        <a href="{% url 'herramientas:herramientas_calendario_reservas' %}" class="btn btn-primary btn-sm mr-1">
+                            <i class="fas fa-calendar-alt"></i> Calendario de Reservas
+                        </a>
                         <a href="{% url 'herramientas:herramientas_registro_turno' %}" class="btn btn-success btn-sm">
                             <i class="fas fa-plus"></i> Nuevo turno
                         </a>

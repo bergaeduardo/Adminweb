@@ -3,8 +3,8 @@
     <div class="panel-footer">
         <div class="alert alert-danger">
             <strong>¡Campos requeridos!</strong><br>
-            {% for err in formulario.errors %}
-                <a>{{ err }}</a><br>
+            {% for campo, errores in formulario.errors.items %}
+                <a>{{ campo }}: {{ errores|join:", " }}</a><br>
             {% endfor %}
         </div>
     </div>

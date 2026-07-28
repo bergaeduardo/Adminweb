@@ -68,8 +68,229 @@ class Turno(models.Model):
         return f'{self.IdTurno} - {self.OrdenCompra}'
 
 class CodigosError(models.Model):
-    CodigoError = models.IntegerField(primary_key=True)
-    DescripcionError = models.CharField(max_length=100)
+    """
+    Catálogo de códigos de error para incidencias en recepción de mercadería
+    Permite categorización y activación/desactivación
+    """
+    CodigoError = models.IntegerField(primary_key=True, verbose_name="Código")
+    DescripcionError = models.CharField(max_length=200, verbose_name="Descripción del Error")
+    Categoria = models.CharField(
+        max_length=50,
+        choices=[
+            ('DOCUMENTACION', 'Documentación'),
+            ('MERCADERIA', 'Mercadería'),
+            ('EMBALAJE', 'Embalaje'),
+            ('CANTIDAD', 'Cantidad'),
+            ('CALIDAD', 'Calidad'),
+            ('ETIQUETADO', 'Etiquetado'),
+            ('OTROS', 'Otros'),
+        ],
+        default='OTROS',
+        verbose_name="Categoría"
+    )
+    Activo = models.BooleanField(default=True, verbose_name="Activo")
+    FechaCreacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha Creación")
+    FechaModificacion = models.DateTimeField(auto_now=True, verbose_name="Fecha Modificación")
+    
+    class Meta:
+        db_table = 'CodigosError'
+        ordering = ['Categoria', 'CodigoError']
+        verbose_name = 'Código de Error'
+        verbose_name_plural = 'Códigos de Error'
+    
+    def __str__(self):
+        return f'{self.CodigoError} - {self.DescripcionError}'
+
+
+class EstadoTurno(models.Model):
+    """
+    Modelo para gestionar estados dinámicos de turnos
+    Solo usuarios Admin y Logistica_Sup pueden gestionarlos
+    """
+    id_estado = models.AutoField(primary_key=True, db_column='id_estado')
+    nombre = models.CharField(max_length=50, unique=True, verbose_name="Nombre del Estado")
+    descripcion = models.CharField(max_length=200, null=True, blank=True, verbose_name="Descripción")
+    orden_ejecucion = models.IntegerField(unique=True, verbose_name="Orden de Ejecución")
+    es_requerido = models.BooleanField(default=True, verbose_name="¿Es Requerido?")
+    permite_editar = models.BooleanField(default=True, verbose_name="¿Permite Editar Turno?")
+    color = models.CharField(max_length=7, default='#17a2b8', verbose_name="Color (Hex)")
+    activo = models.BooleanField(default=True, verbose_name="Estado Activo")
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    fecha_modificacion = models.DateTimeField(auto_now=True, verbose_name="Fecha de Modificación")
+    
+    class Meta:
+        db_table = 'EstadoTurno'
+        ordering = ['orden_ejecucion']
+        verbose_name = 'Estado de Turno'
+        verbose_name_plural = 'Estados de Turnos'
+    
+    def __str__(self):
+        return f'{self.orden_ejecucion}. {self.nombre}'
+
+class TurnoReserva(models.Model):
+    """
+    Modelo para gestionar reservas de turnos para proveedores
+    Usa bloques de 30 minutos y valida límites para usuarios no-admin
+    """
+    id_turno_reserva = models.AutoField(primary_key=True, db_column='id_turno_reserva')
+    codigo_proveedor = models.CharField(max_length=6, null=False, blank=False, verbose_name="Código Proveedor")
+    nombre_proveedor = models.CharField(max_length=200, null=True, blank=True, verbose_name="Nombre Proveedor")
+    fecha = models.DateField(verbose_name="Fecha del Turno")
+    hora_inicio = models.TimeField(verbose_name="Hora Inicio")
+    hora_fin = models.TimeField(verbose_name="Hora Fin")
+    orden_compra = models.CharField(max_length=500, null=False, blank=False, verbose_name="Órdenes de Compra")
+    remitos = models.CharField(max_length=100, null=False, blank=False, verbose_name="Remitos")
+    cantidad_unidades = models.IntegerField(null=False, blank=False, verbose_name="Cantidad de Unidades")
+    cantidad_bultos = models.IntegerField(null=True, blank=True, verbose_name="Cantidad de Bultos")
+    observaciones = models.TextField(max_length=300, null=True, blank=True, verbose_name="Observaciones")
+    usuario_creador = models.CharField(max_length=150, verbose_name="Usuario que Creó el Turno")
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    fecha_modificacion = models.DateTimeField(auto_now=True, verbose_name="Fecha de Modificación")
+    estado = models.ForeignKey(
+        EstadoTurno,
+        on_delete=models.PROTECT,
+        related_name='turnos',
+        db_column='id_estado',
+        verbose_name="Estado del Turno"
+    )
+    usuario_ultima_modificacion_estado = models.CharField(
+        max_length=150, 
+        null=True, 
+        blank=True, 
+        verbose_name="Usuario Última Modificación Estado"
+    )
+    estado_actual_desde = models.DateTimeField(null=True, blank=True, verbose_name="Estado Actual Desde")
+
+    class Meta:
+        db_table = 'TurnoReserva'
+        ordering = ['fecha', 'hora_inicio']
+        verbose_name = 'Turno Reserva'
+        verbose_name_plural = 'Turnos Reservas'
+        # Evitar superposición de turnos
+        unique_together = [['fecha', 'hora_inicio']]
+
+    def __str__(self):
+        return f'{self.codigo_proveedor} - {self.fecha} {self.hora_inicio}-{self.hora_fin}'
+
+    def get_duracion_minutos(self):
+        """Calcula la duración del turno en minutos"""
+        from datetime import datetime, timedelta
+        inicio = datetime.combine(self.fecha, self.hora_inicio)
+        fin = datetime.combine(self.fecha, self.hora_fin)
+        return int((fin - inicio).total_seconds() / 60)
+
+class HistorialEstadoTurno(models.Model):
+    """
+    Modelo para registrar historial de cambios de estado de turnos
+    Auditoría completa de quién y cuándo cambió cada estado
+    """
+    id_historial = models.AutoField(primary_key=True, db_column='id_historial')
+    turno = models.ForeignKey(
+        TurnoReserva,
+        on_delete=models.CASCADE,
+        related_name='historial_estados',
+        db_column='id_turno_reserva',
+        verbose_name="Turno Reserva"
+    )
+    estado_anterior = models.ForeignKey(
+        EstadoTurno,
+        on_delete=models.PROTECT,
+        related_name='historiales_como_anterior',
+        db_column='id_estado_anterior',
+        null=True,
+        blank=True,
+        verbose_name="Estado Anterior"
+    )
+    estado_nuevo = models.ForeignKey(
+        EstadoTurno,
+        on_delete=models.PROTECT,
+        related_name='historiales_como_nuevo',
+        db_column='id_estado_nuevo',
+        verbose_name="Estado Nuevo"
+    )
+    usuario = models.CharField(max_length=150, verbose_name="Usuario que Realizó el Cambio")
+    fecha_cambio = models.DateTimeField(auto_now_add=True, verbose_name="Fecha y Hora del Cambio")
+    observaciones = models.TextField(max_length=500, null=True, blank=True, verbose_name="Observaciones")
+    
+    class Meta:
+        db_table = 'HistorialEstadoTurno'
+        ordering = ['-fecha_cambio']
+        verbose_name = 'Historial de Estado'
+        verbose_name_plural = 'Historiales de Estados'
+    
+    def __str__(self):
+        anterior = self.estado_anterior.nombre if self.estado_anterior else "Inicial"
+        return f'{self.turno} - {anterior} → {self.estado_nuevo.nombre}'
+
+class IncidenciasTurno(models.Model):
+    """
+    Modelo para registrar incidencias/errores detectados durante la recepción de mercadería
+    Permite a operadores documentar problemas con códigos de error predefinidos
+    """
+    id_incidencia = models.AutoField(primary_key=True, db_column='id_incidencia')
+    turno = models.ForeignKey(
+        TurnoReserva,
+        on_delete=models.CASCADE,
+        related_name='incidencias',
+        db_column='id_turno_reserva',
+        verbose_name="Turno Reserva"
+    )
+    codigo_error = models.ForeignKey(
+        CodigosError,
+        on_delete=models.PROTECT,
+        related_name='incidencias',
+        db_column='CodigoError',
+        verbose_name="Código de Error"
+    )
+    cantidad_afectada = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Cantidad Afectada"
+    )
+    detalle = models.TextField(
+        max_length=500,
+        null=True,
+        blank=True,
+        verbose_name="Detalle de la Incidencia"
+    )
+    usuario_registro = models.CharField(
+        max_length=150,
+        verbose_name="Usuario que Registró"
+    )
+    fecha_registro = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha y Hora de Registro"
+    )
+    resuelto = models.BooleanField(
+        default=False,
+        verbose_name="¿Resuelto?"
+    )
+    fecha_resolucion = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha Resolución"
+    )
+    usuario_resolucion = models.CharField(
+        max_length=150,
+        null=True,
+        blank=True,
+        verbose_name="Usuario Resolución"
+    )
+    observaciones_resolucion = models.TextField(
+        max_length=500,
+        null=True,
+        blank=True,
+        verbose_name="Observaciones Resolución"
+    )
+    
+    class Meta:
+        db_table = 'IncidenciasTurno'
+        ordering = ['-fecha_registro']
+        verbose_name = 'Incidencia de Turno'
+        verbose_name_plural = 'Incidencias de Turnos'
+    
+    def __str__(self):
+        return f'Incidencia #{self.id_incidencia} - Turno {self.turno.id_turno_reserva} - {self.codigo_error}'
 
 class EB_facturaManual(models.Model):
     fechaRegistro = models.DateTimeField(auto_now_add=True)
@@ -78,3 +299,120 @@ class EB_facturaManual(models.Model):
     numeroFactura = models.CharField(max_length=14, validators=[RegexValidator(regex='^\d{5}-\d{8}$', message='El formato debe ser XXXXX-XXXXXXX')])
     imgFactura = models.ImageField(upload_to='images/', blank=True, null=True)
     fechaVencimiento = models.DateField(blank=True, null=True)
+
+
+def validar_extension_adjunto(value):
+    """Validador para extensiones de archivos permitidas"""
+    import os
+    ext = os.path.splitext(value.name)[1].lower()
+    extensiones_permitidas = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.xlsx', '.xls', '.csv', '.doc', '.docx']
+    if ext not in extensiones_permitidas:
+        from django.core.exceptions import ValidationError
+        raise ValidationError(
+            f'Extensión no permitida. Extensiones válidas: {", ".join(extensiones_permitidas)}'
+        )
+
+
+def ruta_adjunto_turno(instance, filename):
+    """Genera la ruta de almacenamiento para adjuntos de turnos"""
+    import os
+    from datetime import datetime
+    ext = os.path.splitext(filename)[1]
+    nuevo_nombre = f"{instance.turno.id_turno_reserva}_{datetime.now().strftime('%Y%m%d_%H%M%S')}{ext}"
+    return os.path.join('adjuntos_turnos', str(instance.turno.id_turno_reserva), nuevo_nombre)
+
+
+class AdjuntoTurnoReserva(models.Model):
+    """
+    Modelo para almacenar documentos adjuntos a turnos de reserva.
+    Permite subir remitos, consolidados de carga, y otros documentos.
+    Solo se puede editar/eliminar cuando el turno está en estado RESERVADO.
+    """
+    TIPO_DOCUMENTO_CHOICES = [
+        ('REMITO', 'Remito'),
+        ('CONSOLIDADO', 'Detalle Consolidado de Carga'),
+        ('FACTURA', 'Factura'),
+        ('OTRO', 'Otro Documento'),
+    ]
+    
+    id_adjunto = models.AutoField(primary_key=True, db_column='id_adjunto')
+    turno = models.ForeignKey(
+        TurnoReserva,
+        on_delete=models.CASCADE,
+        related_name='adjuntos',
+        db_column='id_turno_reserva',
+        verbose_name="Turno Reserva"
+    )
+    archivo = models.FileField(
+        upload_to=ruta_adjunto_turno,
+        validators=[validar_extension_adjunto],
+        verbose_name="Archivo"
+    )
+    tipo_documento = models.CharField(
+        max_length=20,
+        choices=TIPO_DOCUMENTO_CHOICES,
+        default='OTRO',
+        verbose_name="Tipo de Documento"
+    )
+    nombre_original = models.CharField(
+        max_length=255,
+        verbose_name="Nombre Original del Archivo"
+    )
+    tipo_archivo = models.CharField(
+        max_length=100,
+        verbose_name="Tipo MIME del Archivo"
+    )
+    tamaño_bytes = models.PositiveIntegerField(
+        verbose_name="Tamaño en Bytes"
+    )
+    usuario_subio = models.CharField(
+        max_length=150,
+        verbose_name="Usuario que Subió el Archivo"
+    )
+    fecha_subida = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha de Subida"
+    )
+    
+    class Meta:
+        db_table = 'AdjuntoTurnoReserva'
+        ordering = ['-fecha_subida']
+        verbose_name = 'Adjunto de Turno'
+        verbose_name_plural = 'Adjuntos de Turnos'
+    
+    def __str__(self):
+        return f'{self.nombre_original} - Turno #{self.turno.id_turno_reserva}'
+    
+    def es_imagen(self):
+        """Verifica si el archivo es una imagen"""
+        return self.tipo_archivo.startswith('image/')
+    
+    def es_pdf(self):
+        """Verifica si el archivo es un PDF"""
+        return self.tipo_archivo == 'application/pdf'
+    
+    def get_extension(self):
+        """Obtiene la extensión del archivo"""
+        import os
+        return os.path.splitext(self.nombre_original)[1].lower()
+    
+    def get_tamaño_legible(self):
+        """Retorna el tamaño del archivo en formato legible"""
+        if self.tamaño_bytes < 1024:
+            return f"{self.tamaño_bytes} B"
+        elif self.tamaño_bytes < 1024 * 1024:
+            return f"{self.tamaño_bytes / 1024:.1f} KB"
+        else:
+            return f"{self.tamaño_bytes / (1024 * 1024):.2f} MB"
+    
+    def puede_eliminar(self):
+        """Verifica si el adjunto puede ser eliminado (solo si turno está en RESERVADO)"""
+        return self.turno.estado and self.turno.estado.nombre == 'RESERVADO'
+    
+    def delete(self, *args, **kwargs):
+        """Elimina el archivo físico al eliminar el registro"""
+        if self.archivo:
+            import os
+            if os.path.isfile(self.archivo.path):
+                os.remove(self.archivo.path)
+        super().delete(*args, **kwargs)

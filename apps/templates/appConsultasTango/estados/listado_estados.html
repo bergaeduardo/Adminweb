@@ -1,0 +1,269 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %} Gestión de Estados de Turnos {% endblock %}
+
+{% block stylesheets %}
+<!-- Google Font: Source Sans Pro -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+<!-- Toastr -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
+
+<style>
+    .estado-card {
+        border-left: 5px solid;
+        transition: transform 0.2s;
+        cursor: move;
+    }
+    .estado-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .color-preview {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        border: 2px solid #dee2e6;
+        display: inline-block;
+    }
+    .badge-orden {
+        font-size: 1.2rem;
+        padding: 0.5rem 0.75rem;
+    }
+    .sortable-ghost {
+        opacity: 0.4;
+        background-color: #f8f9fa;
+    }
+    .estado-activo {
+        opacity: 1;
+    }
+    .estado-inactivo {
+        opacity: 0.6;
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>
+                        <i class="fas fa-tasks"></i> Gestión de Estados de Turnos
+                    </h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'herramientas:herramientas_listado_turnos' %}">Turnos</a></li>
+                        <li class="breadcrumb-item active">Estados</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Mensajes de alerta -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Botón de crear nuevo estado -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <a href="{% url 'herramientas:herramientas_crear_estado_turno' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Nuevo Estado
+                    </a>
+                    <a href="{% url 'herramientas:herramientas_calendario_reservas' %}" class="btn btn-secondary">
+                        <i class="fas fa-calendar"></i> Volver al Calendario
+                    </a>
+                </div>
+            </div>
+
+            <!-- Instrucciones -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Instrucciones:</strong> Puede arrastrar y soltar las tarjetas para reordenar los estados. 
+                        El orden de ejecución determina la secuencia en que los turnos avanzan por cada estado.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Listado de estados -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-list"></i> Estados Configurados ({{ estados|length }})
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            {% if estados %}
+                            <div id="estados-container" class="row">
+                                {% for estado in estados %}
+                                <div class="col-md-6 col-lg-4 mb-3" data-estado-id="{{ estado.id_estado }}" data-orden="{{ estado.orden_ejecucion }}">
+                                    <div class="card estado-card {% if estado.activo %}estado-activo{% else %}estado-inactivo{% endif %}" 
+                                         style="border-left-color: {{ estado.color }};">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <span class="badge badge-primary badge-orden">
+                                                        {{ estado.orden_ejecucion }}
+                                                    </span>
+                                                </div>
+                                                <div class="color-preview" style="background-color: {{ estado.color }};"></div>
+                                            </div>
+                                            
+                                            <h5 class="card-title mb-2">
+                                                {{ estado.nombre }}
+                                                {% if not estado.activo %}
+                                                <span class="badge badge-secondary">Inactivo</span>
+                                                {% endif %}
+                                            </h5>
+                                            
+                                            {% if estado.descripcion %}
+                                            <p class="card-text text-muted small">
+                                                {{ estado.descripcion }}
+                                            </p>
+                                            {% endif %}
+                                            
+                                            <div class="mb-2">
+                                                {% if estado.es_requerido %}
+                                                <span class="badge badge-success">
+                                                    <i class="fas fa-check-circle"></i> Requerido
+                                                </span>
+                                                {% else %}
+                                                <span class="badge badge-warning">
+                                                    <i class="fas fa-info-circle"></i> Opcional
+                                                </span>
+                                                {% endif %}
+                                                
+                                                {% if estado.permite_editar %}
+                                                <span class="badge badge-primary">
+                                                    <i class="fas fa-edit"></i> Editable
+                                                </span>
+                                                {% else %}
+                                                <span class="badge badge-danger">
+                                                    <i class="fas fa-lock"></i> No Editable
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="btn-group btn-block" role="group">
+                                                <a href="{% url 'herramientas:herramientas_editar_estado_turno' estado.id_estado %}" 
+                                                   class="btn btn-sm btn-info">
+                                                    <i class="fas fa-edit"></i> Editar
+                                                </a>
+                                                <a href="{% url 'herramientas:herramientas_eliminar_estado_turno' estado.id_estado %}" 
+                                                   class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash"></i> Eliminar
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                No hay estados configurados. Cree al menos un estado para comenzar.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<!-- jQuery -->
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/assets/js/adminlte.min.js"></script>
+<!-- Toastr -->
+<script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js"></script>
+<!-- Sortable.js -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // Configurar Sortable.js para drag and drop
+        var estadosContainer = document.getElementById('estados-container');
+        
+        if (estadosContainer) {
+            var sortable = Sortable.create(estadosContainer, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                handle: '.estado-card',
+                onEnd: function(evt) {
+                    // Recopilar nuevo orden
+                    var nuevoOrden = [];
+                    var items = estadosContainer.querySelectorAll('[data-estado-id]');
+                    
+                    items.forEach(function(item, index) {
+                        nuevoOrden.push({
+                            id: parseInt(item.getAttribute('data-estado-id')),
+                            orden: index + 1
+                        });
+                    });
+                    
+                    // Enviar al servidor
+                    $.ajax({
+                        url: '{% url "herramientas:herramientas_reordenar_estados_turno" %}',
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        contentType: 'application/json',
+                        data: JSON.stringify(nuevoOrden),
+                        success: function(response) {
+                            if (response.success) {
+                                // Actualizar badges de orden
+                                items.forEach(function(item, index) {
+                                    var badge = item.querySelector('.badge-orden');
+                                    if (badge) {
+                                        badge.textContent = index + 1;
+                                    }
+                                    item.setAttribute('data-orden', index + 1);
+                                });
+                                
+                                // Mostrar mensaje de éxito
+                                toastr.success('Estados reordenados exitosamente');
+                            }
+                        },
+                        error: function(xhr) {
+                            toastr.error('Error al reordenar estados');
+                            // Recargar página para restaurar orden original
+                            location.reload();
+                        }
+                    });
+                }
+            });
+        }
+    });
+</script>
+{% endblock javascripts %}
