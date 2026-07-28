@@ -61,12 +61,9 @@ DATABASES = {
             'USER': 'sa',
             'PASSWORD': config('DB_WMS_PASSWORD'),
             # ----Produccion----
-            'HOST': '192.168.0.226\SQL2016',
+            'HOST': 'XL-SALES\SQLEXPRESS',
 
-            # ----Testing----
-            # 'HOST': '192.168.0.227',
-
-            'PORT': '1433',
+            # 'PORT': '1433',
             'OPTIONS': {
                 'driver': 'ODBC Driver 17 for SQL Server',
             },
@@ -85,6 +82,20 @@ DATABASES = {
                 'driver': 'ODBC Driver 17 for SQL Server',
             },
             
+    },
+    # Base sistemas (XL-SALES) - tabla PuntosDeVenta
+    'mi_db_5':{
+            'ENGINE': 'mssql',
+            'NAME': 'sistemas',
+            'USER': 'sa',
+            'PASSWORD': 'Axoft1988',
+            'HOST': 'XL-APPS',
+            'PORT': '1433',
+
+            'OPTIONS': {
+                'driver': 'ODBC Driver 17 for SQL Server',
+            },
+
     },
     'db_proveedores': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',

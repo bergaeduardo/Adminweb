@@ -73,6 +73,20 @@ DATABASES = {
             },
             
     },
+    # Base sistemas (XL-SALES) - tabla PuntosDeVenta
+    'mi_db_5':{
+            'ENGINE': 'mssql',
+            'NAME': 'sistemas',
+            'USER': 'sa',
+            'PASSWORD': 'Axoft1988',
+            'HOST': 'XL-APPS',
+            'PORT': '1433',
+
+            'OPTIONS': {
+                'driver': 'ODBC Driver 17 for SQL Server',
+            },
+
+    },
     'db_proveedores': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': config('DB_PROVEEDORES_NAME', default='proveedores_xl'),
