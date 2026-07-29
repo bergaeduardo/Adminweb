@@ -177,6 +177,15 @@
         </a>
       </li>
       {% endif %}
+      {# Dashboard Sales Gerencia - Solo usuario ID 40 #}
+      {% if request.user|has_any_group:"admin" or request.user.id == 40 %}
+        <li class="nav-item">
+          <a href="/../Dashboard/salesGerencia" class="nav-link {% if 'salesGerencia' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Sales Gerencia</p>
+          </a>
+        </li>
+      {% endif %}
     <!-- Fin 	Comercial -->
 
 

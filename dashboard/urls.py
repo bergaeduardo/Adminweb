@@ -14,6 +14,7 @@ urlpatterns = [
     path('Geodatos', views.Geodatos, name='dashboard_geodatos'),
     path('Notas_de_credito', views.Notas_de_credito, name='dashboard_notas_de_credito'),
     path('Velocidad_de_Ventas', views.Velocidad_de_Ventas, name='dashboard_velocidad_de_ventas'),
+    path('salesGerencia', views.salesGerencia, name='dashboard_sales_gerencia'),
     # Mayoristas
     path('Ventas_Mayoristas', views.Ventas_Mayoristas, name='dashboard_ventas_mayoristas'),
     # Ecommerce

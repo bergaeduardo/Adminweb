@@ -57,6 +57,12 @@ def Velocidad_de_Ventas(request):
     dir_iframe = DIR_PBI['Velocidad_de_Ventas']
     return render(request,'home/PlantillaDash_PBI.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
+@login_required(login_url="/login/")
+def salesGerencia(request):
+    Nombre='Sales Gerencia'
+    dir_iframe = DIR_PBI['salesGerencia']
+    return render(request,'home/PlantillaDash_PBI.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
+
 # Mayoristas
 @login_required(login_url="/login/")
 def Ventas_Mayoristas(request):

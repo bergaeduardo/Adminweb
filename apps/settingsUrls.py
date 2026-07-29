@@ -13,6 +13,7 @@ DIR_PBI = {
     'Geodatos':'https://app.powerbi.com/view?r=eyJrIjoiMjA3OGM2MGItYmEzYy00ZWZmLTk4NDYtMzMwNWIzZDk3ZTI3IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     'Notas_de_credito':'https://app.powerbi.com/view?r=eyJrIjoiYzRjNzY0MGItZDk0MC00NWIyLWI5NmItYzcxYjhhMzA4MTQ3IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     'Velocidad_de_Ventas':'https://app.powerbi.com/view?r=eyJrIjoiMWJiNDk5ZDAtYzFkYy00OWRmLTk1OTYtMDIxNWU2MTllNmEzIiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
+    'salesGerencia':'https://app.xl.com.ar/bi/sales/index.php',
     # Mayoristas
     'Ventas_Mayoristas':'https://app.powerbi.com/view?r=eyJrIjoiMzcwMDA2ZGItMTFkZS00MThiLWI2N2EtYWFiODY5YzYzYTA0IiwidCI6IjQ0Y2E2MmNkLTY4MjItNDZkNC05NTUxLTEzNDQ5N2ZmM2VjMiIsImMiOjR9',
     # Ecommerce
