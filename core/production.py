@@ -1,8 +1,12 @@
 from core.settings import *
 from decouple import config
 
+# Para que este modulo se use en runtime, el .env del servidor debe tener
+# DJANGO_SETTINGS_MODULE=core.production (manage.py/wsgi.py/asgi.py usan
+# 'core.local' por defecto si la variable no esta definida).
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 # load production server from .env
 # ALLOWED_HOSTS = ['localhost', '127.0.0.1', config('SERVER', default='127.0.0.1')]
@@ -88,7 +92,7 @@ DATABASES = {
             'ENGINE': 'mssql',
             'NAME': 'sistemas',
             'USER': 'sa',
-            'PASSWORD': 'Axoft1988',
+            'PASSWORD': config('DB_SISTEMAS_PASSWORD'),
             'HOST': 'XL-APPS',
             'PORT': '1433',
 

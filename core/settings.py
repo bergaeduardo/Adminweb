@@ -130,7 +130,7 @@ SESSION_COOKIE_AGE = 12 * 60 * 60
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = [CORE_DIR + '/apps/static']
 
-# IMPORT_EXPORT_USE_TRANSACTIONS = True # Use Django transactions 
+# IMPORT_EXPORT_USE_TRANSACTIONS = True # Use Django transactions
 
 MEDIA_ROOT = os.path.join(CORE_DIR, 'media')
 MEDIA_URL = '/media/'

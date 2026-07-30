@@ -1,9 +1,6 @@
 from core.settings import *
 from decouple import config
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
-
 # load production server from .env
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', config('SERVER', default='127.0.0.1')]
 
@@ -23,7 +20,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'postgres',
         'USER': 'postgres',
-        'PASSWORD': 'P3RTU$',
+        'PASSWORD': config('DB_DEFAULT_PASSWORD'),
         'HOST': '127.0.0.1',
         'DATABASE_PORT': '5232',
     },
@@ -32,7 +29,7 @@ DATABASES = {
             'ENGINE': 'mssql',
             'NAME': 'LAKER_SA',
             'USER': 'sa',
-            'PASSWORD': 'Axoft1988',
+            'PASSWORD': config('DB_TANGO_PASSWORD'),
             'HOST': 'XL-TANGO',
             'PORT': '1433',
 
@@ -46,14 +43,14 @@ DATABASES = {
             'ENGINE': 'mssql',
             'NAME': 'UbicacionesStockMvc',
             'USER': 'sa',
-            'PASSWORD': 'Axoft1988',
+            'PASSWORD': config('DB_WMS_PASSWORD'),
             # ----Produccion----
-            'HOST': '192.168.0.226\SQL2016',
+            'HOST': 'XL-SALES\SQLEXPRESS',
 
             # ----Testing----
             # 'HOST': '192.168.0.227',
 
-            'PORT': '1433',
+            # 'PORT': '1433',
             'OPTIONS': {
                 'driver': 'ODBC Driver 17 for SQL Server',
             },
@@ -64,7 +61,7 @@ DATABASES = {
             'ENGINE': 'mssql',
             'NAME': 'LOCALES_LAKERS',
             'USER': 'sa',
-            'PASSWORD': 'Axoft',
+            'PASSWORD': config('DB_LOCALES_PASSWORD'),
             'HOST': 'XL-LAKERBIS',
             'PORT': '1433',
 
@@ -78,7 +75,7 @@ DATABASES = {
             'ENGINE': 'mssql',
             'NAME': 'sistemas',
             'USER': 'sa',
-            'PASSWORD': 'Axoft1988',
+            'PASSWORD': config('DB_SISTEMAS_PASSWORD'),
             'HOST': 'XL-APPS',
             'PORT': '1433',
 
