@@ -79,15 +79,15 @@ def obtenerInformacionArticulo(CodigoArt,DescripcionMetaTag):
         sql = ''' EXEC SP_EB_DescArt_VtxAr '''+ "'" + CodigoArt + "'" + ',' + "'" + DescripcionMetaTag + "'"
         cursor.execute(sql)
         # print(sql)
-        resulatado = cursor.fetchone()
-        # print(resulatado[0])
-    
-    # Validar que resulatado no sea None antes de acceder a índices
-    if resulatado is None:
+        # FOR JSON PATH devuelve el JSON partido en varias filas cuando supera
+        # el tamaño máximo de una celda; hay que concatenarlas todas.
+        filas = cursor.fetchall()
+
+    if not filas:
         print(f"Error: No se pudo obtener información para el artículo {CodigoArt}")
         return None
-    
-    return resulatado[0]
+
+    return ''.join(fila[0] for fila in filas)
 
 def cargar_articulo(articulo, descripcion):
     # print('Cargar articulo: ' + articulo + ' ' + descripcion)

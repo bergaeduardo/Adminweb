@@ -1957,7 +1957,7 @@ def import_art_vtex(request):
                                         mensaje_error = f'El stored procedure devolvió datos inválidos para el artículo {row_data[0]}'
                             except json.JSONDecodeError as e:
                                 print(f"Error decodificando JSON para artículo {row_data[0]}: {str(e)}")
-                                print(f"Contenido recibido: {resultado_json}")
+                                # print(f"Contenido recibido: {resultado_json}")
                                 if not mensaje_error:
                                     mensaje_error = 'Error procesando algunos artículos. Revisar datos de entrada.'
                         else:
@@ -2002,6 +2002,7 @@ def crear_archivo_excel(tempJson, nombre_archivo):
 
     # Construir la ruta absoluta del archivo
     ruta_archivo = os.path.join(settings.MEDIA_ROOT, nombre_archivo)
+    print('Ruta_archivo_resultado: ', ruta_archivo)
 
     try:
         # Abrir el archivo de Excel existente
