@@ -42,12 +42,12 @@ from django.templatetags.static import static
 
 
 def usuario_es_admin_o_sistemas(user):
-    """Verifica si el usuario pertenece a los grupos 'admin' o 'Sistemas'"""
-    return user.groups.filter(name__in=['admin', 'Sistemas']).exists() or user.is_superuser
+    """Verifica si el usuario pertenece a los grupos 'admin', 'Sistemas' o 'Gerencia_Adm'"""
+    return user.groups.filter(name__in=['admin', 'Sistemas', 'Gerencia_Adm']).exists() or user.is_superuser
 
 def usuario_puede_editar_sucursal(user):
-    """Verifica si el usuario puede editar (completo o básico) o es admin/Sistemas"""
-    return user.groups.filter(name__in=['admin', 'Sistemas', 'Comercial_suc', 'Comercial_sup', 'Comercial_fr', 'Comercial_may']).exists() or user.is_superuser
+    """Verifica si el usuario puede editar (completo o básico) o es admin/Sistemas/Gerencia_Adm"""
+    return user.groups.filter(name__in=['admin', 'Sistemas', 'Gerencia_Adm', 'Comercial_suc', 'Comercial_sup', 'Comercial_fr', 'Comercial_may']).exists() or user.is_superuser
 
 def _sync_punto_de_venta(nro_sucursal, nombre, activo):
     """Crea o actualiza en PuntosDeVenta (base sistemas, XL-APPS) el registro
@@ -336,10 +336,10 @@ def buscar_sucursales(request):
     tipo_local    = (request.POST.get('tipo_local')    or request.GET.get('tipo_local', '')).strip()
     grupo_empresario = (request.POST.get('grupo_empresario') or request.GET.get('grupo_empresario', '')).strip()
 
-    # mostrar_todos: solo permitido para admin / Sistemas / superuser
+    # mostrar_todos: permitido para admin / Sistemas / Gerencia_Adm / superuser
     mostrar_todos_raw = (request.POST.get('mostrar_todos') or request.GET.get('mostrar_todos', 'false'))
     puede_ver_todo = (
-        request.user.groups.filter(name__in=['admin', 'Sistemas']).exists()
+        request.user.groups.filter(name__in=['admin', 'Sistemas', 'Gerencia_Adm']).exists()
         or request.user.is_superuser
     )
 
