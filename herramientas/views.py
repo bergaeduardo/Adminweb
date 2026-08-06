@@ -1706,7 +1706,7 @@ def anulador(request):
 def PanelReposicionUY(request):
     Nombre = 'Panel de Reposición UY'
     dir_iframe = DIR_HERAMIENTAS['PanelReposicionUY']
-    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+    return redirect(dir_iframe)
 
 
 
