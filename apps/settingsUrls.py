@@ -112,6 +112,7 @@ DIR_HERAMIENTAS = {
     'GestionEquivalentes':SERVIDOR['production']  + 'comercial/abastecimiento/analisisProducto/gestion_equivalencias.php',
     'StockBase':SERVIDOR['production']  + 'comercial/abastecimiento/stock_base/',
     'MedidasLocales':SERVIDOR['production']  + 'comercial/abastecimiento/gestor_locales/',
+    'PanelReposicionUY':SERVIDOR['production']  + 'comercial/abastecimiento/reposicion/panel.php',
     # Comercial
     'Gestion_categoria_productos':SERVIDOR['production']  + 'comercial/producto/gestionCategoriaProductos.php',
     'AdministrarCuotas':SERVIDOR['production']  + 'promociones/Cuotas/gestionar.php',

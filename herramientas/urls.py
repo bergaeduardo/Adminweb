@@ -62,6 +62,7 @@ urlpatterns = [
     path('MaestroDestinos', views.MaestroDestinos, name='herramientas_maestro_destinos'),
     path('GestionEquivalentes', views.GestionEquivalentes, name='herramientas_gestion_equivalentes'),
     path('StockBase', views.StockBase, name='herramientas_stock_base'),
+    path('PanelReposicionUY', views.PanelReposicionUY, name='herramientas_panel_reposicion_uy'),
     # Comercial
     path('GestionCategoriaProductos', views.Gestion_categoria_productos, name='herramientas_gestion_categoria_productos'),
     path('AdministrarCuotas', views.AdministrarCuotas, name='herramientas_administrar_cuotas'),

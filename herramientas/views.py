@@ -1702,6 +1702,12 @@ def anulador(request):
     dir_iframe = DIR_HERAMIENTAS['anulador']
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
 
+@login_required(login_url="/login/")
+def PanelReposicionUY(request):
+    Nombre = 'Panel de Reposición UY'
+    dir_iframe = DIR_HERAMIENTAS['PanelReposicionUY']
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+
 
 
 # Mayoristas
