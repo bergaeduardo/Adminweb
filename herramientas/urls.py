@@ -59,6 +59,9 @@ urlpatterns = [
     # Abastecimiento
     path('Stock_excluido', views.Stock_excluido, name='herramientas_stock_excluido'),
     path('Recodificacion', views.Recodificacion, name='herramientas_recodificacion'),
+    path('AltaMuestrasArticulos', views.alta_muestras_articulos, name='herramientas_alta_muestras_articulos'),
+    path('AltaMuestrasArticulos/importar', views.alta_muestras_articulos_importar, name='herramientas_alta_muestras_articulos_importar'),
+    path('AltaMuestrasArticulos/ejecutar', views.alta_muestras_articulos_ejecutar, name='herramientas_alta_muestras_articulos_ejecutar'),
     path('MaestroDestinos', views.MaestroDestinos, name='herramientas_maestro_destinos'),
     path('GestionEquivalentes', views.GestionEquivalentes, name='herramientas_gestion_equivalentes'),
     path('StockBase', views.StockBase, name='herramientas_stock_base'),

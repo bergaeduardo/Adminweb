@@ -1577,6 +1577,88 @@ def Recodificacion(request):
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre})
 
 @login_required(login_url="/login/")
+def alta_muestras_articulos(request):
+    return render(request, 'herramientas/alta_muestras_articulos/index.html')
+
+@login_required(login_url="/login/")
+def alta_muestras_articulos_importar(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    try:
+        payload = json.loads(request.body)
+        filas_crudas = payload.get('filas', [])
+    except (json.JSONDecodeError, AttributeError):
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+
+    filas_validas = []
+    errores = []
+    for indice, fila in enumerate(filas_crudas, start=1):
+        if len(fila) != 3:
+            errores.append(f'Fila {indice}: se esperaban 3 columnas (Ubicación, Artículo, Cantidad), se recibieron {len(fila)}.')
+            continue
+
+        codigo_ubicacion, codigo_articulo, cantidad_ajuste = [str(v).strip() for v in fila]
+
+        if not codigo_ubicacion or not codigo_articulo:
+            errores.append(f'Fila {indice}: Ubicación y Artículo no pueden estar vacíos.')
+            continue
+
+        try:
+            cantidad_ajuste = int(cantidad_ajuste)
+        except ValueError:
+            errores.append(f'Fila {indice}: la Cantidad "{cantidad_ajuste}" no es un número entero.')
+            continue
+
+        filas_validas.append((codigo_ubicacion, codigo_articulo, cantidad_ajuste))
+
+    if errores:
+        return JsonResponse({'errores': errores}, status=400)
+
+    if not filas_validas:
+        return JsonResponse({'errores': ['No se recibieron filas para importar.']}, status=400)
+
+    try:
+        truncar_tablas_ajuste()
+        insertar_filas_ajuste(filas_validas)
+    except Exception as e:
+        return JsonResponse({'errores': [f'Error al importar los datos: {str(e)}']}, status=500)
+
+    RegistroAltaMuestraArticulo.objects.create(
+        usuario=request.user,
+        accion=RegistroAltaMuestraArticulo.ACCION_IMPORTAR,
+        filas=filas_validas,
+    )
+
+    return JsonResponse({'importadas': len(filas_validas)})
+
+@login_required(login_url="/login/")
+def alta_muestras_articulos_ejecutar(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    try:
+        resultado = ejecutar_recodificacion()
+    except Exception as e:
+        return JsonResponse({'errores': [f'Error al ejecutar la recodificación: {str(e)}']}, status=500)
+
+    mensajes_proceso = resultado.get('mensajes_proceso', [])
+    numero_tarea = next(
+        (m.get('ReturnValue') for m in mensajes_proceso if m.get('ReturnValue')),
+        None,
+    )
+
+    RegistroAltaMuestraArticulo.objects.create(
+        usuario=request.user,
+        accion=RegistroAltaMuestraArticulo.ACCION_EJECUTAR,
+        filas=resultado.get('resultado_filas', []),
+        numero_tarea=numero_tarea,
+        filas_con_error=resultado.get('resultado_filas', []),
+    )
+
+    return JsonResponse(resultado)
+
+@login_required(login_url="/login/")
 def Stock_excluido(request):
     Nombre = 'Stock excluido'
     dir_iframe = DIR_HERAMIENTAS['Stock_excluido']
@@ -3130,6 +3212,12 @@ from .sql_volumen import (
 )
 from .excel_utils import generar_plantilla_excel, procesar_archivo_excel
 from django.http import HttpResponse
+from .sql_muestras_articulos import (
+    truncar_tablas_ajuste,
+    insertar_filas_ajuste,
+    ejecutar_recodificacion,
+)
+from .models import RegistroAltaMuestraArticulo
 import io
 
 @login_required(login_url="/login/")

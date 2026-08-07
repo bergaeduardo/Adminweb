@@ -148,6 +148,15 @@
     {% endif %}
     {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento" %}
     <li class="nav-item">
+      <a href="/../Herramientas/AltaMuestrasArticulos"
+        class="nav-link {% if 'AltaMuestrasArticulos' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Alta de Muestras de Artículos</p>
+      </a>
+    </li>
+    {% endif %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento" %}
+    <li class="nav-item">
       <a href="/../Herramientas/MaestroDestinos"
         class="nav-link {% if 'MaestroDestinos' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>

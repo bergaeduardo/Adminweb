@@ -1,6 +1,31 @@
+from django.conf import settings
 from django.db import models
 
 # Create your models here.
+
+
+class RegistroAltaMuestraArticulo(models.Model):
+    ACCION_IMPORTAR = 'importar'
+    ACCION_EJECUTAR = 'ejecutar'
+    ACCION_CHOICES = [
+        (ACCION_IMPORTAR, 'Importar datos'),
+        (ACCION_EJECUTAR, 'Ejecutar recodificación'),
+    ]
+
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='+')
+    fecha = models.DateTimeField(auto_now_add=True)
+    accion = models.CharField(max_length=20, choices=ACCION_CHOICES)
+    filas = models.JSONField()
+    numero_tarea = models.CharField(max_length=100, blank=True, null=True)
+    filas_con_error = models.JSONField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Registro de alta de muestra de artículo'
+        verbose_name_plural = 'Registros de altas de muestras de artículos'
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f'{self.usuario} - {self.get_accion_display()} - {self.fecha:%Y-%m-%d %H:%M}'
 
 class EBSincArtVolumen:
     """

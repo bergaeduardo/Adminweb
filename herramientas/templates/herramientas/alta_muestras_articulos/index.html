@@ -1,0 +1,279 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Alta de Muestras de Artículos {% endblock %}
+
+{% block stylesheets %}
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+
+<!-- Content Wrapper -->
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1><i class="fas fa-flask"></i> Alta de Muestras de Artículos</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="#">Herramientas</a></li>
+            <li class="breadcrumb-item active">Alta de Muestras de Artículos</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+
+      {% csrf_token %}
+
+      <!-- Instrucciones -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card card-info">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-info-circle"></i>
+                Instrucciones
+              </h3>
+            </div>
+            <div class="card-body">
+              <p>Pegá en el cuadro de abajo los datos copiados desde Excel, con 3 columnas por fila, separadas por tabulación:</p>
+              <table class="table table-sm table-bordered w-auto">
+                <thead>
+                  <tr>
+                    <th>Código de Ubicación</th>
+                    <th>Código de Artículo</th>
+                    <th>Cantidad</th>
+                  </tr>
+                </thead>
+              </table>
+              <p class="mb-0 text-muted">No incluyas encabezados en el texto pegado, solo las filas de datos.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Carga de datos -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-paste"></i>
+                1. Pegar datos
+              </h3>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <textarea id="datos-pegados" class="form-control" rows="8"
+                  placeholder="Pegá aquí las filas copiadas desde Excel..."></textarea>
+              </div>
+              <button type="button" id="btn-previsualizar" class="btn btn-info">
+                <i class="fas fa-eye"></i> Previsualizar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista previa -->
+      <div class="row" id="seccion-preview" style="display:none;">
+        <div class="col-12">
+          <div class="card card-secondary">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-table"></i>
+                2. Vista previa
+              </h3>
+            </div>
+            <div class="card-body">
+              <div id="alertas-preview"></div>
+              <div class="table-responsive">
+                <table class="table table-sm table-striped" id="tabla-preview">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Código de Ubicación</th>
+                      <th>Código de Artículo</th>
+                      <th>Cantidad</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <button type="button" id="btn-importar" class="btn btn-primary">
+                <i class="fas fa-file-import"></i> Confirmar e Importar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resultado de la importación / ejecución -->
+      <div class="row" id="seccion-resultado" style="display:none;">
+        <div class="col-12">
+          <div class="card card-success">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-check-circle"></i>
+                3. Ejecutar Alta de Muestras
+              </h3>
+            </div>
+            <div class="card-body">
+              <div id="alertas-resultado"></div>
+              <button type="button" id="btn-ejecutar" class="btn btn-success">
+                <i class="fas fa-play"></i> Ejecutar
+              </button>
+              <div class="table-responsive mt-3">
+                <table class="table table-sm table-striped" id="tabla-resultado" style="display:none;">
+                  <thead>
+                    <tr>
+                      <th>Código de Ubicación</th>
+                      <th>Código de Artículo</th>
+                      <th>Cantidad</th>
+                      <th>Resultado</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+  <!-- jQuery -->
+  <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap 4 -->
+  <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE App -->
+  <script src="/static/assets/js/adminlte.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      const csrftoken = $('input[name=csrfmiddlewaretoken]').val();
+      let filasParseadas = [];
+
+      function parsearTexto(texto) {
+        return texto
+          .split(/\r?\n/)
+          .map(function (linea) { return linea.trim(); })
+          .filter(function (linea) { return linea.length > 0; })
+          .map(function (linea) { return linea.split('\t').map(function (c) { return c.trim(); }); });
+      }
+
+      function mostrarAlertas(contenedor, mensajes, tipo) {
+        const $c = $(contenedor);
+        $c.empty();
+        mensajes.forEach(function (m) {
+          $c.append('<div class="alert alert-' + tipo + '">' + m + '</div>');
+        });
+      }
+
+      $('#btn-previsualizar').click(function () {
+        const texto = $('#datos-pegados').val();
+        filasParseadas = parsearTexto(texto);
+
+        $('#alertas-preview').empty();
+        $('#seccion-resultado').hide();
+        $('#tabla-resultado').hide();
+
+        if (filasParseadas.length === 0) {
+          mostrarAlertas('#alertas-preview', ['No se detectaron filas para previsualizar.'], 'warning');
+          $('#seccion-preview').show();
+          return;
+        }
+
+        const $tbody = $('#tabla-preview tbody');
+        $tbody.empty();
+        filasParseadas.forEach(function (fila, i) {
+          const cols = fila.length === 3 ? fila : fila.concat(new Array(Math.max(0, 3 - fila.length)).fill(''));
+          const claseFila = fila.length !== 3 ? 'table-danger' : '';
+          $tbody.append(
+            '<tr class="' + claseFila + '"><td>' + (i + 1) + '</td><td>' + cols[0] + '</td><td>' + cols[1] + '</td><td>' + cols[2] + '</td></tr>'
+          );
+        });
+
+        $('#seccion-preview').show();
+      });
+
+      $('#btn-importar').click(function () {
+        if (filasParseadas.length === 0) return;
+
+        $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Importando...');
+
+        $.ajax({
+          url: "{% url 'herramientas:herramientas_alta_muestras_articulos_importar' %}",
+          method: 'POST',
+          contentType: 'application/json',
+          headers: { 'X-CSRFToken': csrftoken },
+          data: JSON.stringify({ filas: filasParseadas }),
+        }).done(function (resp) {
+          mostrarAlertas('#alertas-resultado', ['Se importaron ' + resp.importadas + ' filas correctamente. Ya podés ejecutar el alta.'], 'success');
+          $('#seccion-resultado').show();
+        }).fail(function (xhr) {
+          const data = xhr.responseJSON || {};
+          const errores = data.errores || ['Error desconocido al importar.'];
+          mostrarAlertas('#alertas-preview', errores, 'danger');
+        }).always(function () {
+          $('#btn-importar').prop('disabled', false).html('<i class="fas fa-file-import"></i> Confirmar e Importar');
+        });
+      });
+
+      $('#btn-ejecutar').click(function () {
+        $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Ejecutando...');
+
+        $.ajax({
+          url: "{% url 'herramientas:herramientas_alta_muestras_articulos_ejecutar' %}",
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrftoken },
+        }).done(function (resp) {
+          const filas = resp.resultado_filas || [];
+          const mensajesProceso = (resp.mensajes_proceso || []).map(function (m) { return m.ReturnValue; }).filter(Boolean);
+          const $tbody = $('#tabla-resultado tbody');
+          $tbody.empty();
+          filas.forEach(function (f) {
+            $tbody.append(
+              '<tr><td>' + f.CodigoUbicacion + '</td><td>' + f.CodigoArticulo + '</td><td>' + f.CantidadAjuste + '</td><td>' + f.Resultado + '</td></tr>'
+            );
+          });
+
+          const mensajesFinales = [];
+          mensajesFinales.push(...mensajesProceso);
+          if (filas.length > 0) {
+            mensajesFinales.push(filas.length + ' fila(s) con error, revisá el detalle abajo.');
+          } else {
+            mensajesFinales.push('Sin errores reportados por el proceso.');
+          }
+
+          $('#tabla-resultado').toggle(filas.length > 0);
+          mostrarAlertas('#alertas-resultado', mensajesFinales, filas.length > 0 ? 'warning' : 'success');
+        }).fail(function (xhr) {
+          const data = xhr.responseJSON || {};
+          const errores = data.errores || ['Error desconocido al ejecutar.'];
+          mostrarAlertas('#alertas-resultado', errores, 'danger');
+        }).always(function () {
+          $('#btn-ejecutar').prop('disabled', false).html('<i class="fas fa-play"></i> Ejecutar');
+        });
+      });
+    });
+  </script>
+{% endblock javascripts %}
