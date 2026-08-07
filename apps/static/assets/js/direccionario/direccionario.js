@@ -47,9 +47,13 @@
     _bindEvents: function () {
       var self = this;
 
-      /* Busqueda con debounce */
+      /* Busqueda con debounce: solo busca a partir de 3 caracteres (o al vaciar el campo) */
       var debouncedSearch = this._debounce(function () {
-        self.state.busqueda = $('#dir-search').val();
+        var val = $('#dir-search').val();
+        if (val.length > 0 && val.length < 3) {
+          return;
+        }
+        self.state.busqueda = val;
         self._fetchData();
       }, 300);
       $('#dir-search').on('input', debouncedSearch);

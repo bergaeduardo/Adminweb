@@ -6,7 +6,8 @@ from tkinter.tix import CELL, COLUMN
 from django import template
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.db.models import Q
+from django.db.models import Q, CharField
+from django.db.models.functions import Cast
 from django.template import loader
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -347,14 +348,14 @@ def buscar_sucursales(request):
     if not (puede_ver_todo and mostrar_todos_raw == 'true'):
         qs = qs.filter(nro_sucursal_madre__isnull=True)
 
+    qs = qs.annotate(nro_sucursal_str=Cast('nro_sucursal', output_field=CharField(max_length=20)))
+
     if busqueda:
         q = (
             Q(desc_sucursal__icontains=busqueda) |
-            Q(localidad__icontains=busqueda) |
-            Q(direccion__icontains=busqueda)
+            Q(cod_client__icontains=busqueda) |
+            Q(nro_sucursal_str__icontains=busqueda)
         )
-        if busqueda.isdigit():
-            q |= Q(nro_sucursal=int(busqueda))
         qs = qs.filter(q)
     if canal:
         qs = qs.filter(canal=canal)

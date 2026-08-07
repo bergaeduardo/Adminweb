@@ -118,6 +118,17 @@
   box-shadow: 0 0 0 3px rgba(13,92,99,.12);
   background: #fff;
 }
+/* Ocultar la "x" nativa del input[type=search]: usamos el boton .dir-clear-btn propio */
+.dir-search-input::-webkit-search-cancel-button,
+.dir-search-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.dir-search-input::-ms-clear {
+  display: none;
+  width: 0;
+  height: 0;
+}
 .dir-clear-btn {
   position: absolute;
   right: .5rem;
