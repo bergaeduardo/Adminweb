@@ -1651,9 +1651,12 @@ def alta_muestras_articulos_ejecutar(request):
     RegistroAltaMuestraArticulo.objects.create(
         usuario=request.user,
         accion=RegistroAltaMuestraArticulo.ACCION_EJECUTAR,
-        filas=resultado.get('resultado_filas', []),
+        filas=resultado.get('filas_procesadas', []),
         numero_tarea=numero_tarea,
-        filas_con_error=resultado.get('resultado_filas', []),
+        filas_con_error={
+            'bloqueantes': resultado.get('resultado_filas', []),
+            'omitidas_por_stock': resultado.get('filas_omitidas', []),
+        },
     )
 
     return JsonResponse(resultado)

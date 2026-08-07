@@ -18,7 +18,12 @@
     <div class="container-fluid">
       <div class="row mb-2">
         <div class="col-sm-6">
-          <h1><i class="fas fa-flask"></i> Alta de Muestras de Artículos</h1>
+          <h1>
+            <i class="fas fa-flask"></i> Alta de Muestras de Artículos
+            <button type="button" class="btn btn-outline-info btn-sm ml-2" data-toggle="modal" data-target="#modalAyuda">
+              <i class="fas fa-question-circle"></i> Ayuda
+            </button>
+          </h1>
         </div>
         <div class="col-sm-6">
           <ol class="breadcrumb float-sm-right">
@@ -30,6 +35,45 @@
       </div>
     </div>
   </section>
+
+  <!-- Modal de Ayuda -->
+  <div class="modal fade" id="modalAyuda" tabindex="-1" role="dialog" aria-labelledby="modalAyudaTitulo" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAyudaTitulo"><i class="fas fa-question-circle"></i> ¿Cómo funciona esta herramienta?</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Esta herramienta registra el <strong>alta de muestras de artículos</strong> como un ajuste de inventario: descuenta (o suma) stock en una ubicación puntual.</p>
+
+          <h6><i class="fas fa-list-ol"></i> Pasos a seguir</h6>
+          <ol>
+            <li>En Excel, armá una lista con 3 columnas, <strong>sin encabezados</strong>: Código de Ubicación, Código de Artículo y Cantidad. Para dar de alta una muestra (restar stock), usá cantidad negativa (ej. <code>-1</code>).</li>
+            <li>Seleccioná y copiá esas filas desde Excel (Ctrl+C).</li>
+            <li>Pegalas (Ctrl+V) en el cuadro de texto de esta pantalla.</li>
+            <li>Hacé clic en <strong>"Previsualizar"</strong> para revisar que las columnas se separaron correctamente. Las filas que no tengan exactamente 3 columnas se marcan en rojo.</li>
+            <li>Hacé clic en <strong>"Confirmar e Importar"</strong> para cargar los datos.</li>
+            <li>Hacé clic en <strong>"Ejecutar"</strong> para aplicar el ajuste real de stock. Este paso mueve stock de verdad, no se puede probar "en falso".</li>
+          </ol>
+
+          <h6><i class="fas fa-exclamation-triangle text-warning"></i> Si aparece un error al ejecutar</h6>
+          <ul>
+            <li><strong>Código de Ubicación inválido o no existe:</strong> el código de ubicación escrito no está dado de alta en el sistema. Verificalo y corregilo.</li>
+            <li><strong>Código de Artículo inválido o no existe:</strong> el código de artículo no existe en Tango o en el WMS. Verificá que esté bien escrito.</li>
+            <li><strong>La cantidad en stock no es suficiente:</strong> se está intentando restar más stock del que hay disponible en esa ubicación.</li>
+          </ul>
+          <p>Si el error es de <strong>ubicación o artículo</strong> inválido, <strong>no se aplica ningún movimiento</strong> (ni siquiera el de las filas correctas) hasta que se corrijan todas las filas con error y se vuelva a importar.</p>
+          <p class="mb-0">Si el error es de <strong>stock insuficiente</strong>, esa fila se omite automáticamente (no tiene sentido dar de baja un artículo que no tiene stock) y el resto de las filas válidas se procesa igual. Vas a ver esas filas listadas aparte como "omitidas por falta de stock".</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Main content -->
   <section class="content">
@@ -135,6 +179,7 @@
               <button type="button" id="btn-ejecutar" class="btn btn-success">
                 <i class="fas fa-play"></i> Ejecutar
               </button>
+
               <div class="table-responsive mt-3">
                 <table class="table table-sm table-striped" id="tabla-resultado" style="display:none;">
                   <thead>
@@ -147,6 +192,39 @@
                   </thead>
                   <tbody></tbody>
                 </table>
+              </div>
+
+              <div id="bloque-procesadas" style="display:none;" class="mt-3">
+                <h6 class="text-success"><i class="fas fa-check"></i> Filas procesadas</h6>
+                <div class="table-responsive">
+                  <table class="table table-sm table-striped" id="tabla-procesadas">
+                    <thead>
+                      <tr>
+                        <th>Código de Ubicación</th>
+                        <th>Código de Artículo</th>
+                        <th>Cantidad</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="bloque-omitidas" style="display:none;" class="mt-3">
+                <h6 class="text-warning"><i class="fas fa-forward"></i> Filas omitidas por falta de stock</h6>
+                <div class="table-responsive">
+                  <table class="table table-sm table-striped" id="tabla-omitidas">
+                    <thead>
+                      <tr>
+                        <th>Código de Ubicación</th>
+                        <th>Código de Artículo</th>
+                        <th>Cantidad</th>
+                        <th>Motivo</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
@@ -247,24 +325,47 @@
           headers: { 'X-CSRFToken': csrftoken },
         }).done(function (resp) {
           const filas = resp.resultado_filas || [];
+          const procesadas = resp.filas_procesadas || [];
+          const omitidas = resp.filas_omitidas || [];
           const mensajesProceso = (resp.mensajes_proceso || []).map(function (m) { return m.ReturnValue; }).filter(Boolean);
-          const $tbody = $('#tabla-resultado tbody');
-          $tbody.empty();
+
+          const $tbodyResultado = $('#tabla-resultado tbody');
+          $tbodyResultado.empty();
           filas.forEach(function (f) {
-            $tbody.append(
+            $tbodyResultado.append(
+              '<tr><td>' + f.CodigoUbicacion + '</td><td>' + f.CodigoArticulo + '</td><td>' + f.CantidadAjuste + '</td><td>' + f.Resultado + '</td></tr>'
+            );
+          });
+
+          const $tbodyProcesadas = $('#tabla-procesadas tbody');
+          $tbodyProcesadas.empty();
+          procesadas.forEach(function (f) {
+            $tbodyProcesadas.append(
+              '<tr><td>' + f.CodigoUbicacion + '</td><td>' + f.CodigoArticulo + '</td><td>' + f.CantidadAjuste + '</td></tr>'
+            );
+          });
+
+          const $tbodyOmitidas = $('#tabla-omitidas tbody');
+          $tbodyOmitidas.empty();
+          omitidas.forEach(function (f) {
+            $tbodyOmitidas.append(
               '<tr><td>' + f.CodigoUbicacion + '</td><td>' + f.CodigoArticulo + '</td><td>' + f.CantidadAjuste + '</td><td>' + f.Resultado + '</td></tr>'
             );
           });
 
           const mensajesFinales = [];
           mensajesFinales.push(...mensajesProceso);
-          if (filas.length > 0) {
-            mensajesFinales.push(filas.length + ' fila(s) con error, revisá el detalle abajo.');
-          } else {
+          if (resp.ejecutado === false) {
+            mensajesFinales.unshift('No se aplicó ningún ajuste: corregí los errores de las filas marcadas abajo y volvé a importar los datos.');
+          } else if (filas.length === 0 && omitidas.length === 0) {
             mensajesFinales.push('Sin errores reportados por el proceso.');
+          } else if (omitidas.length > 0) {
+            mensajesFinales.push(omitidas.length + ' fila(s) omitida(s) por falta de stock. El resto se procesó correctamente.');
           }
 
           $('#tabla-resultado').toggle(filas.length > 0);
+          $('#bloque-procesadas').toggle(procesadas.length > 0);
+          $('#bloque-omitidas').toggle(omitidas.length > 0);
           mostrarAlertas('#alertas-resultado', mensajesFinales, filas.length > 0 ? 'warning' : 'success');
         }).fail(function (xhr) {
           const data = xhr.responseJSON || {};
