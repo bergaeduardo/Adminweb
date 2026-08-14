@@ -1576,11 +1576,17 @@ def Recodificacion(request):
     dir_iframe = DIR_HERAMIENTAS['Recodificacion']
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre})
 
-@login_required(login_url="/login/")
+def usuario_puede_gestionar_muestras(user):
+    """Verifica si el usuario pertenece a un grupo habilitado para dar de alta muestras de artículos"""
+    return user.groups.filter(
+        name__in=['admin', 'Abastecimiento', 'Abastecimiento_Sup', 'Comercial_may', 'Comercial_suc']
+    ).exists() or user.is_superuser
+
+@user_passes_test(usuario_puede_gestionar_muestras, login_url="/login/")
 def alta_muestras_articulos(request):
     return render(request, 'herramientas/alta_muestras_articulos/index.html')
 
-@login_required(login_url="/login/")
+@user_passes_test(usuario_puede_gestionar_muestras, login_url="/login/")
 def alta_muestras_articulos_importar(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Método no permitido'}, status=405)
@@ -1632,7 +1638,7 @@ def alta_muestras_articulos_importar(request):
 
     return JsonResponse({'importadas': len(filas_validas)})
 
-@login_required(login_url="/login/")
+@user_passes_test(usuario_puede_gestionar_muestras, login_url="/login/")
 def alta_muestras_articulos_ejecutar(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Método no permitido'}, status=405)
