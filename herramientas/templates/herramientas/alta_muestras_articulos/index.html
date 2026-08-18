@@ -47,11 +47,11 @@
           </button>
         </div>
         <div class="modal-body">
-          <p>Esta herramienta registra el <strong>alta de muestras de artículos</strong> como un ajuste de inventario: descuenta (o suma) stock en una ubicación puntual.</p>
+          <p>Esta herramienta registra el <strong>alta de muestras de artículos</strong> que llegan sin depósito de origen (por ejemplo, muestras que traen los directivos): suma esa cantidad como stock en la ubicación indicada.</p>
 
           <h6><i class="fas fa-list-ol"></i> Pasos a seguir</h6>
           <ol>
-            <li>En Excel, armá una lista con 3 columnas, <strong>sin encabezados</strong>: Código de Ubicación, Código de Artículo y Cantidad. Para dar de alta una muestra (restar stock), usá cantidad negativa (ej. <code>-1</code>).</li>
+            <li>En Excel, armá una lista con 3 columnas, <strong>sin encabezados</strong>: Código de Ubicación, Código de Artículo y Cantidad. Usá cantidad positiva (ej. <code>1</code>) para dar de alta la muestra.</li>
             <li>Seleccioná y copiá esas filas desde Excel (Ctrl+C).</li>
             <li>Pegalas (Ctrl+V) en el cuadro de texto de esta pantalla.</li>
             <li>Hacé clic en <strong>"Previsualizar"</strong> para revisar que las columnas se separaron correctamente. Las filas que no tengan exactamente 3 columnas se marcan en rojo.</li>
@@ -63,10 +63,8 @@
           <ul>
             <li><strong>Código de Ubicación inválido o no existe:</strong> el código de ubicación escrito no está dado de alta en el sistema. Verificalo y corregilo.</li>
             <li><strong>Código de Artículo inválido o no existe:</strong> el código de artículo no existe en Tango o en el WMS. Verificá que esté bien escrito.</li>
-            <li><strong>La cantidad en stock no es suficiente:</strong> se está intentando restar más stock del que hay disponible en esa ubicación.</li>
           </ul>
-          <p>Si el error es de <strong>ubicación o artículo</strong> inválido, <strong>no se aplica ningún movimiento</strong> (ni siquiera el de las filas correctas) hasta que se corrijan todas las filas con error y se vuelva a importar.</p>
-          <p class="mb-0">Si el error es de <strong>stock insuficiente</strong>, esa fila se omite automáticamente (no tiene sentido dar de baja un artículo que no tiene stock) y el resto de las filas válidas se procesa igual. Vas a ver esas filas listadas aparte como "omitidas por falta de stock".</p>
+          <p class="mb-0">En estos casos <strong>no se aplica ningún movimiento</strong> (ni siquiera el de las filas correctas) hasta que se corrijan todas las filas con error y se vuelva a importar.</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
