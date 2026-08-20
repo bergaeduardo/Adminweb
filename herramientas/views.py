@@ -1060,7 +1060,11 @@ def historial_general_reservas(request):
 @login_required(login_url="/login/")
 def descargar_reporte_reservas(request):
     """
-    Genera y descarga un reporte Excel (.xlsx) con los turnos de reserva filtrados
+    Genera y descarga un reporte Excel (.xlsx) con los turnos de reserva filtrados.
+    Por defecto (si no se filtran fechas) descarga los turnos de la semana en curso (Lunes a Domingo).
+    Incluye 2 hojas:
+      1. 'Resumen de Turnos': Cabecera y totales de cada turno.
+      2. 'Detalle de Mercadería': Desglose detallado por SKU, descripción, cantidad y OC.
     """
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -1071,52 +1075,65 @@ def descargar_reporte_reservas(request):
     
     turnos = TurnoReserva.objects.all().select_related('estado')
     
-    if fecha_desde:
-        turnos = turnos.filter(fecha__gte=fecha_desde)
-    if fecha_hasta:
-        turnos = turnos.filter(fecha__lte=fecha_hasta)
+    # Si no se seleccionan fechas en los filtros, por defecto tomar la semana actual (lunes a domingo)
+    hoy = date.today()
+    if not fecha_desde and not fecha_hasta:
+        lunes_actual = hoy - timedelta(days=hoy.weekday())
+        domingo_actual = lunes_actual + timedelta(days=6)
+        turnos = turnos.filter(fecha__gte=lunes_actual, fecha__lte=domingo_actual)
+    else:
+        if fecha_desde:
+            turnos = turnos.filter(fecha__gte=fecha_desde)
+        if fecha_hasta:
+            turnos = turnos.filter(fecha__lte=fecha_hasta)
+            
     if estado:
         turnos = turnos.filter(estado=estado)
         
     turnos = turnos.order_by('fecha', 'hora_inicio')
     
-    # Crear Workbook de Excel
+    # Crear Workbook de Excel con dos hojas
     wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Reporte de Reservas"
+    
+    # Hoja 1: Resumen de Turnos
+    ws_turnos = wb.active
+    ws_turnos.title = "Resumen de Turnos"
+    
+    # Hoja 2: Detalle de Mercadería
+    ws_items = wb.create_sheet(title="Detalle de Mercadería")
     
     # Estilos
     font_header = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
     fill_header = PatternFill(start_color='1F4E78', end_color='1F4E78', fill_type='solid') # Azul oscuro premium
     alignment_center = Alignment(horizontal='center', vertical='center', wrap_text=True)
     alignment_left = Alignment(horizontal='left', vertical='center')
+    alignment_right = Alignment(horizontal='right', vertical='center')
     border_thin = Border(
-        left=Side(style='thin', color='BFBFBF'),
-        right=Side(style='thin', color='BFBFBF'),
-        top=Side(style='thin', color='BFBFBF'),
-        bottom=Side(style='thin', color='BFBFBF')
+        left=Side(style='thin', color='D9D9D9'),
+        right=Side(style='thin', color='D9D9D9'),
+        top=Side(style='thin', color='D9D9D9'),
+        bottom=Side(style='thin', color='D9D9D9')
     )
+    fill_bloqueo = PatternFill(start_color='F2F2F2', end_color='F2F2F2', fill_type='solid')
     
-    # Encabezados
-    headers = [
+    # ----------------------------------------------------
+    # 1. POBLAR HOJA 1: RESUMEN DE TURNOS
+    # ----------------------------------------------------
+    headers_turnos = [
         "ID", "Fecha", "Horario", "Código Prov.", "Proveedor / Tarea",
         "Orden de Compra", "Remitos", "Unidades", "Bultos", "Estado", "Creador"
     ]
     
-    for col_num, header in enumerate(headers, 1):
-        cell = ws.cell(row=1, column=col_num)
+    for col_num, header in enumerate(headers_turnos, 1):
+        cell = ws_turnos.cell(row=1, column=col_num)
         cell.value = header
         cell.font = font_header
         cell.fill = fill_header
         cell.alignment = alignment_center
         cell.border = border_thin
         
-    # Datos
     for row_num, turno in enumerate(turnos, 2):
-        # Formatear OC
         oc_str = formatear_orden_compra(turno.orden_compra)
-        
-        # Identificar si es bloqueo de tarea o turno regular
         nombre_prov = turno.nombre_proveedor or ''
         if turno.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']:
             nombre_prov = turno.nombre_proveedor or f"Bloqueo: {turno.codigo_proveedor}"
@@ -1136,33 +1153,128 @@ def descargar_reporte_reservas(request):
         ]
         
         for col_num, val in enumerate(data_row, 1):
-            cell = ws.cell(row=row_num, column=col_num)
+            cell = ws_turnos.cell(row=row_num, column=col_num)
             cell.value = val
             cell.border = border_thin
             
-            # Formatos de alineación y número
-            if col_num in [1, 2, 3, 4, 8, 9, 10]:
+            if col_num in [1, 2, 3, 4, 10]:
                 cell.alignment = alignment_center
+            elif col_num in [8, 9]:
+                cell.alignment = alignment_right
             else:
                 cell.alignment = alignment_left
                 
-            # Destacar bloqueos manuales
             if turno.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']:
-                cell.fill = PatternFill(start_color='F2F2F2', end_color='F2F2F2', fill_type='solid')
-                
-    # Auto-ajustar ancho de columnas
-    for col in ws.columns:
-        max_len = 0
-        col_letter = col[0].column_letter
-        for cell in col:
-            if cell.value:
-                max_len = max(max_len, len(str(cell.value)))
-        ws.column_dimensions[col_letter].width = max(max_len + 3, 10)
+                cell.fill = fill_bloqueo
+
+    # ----------------------------------------------------
+    # 2. POBLAR HOJA 2: DETALLE Y DESGLOSE DE MERCADERÍA
+    # ----------------------------------------------------
+    headers_items = [
+        "ID Turno", "Fecha", "Horario", "Código Prov.", "Proveedor / Tarea",
+        "Cód. Artículo", "Descripción de Mercadería", "Cantidad (U.)", "OC Ítem",
+        "Remitos", "Estado", "Creador", "Observaciones"
+    ]
+    
+    for col_num, header in enumerate(headers_items, 1):
+        cell = ws_items.cell(row=1, column=col_num)
+        cell.value = header
+        cell.font = font_header
+        cell.fill = fill_header
+        cell.alignment = alignment_center
+        cell.border = border_thin
         
-    # Altura de filas
-    ws.row_dimensions[1].height = 28
+    row_item_idx = 2
+    for turno in turnos:
+        nombre_prov = turno.nombre_proveedor or ''
+        if turno.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']:
+            nombre_prov = turno.nombre_proveedor or f"Bloqueo: {turno.codigo_proveedor}"
+        oc_general = formatear_orden_compra(turno.orden_compra)
+        estado_nombre = turno.estado.nombre if turno.estado else 'Sin Estado'
+        
+        items = turno.get_items_desglose()
+        if items:
+            for item in items:
+                item_row = [
+                    turno.id_turno_reserva,
+                    turno.fecha.strftime('%d/%m/%Y'),
+                    f"{turno.hora_inicio.strftime('%H:%M')} - {turno.hora_fin.strftime('%H:%M')}",
+                    turno.codigo_proveedor,
+                    nombre_prov,
+                    item.get('cod_articulo', ''),
+                    item.get('descripcion', ''),
+                    item.get('cantidad', 0),
+                    item.get('orden_compra', '') or oc_general,
+                    turno.remitos,
+                    estado_nombre,
+                    turno.usuario_creador,
+                    turno.observaciones or ''
+                ]
+                
+                for col_num, val in enumerate(item_row, 1):
+                    cell = ws_items.cell(row=row_item_idx, column=col_num)
+                    cell.value = val
+                    cell.border = border_thin
+                    
+                    if col_num in [1, 2, 3, 4, 10, 11, 12]:
+                        cell.alignment = alignment_center
+                    elif col_num == 8:
+                        cell.alignment = alignment_right
+                    else:
+                        cell.alignment = alignment_left
+                
+                ws_items.row_dimensions[row_item_idx].height = 20
+                row_item_idx += 1
+        else:
+            # Turno sin desglose de artículos (ej. importación previa o bloqueo de calendario)
+            item_row = [
+                turno.id_turno_reserva,
+                turno.fecha.strftime('%d/%m/%Y'),
+                f"{turno.hora_inicio.strftime('%H:%M')} - {turno.hora_fin.strftime('%H:%M')}",
+                turno.codigo_proveedor,
+                nombre_prov,
+                '-',
+                nombre_prov if turno.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA'] else '[Sin desglose de artículos]',
+                turno.cantidad_unidades,
+                oc_general,
+                turno.remitos,
+                estado_nombre,
+                turno.usuario_creador,
+                turno.observaciones or ''
+            ]
+            
+            for col_num, val in enumerate(item_row, 1):
+                cell = ws_items.cell(row=row_item_idx, column=col_num)
+                cell.value = val
+                cell.border = border_thin
+                
+                if col_num in [1, 2, 3, 4, 10, 11, 12]:
+                    cell.alignment = alignment_center
+                elif col_num == 8:
+                    cell.alignment = alignment_right
+                else:
+                    cell.alignment = alignment_left
+                    
+                if turno.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']:
+                    cell.fill = fill_bloqueo
+            
+            ws_items.row_dimensions[row_item_idx].height = 20
+            row_item_idx += 1
+            
+    # Auto-ajustar ancho de columnas para ambas hojas
+    for ws in [ws_turnos, ws_items]:
+        for col in ws.columns:
+            max_len = 0
+            col_letter = col[0].column_letter
+            for cell in col:
+                if cell.value is not None:
+                    max_len = max(max_len, len(str(cell.value)))
+            ws.column_dimensions[col_letter].width = max(max_len + 3, 10)
+        
+        ws.row_dimensions[1].height = 28
+        
     for r in range(2, len(turnos) + 2):
-        ws.row_dimensions[r].height = 20
+        ws_turnos.row_dimensions[r].height = 20
         
     # Retornar como HttpResponse
     from django.http import HttpResponse

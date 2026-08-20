@@ -143,6 +143,7 @@ class TurnoReserva(models.Model):
     cantidad_unidades = models.IntegerField(null=False, blank=False, verbose_name="Cantidad de Unidades")
     cantidad_bultos = models.IntegerField(null=True, blank=True, verbose_name="Cantidad de Bultos")
     observaciones = models.TextField(max_length=300, null=True, blank=True, verbose_name="Observaciones")
+    detalle_items = models.TextField(db_column='detalle_items', null=True, blank=True, verbose_name="Detalle de Ítems")
     usuario_creador = models.CharField(max_length=150, verbose_name="Usuario que Creó el Turno")
     fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
     fecha_modificacion = models.DateTimeField(auto_now=True, verbose_name="Fecha de Modificación")
@@ -178,6 +179,44 @@ class TurnoReserva(models.Model):
         inicio = datetime.combine(self.fecha, self.hora_inicio)
         fin = datetime.combine(self.fecha, self.hora_fin)
         return int((fin - inicio).total_seconds() / 60)
+
+    def get_items_desglose(self):
+        """
+        Retorna una lista de diccionarios con el desglose de mercadería:
+        [{'cod_articulo': ..., 'descripcion': ..., 'cantidad': ..., 'orden_compra': ...}]
+        """
+        import re
+        items = []
+        items_raw = self.detalle_items or ''
+        
+        # Fallback a observaciones si no hay detalle_items
+        if not items_raw and self.observaciones:
+            match = re.search(r'\[ITEMS:\s*(.*?)\]', self.observaciones)
+            if match:
+                items_raw = match.group(1)
+        
+        if items_raw:
+            for item_part in str(items_raw).split('|'):
+                item_part = item_part.strip()
+                if not item_part:
+                    continue
+                parts = item_part.split(':')
+                if len(parts) >= 3:
+                    sku = parts[0].strip()
+                    desc = parts[1].strip()
+                    cant_str = parts[2].strip()
+                    oc = parts[3].strip() if len(parts) >= 4 else (self.orden_compra or '')
+                    try:
+                        cant = float(cant_str) if '.' in cant_str else int(cant_str)
+                    except ValueError:
+                        cant = cant_str
+                    items.append({
+                        'cod_articulo': sku,
+                        'descripcion': desc,
+                        'cantidad': cant,
+                        'orden_compra': oc
+                    })
+        return items
 
 class HistorialEstadoTurno(models.Model):
     """

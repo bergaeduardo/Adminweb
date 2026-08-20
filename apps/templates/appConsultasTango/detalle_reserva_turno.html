@@ -86,23 +86,9 @@
                                     <tr>
                                         <th>Estado:</th>
                                         <td>
-                                            {% if turno.estado == 'RESERVADO' %}
-                                                <span class="badge badge-info badge-lg">
-                                                    <i class="fas fa-clock"></i> Reservado
-                                                </span>
-                                            {% elif turno.estado == 'CONFIRMADO' %}
-                                                <span class="badge badge-success badge-lg">
-                                                    <i class="fas fa-check"></i> Confirmado
-                                                </span>
-                                            {% elif turno.estado == 'COMPLETADO' %}
-                                                <span class="badge badge-primary badge-lg">
-                                                    <i class="fas fa-check-double"></i> Completado
-                                                </span>
-                                            {% elif turno.estado == 'CANCELADO' %}
-                                                <span class="badge badge-danger badge-lg">
-                                                    <i class="fas fa-times"></i> Cancelado
-                                                </span>
-                                            {% endif %}
+                                            <span class="badge badge-lg text-white" style="background-color: {{ turno.estado.color|default:'#17a2b8' }}; padding: 6px 12px; font-size: 0.9rem;">
+                                                {{ turno.estado.nombre|default:turno.estado }}
+                                            </span>
                                         </td>
                                     </tr>
                                     {% if turno.observaciones %}
@@ -125,6 +111,34 @@
                                     </tr>
                                 </tbody>
                             </table>
+
+                            {% if turno.get_items_desglose %}
+                            <div class="mt-4">
+                                <h5 class="text-secondary"><i class="fas fa-boxes mr-1"></i> Desglose de Mercadería</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered table-striped mt-2">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>Cód. Artículo</th>
+                                                <th>Descripción</th>
+                                                <th class="text-center">Cantidad (U.)</th>
+                                                <th>Orden de Compra</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for item in turno.get_items_desglose %}
+                                            <tr>
+                                                <td><strong>{{ item.cod_articulo }}</strong></td>
+                                                <td>{{ item.descripcion }}</td>
+                                                <td class="text-center font-weight-bold text-primary">{{ item.cantidad }}</td>
+                                                <td>{{ item.orden_compra }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="card-footer">
                             <a href="{% url 'herramientas:herramientas_calendario_reservas' %}" class="btn btn-secondary">
