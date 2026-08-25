@@ -1,6 +1,7 @@
 SERVIDOR = {
     'testing': 'http://192.168.0.233:8080/',
     'production': 'https://app.xl.com.ar/',
+    'local': 'http://localhost/',
 }
 DIR_PBI = {
     # Logistica

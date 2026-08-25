@@ -4,10 +4,34 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 # Create your views here.
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.views import LogoutView as DjangoLogoutView
 from .forms import LoginForm, SignUpForm
 from django.contrib import messages
+from .api_views import generar_sso_ticket
+
+
+def _set_sso_cookie(response, user):
+    response.set_cookie(
+        settings.SSO_COOKIE_NAME,
+        generar_sso_ticket(user),
+        max_age=settings.SSO_TICKET_MAX_AGE,
+        domain=settings.SSO_COOKIE_DOMAIN or None,
+        secure=settings.SSO_COOKIE_SECURE,
+        httponly=True,
+        samesite='Lax',
+    )
+    return response
+
+
+class LogoutView(DjangoLogoutView):
+    def dispatch(self, request, *args, **kwargs):
+        response = super().dispatch(request, *args, **kwargs)
+        response.delete_cookie(settings.SSO_COOKIE_NAME, domain=settings.SSO_COOKIE_DOMAIN or None)
+        return response
+
 
 def login_view(request):
     form = LoginForm(request.POST or None)
@@ -28,10 +52,8 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                if meta is not None:
-                    return redirect(meta)
-                else:
-                    return redirect("/")
+                response = redirect(meta) if meta is not None else redirect("/")
+                return _set_sso_cookie(response, user)
             else:
                 msg = 'Invalid credentials'
         else:

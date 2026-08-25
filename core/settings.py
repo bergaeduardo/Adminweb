@@ -127,6 +127,19 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Para que las sesiones duren 1 día:
 SESSION_COOKIE_AGE = 12 * 60 * 60
 
+# --- Integración SSO con el proyecto PHP (app.xl.com.ar) ---
+# Clave compartida que debe enviar el servidor PHP en el header X-PHP-API-KEY
+# al llamar a los endpoints Api/auth/validar-credenciales y Api/auth/validar-sso.
+PHP_SSO_API_KEY = config('PHP_SSO_API_KEY', default='')
+# Cookie que Django setea al loguearse, para que PHP pueda validar la sesión sin
+# volver a pedir credenciales. En producción debe ser '.xl.com.ar' (dominio
+# compartido por intranet.xl.com.ar y app.xl.com.ar); en desarrollo se deja vacío
+# para que la cookie quede atada solo al host actual.
+SSO_COOKIE_NAME = 'sso_ticket'
+SSO_COOKIE_DOMAIN = config('SSO_COOKIE_DOMAIN', default='')
+SSO_COOKIE_SECURE = config('SSO_COOKIE_SECURE', default=not DEBUG, cast=bool)
+SSO_TICKET_MAX_AGE = SESSION_COOKIE_AGE
+
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = [CORE_DIR + '/apps/static']
 
@@ -145,6 +158,9 @@ REST_FRAMEWORK = {
     # ],
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
     'DEFAULT_TOKEN_LIFETIME': datetime.timedelta(minutes=5),
+    'DEFAULT_THROTTLE_RATES': {
+        'php_sso': '30/min',
+    },
 }
 
 CORS_ALLOWED_ORIGINS = [
