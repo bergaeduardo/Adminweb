@@ -660,7 +660,10 @@ def enviar_mail_cambio_estado(turno, estado_anterior_nombre, estado_nuevo_nombre
     from django.core.mail import get_connection, EmailMultiAlternatives
     from decouple import config
 
-    destinatarios_raw = config('DESTINATARIOS_NOTIFICACIONES', default='')
+    destinatarios_raw = config(
+        'DESTINATARIOS_NOTIFICACIONES', 
+        default='analia.jarc@xl.com.ar,lucas.navarro@xl.com.ar,franco.pertus@xl.com.ar,natalia.bontempo@xl.com.ar,ramiro.orozco@xl.com.ar,julieta.dalmeida@xl.com.ar,jessica.farias@xl.com.ar,valeria.villarreal@xl.com.ar,martin.becker@xl.com.ar'
+    )
     destinatarios = [email.strip() for email in destinatarios_raw.split(',') if email.strip()]
 
     # Determinar si se debe notificar al proveedor:
