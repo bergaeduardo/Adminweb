@@ -1078,22 +1078,18 @@ def descargar_reporte_reservas(request):
     
     turnos = TurnoReserva.objects.all().select_related('estado')
     
-    # Si no se seleccionan fechas en los filtros, por defecto tomar la semana actual (lunes a domingo)
-    hoy = date.today()
-    if not fecha_desde and not fecha_hasta:
-        lunes_actual = hoy - timedelta(days=hoy.weekday())
-        domingo_actual = lunes_actual + timedelta(days=6)
-        turnos = turnos.filter(fecha__gte=lunes_actual, fecha__lte=domingo_actual)
-    else:
-        if fecha_desde:
-            turnos = turnos.filter(fecha__gte=fecha_desde)
-        if fecha_hasta:
-            turnos = turnos.filter(fecha__lte=fecha_hasta)
-            
+    if fecha_desde:
+        turnos = turnos.filter(fecha__gte=fecha_desde)
+    if fecha_hasta:
+        turnos = turnos.filter(fecha__lte=fecha_hasta)
+        
     if estado:
         turnos = turnos.filter(estado=estado)
+    else:
+        # Filtrar exclusivamente los turnos en estado CONFIRMADO
+        turnos = turnos.filter(estado__nombre__icontains='CONFIRMADO')
         
-    turnos = turnos.order_by('fecha', 'hora_inicio')
+    turnos = turnos.order_by('-fecha', '-hora_inicio')
     
     # Crear Workbook de Excel con dos hojas
     wb = openpyxl.Workbook()
