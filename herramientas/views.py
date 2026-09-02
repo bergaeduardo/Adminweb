@@ -655,7 +655,7 @@ def obtener_email_proveedor(codigo_proveedor):
     return None
 
 
-def enviar_mail_cambio_estado(turno, estado_anterior_nombre, estado_nuevo_nombre, hubo_cambio_estado=True, hubo_cambio_detalle=False):
+def enviar_mail_cambio_estado(turno, estado_anterior_nombre, estado_nuevo_nombre, hubo_cambio_estado=True, hubo_cambio_detalle=False, lista_cambios=None):
     import os
     from django.core.mail import get_connection, EmailMultiAlternatives
     from decouple import config
@@ -704,6 +704,81 @@ def enviar_mail_cambio_estado(turno, estado_anterior_nombre, estado_nuevo_nombre
 
     fecha_str = turno.fecha.strftime('%d/%m/%Y') if turno.fecha else 'N/A'
     hora_str = f"{turno.hora_inicio.strftime('%H:%M')} a {turno.hora_fin.strftime('%H:%M')}" if turno.hora_inicio and turno.hora_fin else 'N/A'
+    orden_compra_formateada = formatear_orden_compra(turno.orden_compra) or 'Sin O.C.'
+
+    # Si no se pasó lista_cambios, armar una básica si hubo cambio de estado
+    if lista_cambios is None:
+        lista_cambios = []
+        if hubo_cambio_estado:
+            lista_cambios.append({
+                'campo': 'Estado',
+                'anterior': estado_anterior_nombre,
+                'nuevo': estado_nuevo_nombre
+            })
+
+    # Construir bloque HTML y texto de modificaciones
+    html_cambios = ""
+    texto_cambios = ""
+    if lista_cambios:
+        filas_cambios_html = "".join([
+            f"""
+            <tr style="border-bottom: 1px solid #fde68a;">
+                <td style="padding: 10px 12px; font-weight: 700; color: #1e293b; vertical-align: middle;">{c['campo']}</td>
+                <td style="padding: 10px 12px; color: #dc2626; text-decoration: line-through; vertical-align: middle; background-color: #fef2f2; border-radius: 4px;">{c['anterior']}</td>
+                <td style="padding: 10px 12px; font-weight: 700; color: #16a34a; vertical-align: middle; background-color: #f0fdf4; border-radius: 4px;">{c['nuevo']}</td>
+            </tr>
+            """
+            for c in lista_cambios
+        ])
+
+        html_cambios = f"""
+        <div style="margin-bottom: 24px; background-color: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #d97706; border-radius: 8px; padding: 16px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
+            <h3 style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #b45309; margin: 0 0 12px 0;">
+                Detalle de Modificaciones Realizadas
+            </h3>
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: separate; border-spacing: 0 4px; font-size: 13px;">
+                <thead>
+                    <tr style="background-color: #fef3c7;">
+                        <th style="padding: 6px 12px; text-align: left; color: #92400e; font-size: 11px; font-weight: 700; text-transform: uppercase; width: 30%;">Campo</th>
+                        <th style="padding: 6px 12px; text-align: left; color: #92400e; font-size: 11px; font-weight: 700; text-transform: uppercase; width: 35%;">Valor Anterior</th>
+                        <th style="padding: 6px 12px; text-align: left; color: #92400e; font-size: 11px; font-weight: 700; text-transform: uppercase; width: 35%;">Nuevo Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {filas_cambios_html}
+                </tbody>
+            </table>
+        </div>
+        """
+
+        texto_cambios = "MODIFICACIONES REALIZADAS:\n" + "\n".join([
+            f"- {c['campo']}: {c['anterior']}  -->  {c['nuevo']}"
+            for c in lista_cambios
+        ]) + "\n\n"
+
+    # Fila de estado en la tabla de detalles generales
+    if hubo_cambio_estado:
+        fila_estado_html = f"""
+        <tr>
+            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Estado Anterior</div>
+                <div style="font-size: 13px; font-weight: 600; color: #dc2626; text-decoration: line-through;">{estado_anterior_nombre}</div>
+            </td>
+            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
+                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Nuevo Estado</div>
+                <div style="font-size: 14px; font-weight: 800; color: #16a34a; background-color: #f0fdf4; display: inline-block; padding: 2px 8px; border-radius: 4px;">{estado_nuevo_nombre}</div>
+            </td>
+        </tr>
+        """
+    else:
+        fila_estado_html = f"""
+        <tr>
+            <td colspan="2" style="padding: 0 16px 16px 16px; vertical-align: top;">
+                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Estado</div>
+                <div style="font-size: 14px; font-weight: 800; color: #0284c7; background-color: #f0f9ff; display: inline-block; padding: 2px 8px; border-radius: 4px;">{estado_nuevo_nombre}</div>
+            </td>
+        </tr>
+        """
 
     html_content = f"""
     <!DOCTYPE html>
@@ -727,10 +802,13 @@ def enviar_mail_cambio_estado(turno, estado_anterior_nombre, estado_nuevo_nombre
             <!-- CONTENT -->
             <tr>
                 <td style="padding: 32px;">
-                    <h2 style="color: #1e293b; font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 24px;">Turno #{turno.id_turno_reserva}</h2>
+                    <h2 style="color: #1e293b; font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 20px;">Turno #{turno.id_turno_reserva}</h2>
                     
-                    <!-- SECCION 1: DETALLES GENERALES -->
-                    <h3 style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin: 0 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Detalles del Turno</h3>
+                    <!-- SECCION MODIFICACIONES (SI HUBO CAMBIOS) -->
+                    {html_cambios}
+
+                    <!-- SECCION: DETALLES GENERALES DEL TURNO -->
+                    <h3 style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin: 0 0 12px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Detalles Actuales del Turno</h3>
                     
                     <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 8px; margin-bottom: 24px; border-collapse: collapse;">
                         <tr>
@@ -745,24 +823,15 @@ def enviar_mail_cambio_estado(turno, estado_anterior_nombre, estado_nuevo_nombre
                                 <div style="font-size: 11px; font-weight: 700; color: #2563eb; margin-top: 2px;">{hora_str}</div>
                             </td>
                         </tr>
-                        <tr>
-                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
-                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Estado Anterior</div>
-                                <div style="font-size: 13px; font-weight: 600; color: #64748b; text-decoration: line-through;">{estado_anterior_nombre}</div>
-                            </td>
-                            <td style="padding: 0 16px 16px 16px; vertical-align: top;">
-                                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Nuevo Estado</div>
-                                <div style="font-size: 14px; font-weight: 800; color: #16a34a; background-color: #f0fdf4; display: inline-block; padding: 2px 8px; border-radius: 4px;">{estado_nuevo_nombre}</div>
-                            </td>
-                        </tr>
+                        {fila_estado_html}
                         <tr>
                             <td style="padding: 0 16px 16px 16px; vertical-align: top;">
                                 <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Órdenes de Compra</div>
-                                <div style="font-size: 13px; font-weight: 600; color: #1e293b;">{turno.orden_compra}</div>
+                                <div style="font-size: 13px; font-weight: 600; color: #1e293b;">{orden_compra_formateada}</div>
                             </td>
                             <td style="padding: 0 16px 16px 16px; vertical-align: top;">
                                 <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Remitos</div>
-                                <div style="font-size: 13px; font-weight: 600; color: #1e293b;">{turno.remitos}</div>
+                                <div style="font-size: 13px; font-weight: 600; color: #1e293b;">{turno.remitos or 'Sin remitos'}</div>
                             </td>
                         </tr>
                         <tr>
@@ -792,16 +861,15 @@ def enviar_mail_cambio_estado(turno, estado_anterior_nombre, estado_nuevo_nombre
     """
 
     text_content = f"""
-Cambio de Estado de Turno (#{turno.id_turno_reserva})
-Se ha registrado un cambio de estado en el Calendario de Reservas:
+Turno #{turno.id_turno_reserva} - {subtitulo}
 
+{texto_cambios}DETALLES ACTUALES DEL TURNO:
 - Proveedor: {turno.nombre_proveedor or 'Sin Nombre'} ({turno.codigo_proveedor})
 - Fecha: {fecha_str}
 - Hora: {hora_str}
-- Estado Anterior: {estado_anterior_nombre}
-- Nuevo Estado: {estado_nuevo_nombre}
-- Órdenes de Compra: {turno.orden_compra}
-- Remitos: {turno.remitos}
+- Estado: {estado_nuevo_nombre}{f" (Anterior: {estado_anterior_nombre})" if hubo_cambio_estado else ""}
+- Órdenes de Compra: {orden_compra_formateada}
+- Remitos: {turno.remitos or 'Sin remitos'}
 - Bultos: {turno.cantidad_bultos or 0}
 - Unidades: {turno.cantidad_unidades or 0}
 - Observaciones: {turno.observaciones or 'Sin observaciones'}
@@ -826,16 +894,16 @@ Este es un mensaje automático generado por el Calendario de Reservas.
         )
         msg.attach_alternative(html_content, "text/html")
         msg.send(fail_silently=False)
-        print(f"Email enviado correctamente para el cambio de estado del turno {turno.id_turno_reserva}")
+        print(f"Email enviado correctamente para el cambio de estado/modificación del turno {turno.id_turno_reserva}")
     except Exception as email_err:
-        print(f"Error al enviar email para el cambio de estado del turno {turno.id_turno_reserva}: {str(email_err)}")
+        print(f"Error al enviar email para el turno {turno.id_turno_reserva}: {str(email_err)}")
 
 
 @login_required(login_url="/login/")
 def editar_reserva_turno(request, turno_id):
     """
     Vista para editar una reserva de turno existente
-    Registra cambios de estado en historial
+    Registra cambios de estado y modificaciones en historial
     Valida que no se puedan editar turnos de hoy o fechas pasadas
     Muestra en modo solo lectura si el estado no permite editar
     """
@@ -846,7 +914,7 @@ def editar_reserva_turno(request, turno_id):
     
     # Verificar si la fecha del turno ya pasó
     hoy = date.today()
-    turno_es_pasado = turno.fecha <= hoy
+    turno_es_pasado = turno.fecha < hoy
     
     if request.method == 'POST':
         # Rechazar POST si está en modo solo lectura
@@ -859,6 +927,11 @@ def editar_reserva_turno(request, turno_id):
         fecha_anterior = turno.fecha
         hora_inicio_anterior = turno.hora_inicio
         hora_fin_anterior = turno.hora_fin
+        orden_compra_anterior = turno.orden_compra
+        remitos_anterior = turno.remitos
+        cantidad_unidades_anterior = turno.cantidad_unidades
+        cantidad_bultos_anterior = turno.cantidad_bultos
+        observaciones_anterior = turno.observaciones
         
         form = TurnoReservaForm(request.POST, instance=turno, user=request.user)
         if form.is_valid():
@@ -866,21 +939,77 @@ def editar_reserva_turno(request, turno_id):
             
             hubo_cambio_estado = estado_anterior != turno_actualizado.estado
             
-            # Verificar si hubo cambio de fecha/horario
-            cambios_detalles = []
-            if fecha_anterior != turno_actualizado.fecha:
-                cambios_detalles.append(f"Fecha: {fecha_anterior.strftime('%d/%m/%Y')} → {turno_actualizado.fecha.strftime('%d/%m/%Y')}")
-            if hora_inicio_anterior != turno_actualizado.hora_inicio or hora_fin_anterior != turno_actualizado.hora_fin:
-                cambios_detalles.append(f"Horario: {hora_inicio_anterior.strftime('%H:%M')}-{hora_fin_anterior.strftime('%H:%M')} → {turno_actualizado.hora_inicio.strftime('%H:%M')}-{turno_actualizado.hora_fin.strftime('%H:%M')}")
+            # Detectar y recopilar todos los cambios realizados
+            lista_cambios = []
             
-            if hubo_cambio_estado or cambios_detalles:
-                observaciones_list = []
-                if hubo_cambio_estado:
-                    observaciones_list.append(f"Cambio de estado: {estado_anterior.nombre if estado_anterior else 'N/A'} → {turno_actualizado.estado.nombre}")
-                    turno_actualizado.usuario_ultima_modificacion_estado = request.user.username
-                    turno_actualizado.estado_actual_desde = timezone.now()
-                if cambios_detalles:
-                    observaciones_list.append(f"Modificación: {', '.join(cambios_detalles)}")
+            if hubo_cambio_estado:
+                est_ant_txt = estado_anterior.nombre if estado_anterior else 'Sin Estado'
+                est_nue_txt = turno_actualizado.estado.nombre if turno_actualizado.estado else 'Sin Estado'
+                lista_cambios.append({
+                    'campo': 'Estado',
+                    'anterior': est_ant_txt,
+                    'nuevo': est_nue_txt
+                })
+                turno_actualizado.usuario_ultima_modificacion_estado = request.user.username
+                turno_actualizado.estado_actual_desde = timezone.now()
+
+            if fecha_anterior != turno_actualizado.fecha:
+                f_ant = fecha_anterior.strftime('%d/%m/%Y') if fecha_anterior else 'N/A'
+                f_nue = turno_actualizado.fecha.strftime('%d/%m/%Y') if turno_actualizado.fecha else 'N/A'
+                lista_cambios.append({
+                    'campo': 'Fecha',
+                    'anterior': f_ant,
+                    'nuevo': f_nue
+                })
+
+            if hora_inicio_anterior != turno_actualizado.hora_inicio or hora_fin_anterior != turno_actualizado.hora_fin:
+                h_ant = f"{hora_inicio_anterior.strftime('%H:%M')} a {hora_fin_anterior.strftime('%H:%M')}" if hora_inicio_anterior and hora_fin_anterior else 'N/A'
+                h_nue = f"{turno_actualizado.hora_inicio.strftime('%H:%M')} a {turno_actualizado.hora_fin.strftime('%H:%M')}" if turno_actualizado.hora_inicio and turno_actualizado.hora_fin else 'N/A'
+                lista_cambios.append({
+                    'campo': 'Horario',
+                    'anterior': h_ant,
+                    'nuevo': h_nue
+                })
+
+            oc_ant_formateada = formatear_orden_compra(orden_compra_anterior)
+            oc_nue_formateada = formatear_orden_compra(turno_actualizado.orden_compra)
+            if (orden_compra_anterior or '') != (turno_actualizado.orden_compra or ''):
+                lista_cambios.append({
+                    'campo': 'Órdenes de Compra',
+                    'anterior': oc_ant_formateada or 'Ninguna',
+                    'nuevo': oc_nue_formateada or 'Ninguna'
+                })
+
+            if (remitos_anterior or '') != (turno_actualizado.remitos or ''):
+                lista_cambios.append({
+                    'campo': 'Remitos',
+                    'anterior': remitos_anterior or 'Sin remitos',
+                    'nuevo': turno_actualizado.remitos or 'Sin remitos'
+                })
+
+            if (cantidad_bultos_anterior or 0) != (turno_actualizado.cantidad_bultos or 0):
+                lista_cambios.append({
+                    'campo': 'Bultos',
+                    'anterior': str(cantidad_bultos_anterior or 0),
+                    'nuevo': str(turno_actualizado.cantidad_bultos or 0)
+                })
+
+            if (cantidad_unidades_anterior or 0) != (turno_actualizado.cantidad_unidades or 0):
+                lista_cambios.append({
+                    'campo': 'Unidades',
+                    'anterior': str(cantidad_unidades_anterior or 0),
+                    'nuevo': str(turno_actualizado.cantidad_unidades or 0)
+                })
+
+            if (observaciones_anterior or '').strip() != (turno_actualizado.observaciones or '').strip():
+                lista_cambios.append({
+                    'campo': 'Observaciones',
+                    'anterior': observaciones_anterior or 'Sin observaciones',
+                    'nuevo': turno_actualizado.observaciones or 'Sin observaciones'
+                })
+
+            if lista_cambios:
+                observaciones_historial = [f"{c['campo']}: {c['anterior']} → {c['nuevo']}" for c in lista_cambios]
                 
                 # Crear registro en historial
                 HistorialEstadoTurno.objects.create(
@@ -888,18 +1017,20 @@ def editar_reserva_turno(request, turno_id):
                     estado_anterior=estado_anterior,
                     estado_nuevo=turno_actualizado.estado,
                     usuario=request.user.username,
-                    observaciones="; ".join(observaciones_list)
+                    observaciones="; ".join(observaciones_historial)
                 )
             
             turno_actualizado.save()
 
-            if hubo_cambio_estado or cambios_detalles:
+            if lista_cambios:
+                hubo_cambio_detalle = any(c['campo'] != 'Estado' for c in lista_cambios)
                 enviar_mail_cambio_estado(
                     turno_actualizado,
                     estado_anterior.nombre if estado_anterior else 'N/A',
-                    turno_actualizado.estado.nombre,
+                    turno_actualizado.estado.nombre if turno_actualizado.estado else 'N/A',
                     hubo_cambio_estado=hubo_cambio_estado,
-                    hubo_cambio_detalle=bool(cambios_detalles)
+                    hubo_cambio_detalle=hubo_cambio_detalle,
+                    lista_cambios=lista_cambios
                 )
 
             messages.success(request, 'Turno actualizado exitosamente.')

@@ -293,17 +293,17 @@ class TurnoReservaForm(forms.ModelForm):
                 self.fields['remitos'].required = False
                 self.fields['cantidad_unidades'].required = False
             else:
-                # Si estamos en RESERVADO pero la fecha ya pasó, deshabilitar fecha y hora
+                # Si estamos en RESERVADO pero la fecha ya pasó estrictamente, deshabilitar fecha y hora
                 hoy = date.today()
                 # Omitir esta restricción si es un bloqueo manual existente para permitir moverlo
-                if self.instance.fecha <= hoy and not (self.instance.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']):
+                if self.instance.fecha < hoy and not (self.instance.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']):
                     # Deshabilitar campos de fecha y hora
                     self.fields['fecha'].widget.attrs['readonly'] = True
                     self.fields['hora_inicio'].widget.attrs['readonly'] = True
                     self.fields['hora_fin'].widget.attrs['readonly'] = True
                     
                     # Mostrar advertencia
-                    self.fields['fecha'].help_text = "No se pueden editar turnos del día actual o fechas pasadas"
+                    self.fields['fecha'].help_text = "No se pueden editar turnos de fechas pasadas"
 
     def clean(self):
         cleaned_data = super().clean()
