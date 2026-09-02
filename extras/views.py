@@ -11,6 +11,7 @@ from django.db.models.functions import Cast
 from django.template import loader
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.forms.models import model_to_dict
 # Removed numpy imports as they were only used by moved import functions
 # from numpy import int64, isnan
 from consultasTango.models import StockCentral,SjStockDisponibleEcommerce
@@ -190,6 +191,42 @@ def editarSucursalCompleta(request, id):
         'nro_sucursal': id,
     }
     
+    return render(request, 'consultasLakersBis/editarSucursalCompleta.html', context)
+
+@login_required(login_url="/login/")
+@user_passes_test(usuario_es_admin_o_sistemas, login_url="/login/")
+def clonarSucursal(request, id):
+    """
+    Crea una nueva sucursal a partir de los datos de una existente (clon).
+    Solo N° de sucursal y Código de cliente deben cambiarse.
+    Solo accesible para 'admin'/'Sistemas'/'Gerencia_Adm' (mismo permiso que editarSucursalCompleta).
+    """
+    origen = get_object_or_404(SucursalesLakers, nro_sucursal=id)
+
+    if request.method == 'POST':
+        formulario = SucursalesLakersCompletaForm(request.POST, request.FILES)
+        if formulario.is_valid():
+            nueva_sucursal = formulario.save()
+            try:
+                _sync_punto_de_venta(nueva_sucursal.nro_sucursal, nueva_sucursal.desc_sucursal, nueva_sucursal.habilitado)
+            except Exception as e:
+                messages.warning(request, f'La sucursal se guardó, pero no se pudo sincronizar con PuntosDeVenta: {e}')
+            messages.success(request, f'Sucursal {nueva_sucursal.nro_sucursal} - {nueva_sucursal.desc_sucursal} creada a partir de la sucursal {origen.nro_sucursal}.')
+            return redirect('extras:extras_direccionario')
+        else:
+            messages.error(request, 'Por favor corrija los errores en el formulario.')
+    else:
+        datos_iniciales = model_to_dict(origen)
+        datos_iniciales['nro_sucursal'] = None
+        datos_iniciales['cod_client'] = ''
+        formulario = SucursalesLakersCompletaForm(initial=datos_iniciales)
+
+    context = {
+        'formulario': formulario,
+        'sucursal': origen,
+        'nro_sucursal': id,
+        'clonando': True,
+    }
     return render(request, 'consultasLakersBis/editarSucursalCompleta.html', context)
 
 @login_required(login_url="/login/")

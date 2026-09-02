@@ -365,6 +365,13 @@
             + ' class="sc-btn-icon" title="Editar"><i class="fas fa-pencil-alt"></i></a>';
         }
 
+        /* ── Botón clonar (solo admin/Sistemas, igual que editar completo) ── */
+        var cloneBtn = '';
+        if (cfg.canEdit) {
+          cloneBtn = '<a href="/../Extras/direccionario/clonarSucursal/' + d.nro_sucursal + '"'
+            + ' class="sc-btn-icon" title="Clonar sucursal"><i class="fas fa-clone"></i></a>';
+        }
+
         /* ── Botón eliminar (solo admin/Sistemas) ── */
         var deleteBtns = '';
         if (cfg.canDelete) {
@@ -412,6 +419,7 @@
           +       '<i class="fas fa-chevron-down sc-chevron"></i>'
           +     '</button>'
           +     editBtns
+          +     cloneBtn
           +     deleteBtns
           +   '</div>'
           + '</div>'
@@ -442,6 +450,12 @@
         } else if (cfg.canEditBasic) {
           editCell = ' <a href="/../Extras/direccionario/editarSucursal/' + d.nro_sucursal
             + '" class="dir-btn-maps-sm btn btn-sm" title="Editar"><i class="fas fa-pencil-alt"></i></a>';
+        }
+
+        var cloneCell = '';
+        if (cfg.canEdit) {
+          cloneCell = ' <a href="/../Extras/direccionario/clonarSucursal/' + d.nro_sucursal
+            + '" class="dir-btn-maps-sm btn btn-sm" title="Clonar sucursal"><i class="fas fa-clone"></i></a>';
         }
 
         var deleteCell = '';
@@ -498,6 +512,7 @@
           +     ' data-target="#' + trCollapseId + '" title="Ver más datos">'
           +     '<i class="fas fa-chevron-down dir-chevron"></i></button>'
           +   editCell
+          +   cloneCell
           +   deleteCell
           + '</td>'
           + '</tr>'

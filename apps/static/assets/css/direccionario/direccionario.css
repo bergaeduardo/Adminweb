@@ -666,14 +666,14 @@
   padding: 12px 16px 14px;
   border-top: 1px solid rgba(13,92,99,.08);
   display: flex;
-  align-items: center;
-  gap: 7px;
+  flex-direction: column;
+  gap: 8px;
   background: linear-gradient(to bottom, #fbfeff, #f6fafb);
 }
 
-/* Botón Maps — ocupa el ancho disponible */
+/* Botón Maps — ocupa todo el ancho, arriba de las acciones */
 .sc-btn-maps {
-  flex: 1;
+  width: 100%;
   padding: 9px 12px;
   background: rgba(13,92,99,.07);
   color: #0D5C63;
@@ -707,6 +707,7 @@
 .sc-footer-actions {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
 }
 

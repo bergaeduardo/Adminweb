@@ -87,10 +87,18 @@
             <div class="row mb-2">
                 <div class="col-sm-12">
                     <h1 class="page-title">
+                        {% if clonando %}
+                        <i class="fas fa-clone mr-2"></i>Clonar Sucursal
+                        {% else %}
                         <i class="fas fa-store mr-2"></i>Edición Completa de Sucursal
+                        {% endif %}
                     </h1>
                     <p class="page-subtitle">
+                        {% if clonando %}
+                        Clonando desde sucursal: {{ sucursal.nro_sucursal }} - {{ sucursal.desc_sucursal }}
+                        {% else %}
                         Sucursal: {{ nro_sucursal }} - {{ sucursal.desc_sucursal }}
+                        {% endif %}
                         <span class="badge badge-warning ml-2">
                             <i class="fas fa-shield-alt"></i> Solo Admin/Sistemas
                         </span>
@@ -113,6 +121,17 @@
                     </button>
                 </div>
                 {% endfor %}
+            {% endif %}
+
+            {% if clonando %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle mr-2"></i>
+                Se precargaron todos los datos de la sucursal {{ sucursal.nro_sucursal }} - {{ sucursal.desc_sucursal }}.
+                Complete el <strong>N° de sucursal</strong> y el <strong>Código de cliente</strong> nuevos antes de guardar.
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
             {% endif %}
 
             {% if formulario.errors %}
@@ -526,7 +545,11 @@
                 <div class="row mt-4 mb-5">
                     <div class="col-md-12 text-center">
                         <button type="submit" class="btn btn-primary btn-lg">
+                            {% if clonando %}
+                            <i class="fas fa-clone mr-2"></i>Crear sucursal clonada
+                            {% else %}
                             <i class="fas fa-save mr-2"></i>Guardar Cambios
+                            {% endif %}
                         </button>
                         <a href="{% url 'extras:extras_direccionario' %}" class="btn btn-secondary btn-lg">
                             <i class="fas fa-times mr-2"></i>Cancelar
@@ -558,7 +581,8 @@ $(document).ready(function() {
 
     // Confirm before submit
     $('form').on('submit', function(e) {
-        if (!confirm('¿Está seguro de guardar los cambios en esta sucursal?')) {
+        var mensaje = {% if clonando %}'¿Confirma crear una nueva sucursal clonada?'{% else %}'¿Está seguro de guardar los cambios en esta sucursal?'{% endif %};
+        if (!confirm(mensaje)) {
             e.preventDefault();
             return false;
         }
