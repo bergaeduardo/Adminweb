@@ -1,5 +1,21 @@
+import openpyxl
 from django.conf import settings
 from django.db import connections
+
+
+def parsear_xlsx_ajuste(archivo):
+    """Lee un archivo .xlsx sin encabezados (Ubicación, Artículo, Cantidad) y devuelve una
+    lista de filas (listas de strings), con la misma forma que produce el parseo de texto
+    pegado en el frontend."""
+    wb = openpyxl.load_workbook(archivo, data_only=True, read_only=True)
+    hoja = wb.active
+    filas = []
+    for fila in hoja.iter_rows(values_only=True):
+        valores = list(fila)
+        if all(v is None or str(v).strip() == '' for v in valores):
+            continue
+        filas.append([('' if v is None else str(v).strip()) for v in valores])
+    return filas
 
 
 def _usar_base_laker_sa():

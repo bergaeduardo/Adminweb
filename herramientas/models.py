@@ -12,12 +12,20 @@ class RegistroAltaMuestraArticulo(models.Model):
         (ACCION_EJECUTAR, 'Ejecutar recodificación'),
     ]
 
+    MODO_ALTA_MUESTRAS = 'alta_muestras'
+    MODO_RECODIFICACION = 'recodificacion'
+    MODO_CHOICES = [
+        (MODO_ALTA_MUESTRAS, 'Alta de muestras'),
+        (MODO_RECODIFICACION, 'Recodificación'),
+    ]
+
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='+')
     fecha = models.DateTimeField(auto_now_add=True)
     accion = models.CharField(max_length=20, choices=ACCION_CHOICES)
     filas = models.JSONField()
     numero_tarea = models.CharField(max_length=100, blank=True, null=True)
     filas_con_error = models.JSONField(blank=True, null=True)
+    modo = models.CharField(max_length=20, choices=MODO_CHOICES, blank=True, null=True)
 
     class Meta:
         verbose_name = 'Registro de alta de muestra de artículo'

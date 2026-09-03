@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Alta de Muestras de Artículos {% endblock %}
+{% block title %} {% if modo == 'recodificacion' %}Recodificación de Artículos{% else %}Alta de Muestras de Artículos{% endif %} {% endblock %}
 
 {% block stylesheets %}
   <!-- Font Awesome -->
@@ -19,7 +19,7 @@
       <div class="row mb-2">
         <div class="col-sm-6">
           <h1>
-            <i class="fas fa-flask"></i> Alta de Muestras de Artículos
+            <i class="fas fa-flask"></i> {% if modo == 'recodificacion' %}Recodificación de Artículos{% else %}Alta de Muestras de Artículos{% endif %}
             <button type="button" class="btn btn-outline-info btn-sm ml-2" data-toggle="modal" data-target="#modalAyuda">
               <i class="fas fa-question-circle"></i> Ayuda
             </button>
@@ -29,7 +29,7 @@
           <ol class="breadcrumb float-sm-right">
             <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
             <li class="breadcrumb-item"><a href="#">Herramientas</a></li>
-            <li class="breadcrumb-item active">Alta de Muestras de Artículos</li>
+            <li class="breadcrumb-item active">{% if modo == 'recodificacion' %}Recodificación de Artículos{% else %}Alta de Muestras de Artículos{% endif %}</li>
           </ol>
         </div>
       </div>
@@ -57,6 +57,9 @@
             <li>Hacé clic en <strong>"Previsualizar"</strong> para revisar que las columnas se separaron correctamente. Las filas que no tengan exactamente 3 columnas se marcan en rojo.</li>
             <li>Hacé clic en <strong>"Confirmar e Importar"</strong> para cargar los datos.</li>
             <li>Hacé clic en <strong>"Ejecutar"</strong> para aplicar el ajuste real de stock. Este paso mueve stock de verdad, no se puede probar "en falso".</li>
+            {% if modo == 'recodificacion' %}
+            <li>Si el lote incluye alguna <strong>baja</strong> (cantidad negativa), la suma de todas las cantidades del lote debe dar <strong>exactamente 0</strong>: toda baja debe compensarse con alta(s) por el mismo total.</li>
+            {% endif %}
           </ol>
 
           <h6><i class="fas fa-exclamation-triangle text-warning"></i> Si aparece un error al ejecutar</h6>
@@ -124,6 +127,22 @@
               <button type="button" id="btn-previsualizar" class="btn btn-info">
                 <i class="fas fa-eye"></i> Previsualizar
               </button>
+
+              <hr>
+
+              <div class="form-group">
+                <label>O subí un archivo .xlsx con el mismo formato (sin encabezados):</label>
+                <div class="custom-file">
+                  <input type="file" class="custom-file-input" id="archivo-xlsx" accept=".xlsx">
+                  <label class="custom-file-label" for="archivo-xlsx">Elegir archivo...</label>
+                </div>
+              </div>
+              <a href="/static/PlantillaAltaMuestrasArticulos.xlsx" download="PlantillaAltaMuestrasArticulos.xlsx" class="btn btn-outline-secondary">
+                <i class="fas fa-download"></i> Descargar plantilla de ejemplo
+              </a>
+              <button type="button" id="btn-subir-archivo" class="btn btn-info">
+                <i class="fas fa-upload"></i> Subir y previsualizar
+              </button>
             </div>
           </div>
         </div>
@@ -169,7 +188,7 @@
             <div class="card-header">
               <h3 class="card-title">
                 <i class="fas fa-check-circle"></i>
-                3. Ejecutar Alta de Muestras
+                3. Ejecutar {% if modo == 'recodificacion' %}Recodificación{% else %}Alta de Muestras{% endif %}
               </h3>
             </div>
             <div class="card-body">
@@ -209,7 +228,10 @@
               </div>
 
               <div id="bloque-omitidas" style="display:none;" class="mt-3">
-                <h6 class="text-warning"><i class="fas fa-forward"></i> Filas omitidas por falta de stock</h6>
+                <div class="alert alert-warning">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <strong id="omitidas-contador"></strong> artículo(s) omitido(s) por <span class="badge badge-danger">Sin stock</span>
+                </div>
                 <div class="table-responsive">
                   <table class="table table-sm table-striped" id="tabla-omitidas">
                     <thead>
@@ -217,7 +239,7 @@
                         <th>Código de Ubicación</th>
                         <th>Código de Artículo</th>
                         <th>Cantidad</th>
-                        <th>Motivo</th>
+                        <th>Estado</th>
                       </tr>
                     </thead>
                     <tbody></tbody>
@@ -246,6 +268,7 @@
   <script>
     $(document).ready(function () {
       const csrftoken = $('input[name=csrfmiddlewaretoken]').val();
+      const modo = "{{ modo }}";
       let filasParseadas = [];
 
       function parsearTexto(texto) {
@@ -264,9 +287,15 @@
         });
       }
 
-      $('#btn-previsualizar').click(function () {
-        const texto = $('#datos-pegados').val();
-        filasParseadas = parsearTexto(texto);
+      function sumaCompensadaOk(filas) {
+        const cantidades = filas.map(function (f) { return parseInt(f[2], 10); }).filter(function (n) { return !isNaN(n); });
+        const hayBaja = cantidades.some(function (n) { return n < 0; });
+        const suma = cantidades.reduce(function (a, b) { return a + b; }, 0);
+        return !hayBaja || suma === 0;
+      }
+
+      function renderPreview(filas) {
+        filasParseadas = filas;
 
         $('#alertas-preview').empty();
         $('#seccion-resultado').hide();
@@ -289,10 +318,57 @@
         });
 
         $('#seccion-preview').show();
+      }
+
+      $('#archivo-xlsx').on('change', function () {
+        const fileName = $(this).val().split('\\').pop();
+        $(this).next('.custom-file-label').html(fileName || 'Elegir archivo...');
+      });
+
+      $('#btn-previsualizar').click(function () {
+        const texto = $('#datos-pegados').val();
+        renderPreview(parsearTexto(texto));
+      });
+
+      $('#btn-subir-archivo').click(function () {
+        const archivo = $('#archivo-xlsx')[0].files[0];
+        if (!archivo) {
+          mostrarAlertas('#alertas-preview', ['Elegí un archivo .xlsx antes de subir.'], 'warning');
+          $('#seccion-preview').show();
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('archivo', archivo);
+
+        $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Subiendo...');
+
+        $.ajax({
+          url: "{% url 'herramientas:herramientas_alta_muestras_articulos_subir_archivo' %}",
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrftoken },
+          data: formData,
+          processData: false,
+          contentType: false,
+        }).done(function (resp) {
+          renderPreview(resp.filas || []);
+        }).fail(function (xhr) {
+          const data = xhr.responseJSON || {};
+          const errores = data.errores || ['Error desconocido al leer el archivo.'];
+          mostrarAlertas('#alertas-preview', errores, 'danger');
+          $('#seccion-preview').show();
+        }).always(function () {
+          $('#btn-subir-archivo').prop('disabled', false).html('<i class="fas fa-upload"></i> Subir y previsualizar');
+        });
       });
 
       $('#btn-importar').click(function () {
         if (filasParseadas.length === 0) return;
+
+        if (modo === 'recodificacion' && !sumaCompensadaOk(filasParseadas)) {
+          mostrarAlertas('#alertas-preview', ['En modo Recodificación, toda baja debe compensarse con altas por el mismo total (la suma del lote debe dar 0).'], 'danger');
+          return;
+        }
 
         $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Importando...');
 
@@ -345,9 +421,10 @@
 
           const $tbodyOmitidas = $('#tabla-omitidas tbody');
           $tbodyOmitidas.empty();
+          $('#omitidas-contador').text(omitidas.length);
           omitidas.forEach(function (f) {
             $tbodyOmitidas.append(
-              '<tr><td>' + f.CodigoUbicacion + '</td><td>' + f.CodigoArticulo + '</td><td>' + f.CantidadAjuste + '</td><td>' + f.Resultado + '</td></tr>'
+              '<tr><td>' + f.CodigoUbicacion + '</td><td>' + f.CodigoArticulo + '</td><td>' + f.CantidadAjuste + '</td><td><span class="badge badge-danger">Sin stock</span></td></tr>'
             );
           });
 

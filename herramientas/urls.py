@@ -61,6 +61,7 @@ urlpatterns = [
     path('Recodificacion', views.Recodificacion, name='herramientas_recodificacion'),
     path('AltaMuestrasArticulos', views.alta_muestras_articulos, name='herramientas_alta_muestras_articulos'),
     path('AltaMuestrasArticulos/importar', views.alta_muestras_articulos_importar, name='herramientas_alta_muestras_articulos_importar'),
+    path('AltaMuestrasArticulos/subir-archivo', views.alta_muestras_articulos_subir_archivo, name='herramientas_alta_muestras_articulos_subir_archivo'),
     path('AltaMuestrasArticulos/ejecutar', views.alta_muestras_articulos_ejecutar, name='herramientas_alta_muestras_articulos_ejecutar'),
     path('MaestroDestinos', views.MaestroDestinos, name='herramientas_maestro_destinos'),
     path('GestionEquivalentes', views.GestionEquivalentes, name='herramientas_gestion_equivalentes'),

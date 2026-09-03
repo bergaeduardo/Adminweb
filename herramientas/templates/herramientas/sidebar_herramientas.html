@@ -151,7 +151,7 @@
       <a href="/../Herramientas/AltaMuestrasArticulos"
         class="nav-link {% if 'AltaMuestrasArticulos' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
-        <p>Alta de Muestras de Artículos</p>
+        <p>{% if request.user|has_any_group:"admin,Abastecimiento_Sup" %}Recodificación / Alta de Muestras{% else %}Alta de Muestras de Artículos{% endif %}</p>
       </a>
     </li>
     {% endif %}

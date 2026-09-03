@@ -1824,9 +1824,18 @@ def usuario_puede_gestionar_muestras(user):
         name__in=['admin', 'Abastecimiento', 'Abastecimiento_Sup', 'Comercial_may', 'Comercial_suc']
     ).exists() or user.is_superuser
 
+def obtener_modo_alta_muestras(user):
+    """Determina si el usuario opera la herramienta en modo Recodificación (requiere que las
+    bajas se compensen con altas por el mismo total) o en modo Alta de Muestras (solo altas,
+    comportamiento actual). Se recalcula siempre server-side, nunca se confía en el cliente."""
+    if user.groups.filter(name='Abastecimiento_Sup').exists():
+        return RegistroAltaMuestraArticulo.MODO_RECODIFICACION
+    return RegistroAltaMuestraArticulo.MODO_ALTA_MUESTRAS
+
 @user_passes_test(usuario_puede_gestionar_muestras, login_url="/login/")
 def alta_muestras_articulos(request):
-    return render(request, 'herramientas/alta_muestras_articulos/index.html')
+    modo = obtener_modo_alta_muestras(request.user)
+    return render(request, 'herramientas/alta_muestras_articulos/index.html', {'modo': modo})
 
 @user_passes_test(usuario_puede_gestionar_muestras, login_url="/login/")
 def alta_muestras_articulos_importar(request):
@@ -1866,6 +1875,19 @@ def alta_muestras_articulos_importar(request):
     if not filas_validas:
         return JsonResponse({'errores': ['No se recibieron filas para importar.']}, status=400)
 
+    modo = obtener_modo_alta_muestras(request.user)
+
+    if modo == RegistroAltaMuestraArticulo.MODO_RECODIFICACION:
+        suma_total = sum(f[2] for f in filas_validas)
+        hay_baja = any(f[2] < 0 for f in filas_validas)
+        if hay_baja and suma_total != 0:
+            return JsonResponse({
+                'errores': [
+                    f'En modo Recodificación, toda baja debe compensarse con altas por el mismo total. '
+                    f'La suma de las cantidades del lote es {suma_total}, debería ser 0.'
+                ]
+            }, status=400)
+
     try:
         truncar_tablas_ajuste()
         insertar_filas_ajuste(filas_validas)
@@ -1876,14 +1898,36 @@ def alta_muestras_articulos_importar(request):
         usuario=request.user,
         accion=RegistroAltaMuestraArticulo.ACCION_IMPORTAR,
         filas=filas_validas,
+        modo=modo,
     )
 
     return JsonResponse({'importadas': len(filas_validas)})
 
 @user_passes_test(usuario_puede_gestionar_muestras, login_url="/login/")
+def alta_muestras_articulos_subir_archivo(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    archivo = request.FILES.get('archivo')
+    if not archivo:
+        return JsonResponse({'errores': ['No se recibió ningún archivo.']}, status=400)
+
+    if not archivo.name.lower().endswith('.xlsx'):
+        return JsonResponse({'errores': ['El archivo debe tener formato .xlsx.']}, status=400)
+
+    try:
+        filas = parsear_xlsx_ajuste(archivo)
+    except Exception as e:
+        return JsonResponse({'errores': [f'No se pudo leer el archivo: {str(e)}']}, status=400)
+
+    return JsonResponse({'filas': filas})
+
+@user_passes_test(usuario_puede_gestionar_muestras, login_url="/login/")
 def alta_muestras_articulos_ejecutar(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    modo = obtener_modo_alta_muestras(request.user)
 
     try:
         resultado = ejecutar_recodificacion()
@@ -1905,6 +1949,7 @@ def alta_muestras_articulos_ejecutar(request):
             'bloqueantes': resultado.get('resultado_filas', []),
             'omitidas_por_stock': resultado.get('filas_omitidas', []),
         },
+        modo=modo,
     )
 
     return JsonResponse(resultado)
@@ -3467,6 +3512,7 @@ from .sql_muestras_articulos import (
     truncar_tablas_ajuste,
     insertar_filas_ajuste,
     ejecutar_recodificacion,
+    parsear_xlsx_ajuste,
 )
 from .models import RegistroAltaMuestraArticulo
 import io
