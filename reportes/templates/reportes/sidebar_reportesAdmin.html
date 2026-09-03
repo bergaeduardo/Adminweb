@@ -183,7 +183,14 @@
             <p>Gestión de Ordenes de Preventa</p>
             <span class="badge badge-info right">New</span>
           </a>
-        </li>  
+        </li>
+        <li class="nav-item">
+          {# Updated href for Comercio Exterior (assuming Abastecimiento section) #}
+          <a href="/Reportes/Abastecimiento/comercioExterior" class="nav-link {% if 'comercioExterior' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Comercio Exterior</p>
+          </a>
+        </li>
       </ul>
     </li>
 

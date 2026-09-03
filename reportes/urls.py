@@ -27,6 +27,7 @@ urlpatterns = [
     path('Abastecimiento/stockSupplyUY', views.stockcentral_pivotUY, name='reportes_logistica_stock_supply_uy'),
     path('Abastecimiento/AnalisisProductos', views.AnalisisProductos, name='reportes_comercial_analisis_productos'),
     path('Abastecimiento/gestionOrdenesPreventa/', views.gestionOrdenesPreventa, name='reportes_abastecimiento_gestion_ordenes_preventa'),
+    path('Abastecimiento/comercioExterior/', views.comercioExterior, name='reportes_abastecimiento_comercio_exterior'),
 
     # Comercial
     path('Comercial/stockSucursalesLakers', views.stockSucursalesLakers, name='reportes_comercial_stock_sucursales_lakers'),

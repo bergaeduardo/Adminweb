@@ -99,6 +99,12 @@ def gestionOrdenesPreventa(request):
     dir_iframe = DIR_REPORTES['gestionOrdenesPreventa']
     return render(request,'home/PlantillaReportes.html',{'dir_iframe':dir_iframe,'Nombre':Nombre})
 
+@login_required(login_url="/login/")
+def comercioExterior(request):
+    Nombre='Comercio Exterior'
+    dir_iframe = DIR_REPORTES['comercioExterior']
+    return redirect(dir_iframe)
+
 # Comercial
 
 # @login_required(login_url="/login/")
