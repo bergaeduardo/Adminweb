@@ -630,7 +630,7 @@
     <!-- Fin 	Supervisores -->
 
     <!-- inicio 	Admin -->
-    {% if request.user|has_any_group:"admin" or request.user.id == 12 %}
+    {% if request.user|has_any_group:"admin" or request.user.id == 12 or request.user.id == 15 %}
     <li class="nav-item">
       <a href="/../Herramientas/calendario_reservas" class="nav-link {% if 'calendario_reservas' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
