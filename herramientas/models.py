@@ -23,7 +23,7 @@ class RegistroAltaMuestraArticulo(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
     accion = models.CharField(max_length=20, choices=ACCION_CHOICES)
     filas = models.JSONField()
-    numero_tarea = models.CharField(max_length=100, blank=True, null=True)
+    numero_tarea = models.TextField(blank=True, null=True)
     filas_con_error = models.JSONField(blank=True, null=True)
     modo = models.CharField(max_length=20, choices=MODO_CHOICES, blank=True, null=True)
 

@@ -1894,12 +1894,17 @@ def alta_muestras_articulos_importar(request):
     except Exception as e:
         return JsonResponse({'errores': [f'Error al importar los datos: {str(e)}']}, status=500)
 
-    RegistroAltaMuestraArticulo.objects.create(
-        usuario=request.user,
-        accion=RegistroAltaMuestraArticulo.ACCION_IMPORTAR,
-        filas=filas_validas,
-        modo=modo,
-    )
+    try:
+        RegistroAltaMuestraArticulo.objects.create(
+            usuario=request.user,
+            accion=RegistroAltaMuestraArticulo.ACCION_IMPORTAR,
+            filas=filas_validas,
+            modo=modo,
+        )
+    except Exception:
+        # Los datos ya se importaron correctamente; si falla el registro de auditoría
+        # no debe hacer parecer que la importación falló.
+        logger.exception('No se pudo guardar el registro de auditoría de importación de muestras')
 
     return JsonResponse({'importadas': len(filas_validas)})
 
@@ -1940,17 +1945,23 @@ def alta_muestras_articulos_ejecutar(request):
         None,
     )
 
-    RegistroAltaMuestraArticulo.objects.create(
-        usuario=request.user,
-        accion=RegistroAltaMuestraArticulo.ACCION_EJECUTAR,
-        filas=resultado.get('filas_procesadas', []),
-        numero_tarea=numero_tarea,
-        filas_con_error={
-            'bloqueantes': resultado.get('resultado_filas', []),
-            'omitidas_por_stock': resultado.get('filas_omitidas', []),
-        },
-        modo=modo,
-    )
+    try:
+        RegistroAltaMuestraArticulo.objects.create(
+            usuario=request.user,
+            accion=RegistroAltaMuestraArticulo.ACCION_EJECUTAR,
+            filas=resultado.get('filas_procesadas', []),
+            numero_tarea=numero_tarea,
+            filas_con_error={
+                'bloqueantes': resultado.get('resultado_filas', []),
+                'omitidas_por_stock': resultado.get('filas_omitidas', []),
+            },
+            modo=modo,
+        )
+    except Exception:
+        # El ajuste de stock ya se ejecutó contra LAKER_SA; si falla el registro de
+        # auditoría no debe hacer parecer que la ejecución falló (evita que el usuario
+        # vuelva a apretar "Ejecutar" y duplique el movimiento de stock).
+        logger.exception('No se pudo guardar el registro de auditoría de ejecución de muestras')
 
     return JsonResponse(resultado)
 
