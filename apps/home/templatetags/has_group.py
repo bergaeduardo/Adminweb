@@ -1,10 +1,11 @@
 from atexit import register
 from django import template
+from django.db.models.functions import Lower
 
 register = template.Library()
 @register.filter(name='has_group')
 def has_group(user, group_name):
-    grupo = user.groups.filter(name__exact=group_name).exists()
+    grupo = user.groups.filter(name__iexact=group_name).exists()
     return grupo
 
 
@@ -16,11 +17,11 @@ def group_id(user, idgroup):
 
 @register.filter(name='has_any_group')
 def has_any_group(user, groups):
-    """Verifica si el usuario pertenece a alguno de los grupos especificados."""
+    """Verifica si el usuario pertenece a alguno de los grupos especificados (sin distinguir mayúsculas/minúsculas)."""
     if not user or not user.is_authenticated:
         return False
-    group_list = groups.split(',')
-    return user.groups.filter(name__in=group_list).exists()
+    group_list = [g.strip().lower() for g in groups.split(',')]
+    return user.groups.annotate(name_lower=Lower('name')).filter(name_lower__in=group_list).exists()
 
 @register.filter(name='get_user_groups')
 def get_user_groups(user):

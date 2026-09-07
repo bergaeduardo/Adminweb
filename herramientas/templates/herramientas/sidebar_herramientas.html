@@ -121,7 +121,7 @@
     <!-- Fin Logistica -->
 
     <!-- inicio 	Abastecimiento -->
-    {% if request.user|has_any_group:"admin,Abastecimiento_sup" %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup" %}
     <li class="nav-item">
       <a href="/../Herramientas/DistribucionesMayoristas"
         class="nav-link {% if 'DistribucionesMayoristas' in request.path %} active {% endif %}">
@@ -131,7 +131,7 @@
       </a>
     </li>
     {% endif %}
-    {% if request.user|has_any_group:"admin,Abastecimiento_sup,Abastecimiento" %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento" %}
 
     <!-- accesos del area aqui -->
     <li class="nav-item">
@@ -143,7 +143,7 @@
       </a>
     </li>
     {% endif %}
-    {% if request.user|has_any_group:"admin,Abastecimiento_sup,Abastecimiento" or request.user.id == 44 %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento" or request.user.id == 44 %}
     <li class="nav-item">
       <a href="/../Herramientas/Recodificacion"
         class="nav-link {% if 'Recodificacion' in request.path %} active {% endif %}">
@@ -153,16 +153,16 @@
       </a>
     </li>
     {% endif %}
-    {% if request.user|has_any_group:"admin,Abastecimiento_sup,Abastecimiento,Comercial_may,Comercial_suc" %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento,Comercial_may,Comercial_suc" %}
     <li class="nav-item">
       <a href="/../Herramientas/AltaMuestrasArticulos"
         class="nav-link {% if 'AltaMuestrasArticulos' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
-        <p>{% if request.user|has_any_group:"admin,Abastecimiento_sup" %}Recodificación / Alta de Muestras{% else %}Alta de Muestras de Artículos{% endif %}</p>
+        <p>{% if request.user|has_any_group:"admin,Abastecimiento_Sup" %}Recodificación / Alta de Muestras{% else %}Alta de Muestras de Artículos{% endif %}</p>
       </a>
     </li>
     {% endif %}
-    {% if request.user|has_any_group:"admin,Abastecimiento_sup,Abastecimiento" %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento" %}
     <li class="nav-item">
       <a href="/../Herramientas/MaestroDestinos"
         class="nav-link {% if 'MaestroDestinos' in request.path %} active {% endif %}">
@@ -199,7 +199,7 @@
     <!-- Fin 	Abastecimiento -->
 
     <!-- inicio 	Gestión de Volúmenes -->
-    {% if request.user|has_any_group:"admin,Abastecimiento_sup,Abastecimiento,e-commerce" %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento,e-commerce" %}
     <li class="nav-item">
       <a href="{% url 'herramientas:eb_sinc_art_volumen_list' %}"
         class="nav-link {% if 'eb-sinc-art-volumen' in request.path %} active {% endif %}">
@@ -347,7 +347,7 @@
     {% endif %}
     <!-- Fin Administracion_CE ***Comercio Exterior*** -->
 
-    {% if request.user|has_any_group:"admin,Abastecimiento_sup,Abastecimiento,Administracion_Sup,Administracion" %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup,Abastecimiento,Administracion_Sup,Administracion" %}
     <li class="nav-item">
       <a href="/../Herramientas/MedidasLocales"
         class="nav-link {% if 'MedidasLocales' in request.path %} active {% endif %}">
