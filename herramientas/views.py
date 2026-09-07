@@ -1821,14 +1821,14 @@ def Recodificacion(request):
 def usuario_puede_gestionar_muestras(user):
     """Verifica si el usuario pertenece a un grupo habilitado para dar de alta muestras de artículos"""
     return user.groups.filter(
-        name__in=['admin', 'Abastecimiento', 'Abastecimiento_Sup', 'Comercial_may', 'Comercial_suc']
+        name__in=['admin', 'Abastecimiento', 'Abastecimiento_sup', 'Comercial_may', 'Comercial_suc']
     ).exists() or user.is_superuser
 
 def obtener_modo_alta_muestras(user):
     """Determina si el usuario opera la herramienta en modo Recodificación (requiere que las
     bajas se compensen con altas por el mismo total) o en modo Alta de Muestras (solo altas,
     comportamiento actual). Se recalcula siempre server-side, nunca se confía en el cliente."""
-    if user.groups.filter(name='Abastecimiento_Sup').exists():
+    if user.groups.filter(name='Abastecimiento_sup').exists():
         return RegistroAltaMuestraArticulo.MODO_RECODIFICACION
     return RegistroAltaMuestraArticulo.MODO_ALTA_MUESTRAS
 
@@ -2095,6 +2095,12 @@ def anulador(request):
 def PanelReposicionUY(request):
     Nombre = 'Panel de Reposición UY'
     dir_iframe = DIR_HERAMIENTAS['PanelReposicionUY']
+    return redirect(dir_iframe)
+
+@login_required(login_url="/login/")
+def DistribucionesMayoristas(request):
+    Nombre = 'Distribuciones Mayoristas'
+    dir_iframe = DIR_HERAMIENTAS['DistribucionesMayoristas']
     return redirect(dir_iframe)
 
 
@@ -2675,7 +2681,7 @@ def _puede_gestionar_usuarios(user):
 
 def _grupos_accesibles(user):
     """Retorna el queryset de grupos que el usuario puede asignar.
-    Soporta múltiples grupos _sup (ej: Abastecimiento_Sup + Comercial_sup)."""
+    Soporta múltiples grupos _sup (ej: Abastecimiento_sup + Comercial_sup)."""
     if user.groups.filter(name='admin').exists():
         return Group.objects.all().order_by('name')
     from django.db.models import Q
