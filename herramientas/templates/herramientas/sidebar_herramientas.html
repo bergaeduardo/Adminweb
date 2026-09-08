@@ -1,7 +1,14 @@
 {% load has_group %} <!-- \apps\home\templatetags\has_group.py -->
 {% with user_groups=request.user|get_user_groups %}
-<li class="nav-item {% if 'Herramientas' in request.path %} menu-open {% endif %}">
-  <a href="#" class="nav-link {% if 'Herramientas' in request.path %} active {% endif %}">
+{% comment %}
+  'Transferencias' tambien abre este desplegable: la herramienta de
+  transferencias entre depositos vive en la app `transferencias` (por eso su
+  URL no empieza con /Herramientas/) pero se muestra dentro de este menu.
+  Ojo: {# #} en Django es de UNA sola linea, un comentario multilinea con esa
+  sintaxis se renderiza como texto visible.
+{% endcomment %}
+<li class="nav-item {% if 'Herramientas' in request.path or 'Transferencias/Depositos' in request.path %} menu-open {% endif %}">
+  <a href="#" class="nav-link {% if 'Herramientas' in request.path or 'Transferencias/Depositos' in request.path %} active {% endif %}">
     <i class="nav-icon fas fa-tools"></i>
     <p>
       Herramientas
@@ -159,6 +166,16 @@
         class="nav-link {% if 'AltaMuestrasArticulos' in request.path %} active {% endif %}">
         <i class="far fa-circle nav-icon"></i>
         <p>{% if request.user|has_any_group:"admin,Abastecimiento_Sup" %}Recodificación / Alta de Muestras{% else %}Alta de Muestras de Artículos{% endif %}</p>
+      </a>
+    </li>
+    {% endif %}
+    {% if request.user|has_any_group:"admin,Abastecimiento_Sup" %}
+    <li class="nav-item">
+      <a href="/../Transferencias/Depositos"
+        class="nav-link {% if 'Transferencias/Depositos' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Transferencias entre Depósitos</p>
+        <span class="badge badge-info right">New</span>
       </a>
     </li>
     {% endif %}

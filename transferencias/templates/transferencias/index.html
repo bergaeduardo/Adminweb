@@ -1,0 +1,427 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Transferencias entre Depósitos {% endblock %}
+
+{% block stylesheets %}
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>
+            <i class="fas fa-exchange-alt"></i> Transferencias entre Depósitos
+            <button type="button" class="btn btn-outline-info btn-sm ml-2" data-toggle="modal" data-target="#modalAyuda">
+              <i class="fas fa-question-circle"></i> Ayuda
+            </button>
+          </h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="#">Transferencias</a></li>
+            <li class="breadcrumb-item active">Entre Depósitos</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal de Ayuda -->
+  <div class="modal fade" id="modalAyuda" tabindex="-1" role="dialog" aria-labelledby="modalAyudaTitulo" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAyudaTitulo"><i class="fas fa-question-circle"></i> ¿Cómo funciona esta herramienta?</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Esta herramienta <strong>mueve stock de un depósito a otro</strong> de forma masiva: descuenta la cantidad de la ubicación de origen y la suma en la ubicación de destino, en un solo movimiento.</p>
+
+          <h6><i class="fas fa-warehouse"></i> Depósitos habilitados</h6>
+          <ul>
+            {% for codigo, nombre in depositos %}
+            <li><code>{{ codigo }}</code> &mdash; {{ nombre }}</li>
+            {% endfor %}
+          </ul>
+
+          <h6><i class="fas fa-list-ol"></i> Pasos a seguir</h6>
+          <ol>
+            <li>En Excel armá una lista con {{ cantidad_columnas }} columnas, <strong>sin encabezados</strong>: Depósito origen, Ubicación origen, Depósito destino, Ubicación destino, Artículo y Cantidad.</li>
+            <li>La cantidad siempre va <strong>positiva</strong>: el sentido lo dan las columnas de origen y destino.</li>
+            <li>Copiá esas filas (Ctrl+C) y pegalas (Ctrl+V) en el cuadro de texto, o subí el archivo <code>.xlsx</code>.</li>
+            <li>Hacé clic en <strong>"Previsualizar"</strong> para revisar que las columnas se separaron bien.</li>
+            <li>Hacé clic en <strong>"Validar"</strong>. Acá se verifica todo contra el sistema sin mover nada de stock.</li>
+            <li>Si la validación da todo en verde, se habilita <strong>"Ejecutar"</strong>. Ese paso mueve stock de verdad.</li>
+          </ol>
+
+          <h6><i class="fas fa-check-double"></i> Qué se valida</h6>
+          <ul>
+            <li>Que los depósitos de origen y destino estén habilitados.</li>
+            <li>Que cada ubicación exista y que <strong>pertenezca al depósito declarado en esa misma fila</strong>.</li>
+            <li>Que el artículo exista en Tango y en el WMS.</li>
+            <li>Que haya stock suficiente, tanto en la <strong>ubicación de origen</strong> como en el <strong>depósito de origen</strong>.</li>
+          </ul>
+
+          <h6><i class="fas fa-exclamation-triangle text-warning"></i> Si alguna fila falla</h6>
+          <p class="mb-0"><strong>No se aplica nada</strong>, ni siquiera las filas correctas. Hay que corregir todas las filas marcadas y volver a validar. Esto es a propósito: evita que un lote quede aplicado a medias.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="content">
+    <div class="container-fluid">
+
+      {% csrf_token %}
+
+      <!-- Instrucciones -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card card-info">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-info-circle"></i> Instrucciones</h3>
+            </div>
+            <div class="card-body">
+              <p>Pegá abajo los datos copiados desde Excel, con {{ cantidad_columnas }} columnas por fila separadas por tabulación:</p>
+              <table class="table table-sm table-bordered w-auto">
+                <thead>
+                  <tr>
+                    <th>Dep. origen</th>
+                    <th>Ubic. origen</th>
+                    <th>Dep. destino</th>
+                    <th>Ubic. destino</th>
+                    <th>Artículo</th>
+                    <th>Cantidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="text-muted">
+                    <td>06</td><td>R1001A01</td><td>20</td><td>A0201001</td><td>XPAKTJ-024</td><td>1</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="mb-0 text-muted">
+                No incluyas encabezados. Depósitos habilitados:
+                {% for codigo, nombre in depositos %}<span class="badge badge-secondary">{{ codigo }} {{ nombre }}</span> {% endfor %}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. Pegar datos -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card card-primary">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-paste"></i> 1. Pegar datos</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <textarea id="datos-pegados" class="form-control" rows="8"
+                  placeholder="Pegá aquí las filas copiadas desde Excel..."></textarea>
+              </div>
+              <button type="button" id="btn-previsualizar" class="btn btn-info">
+                <i class="fas fa-eye"></i> Previsualizar
+              </button>
+
+              <hr>
+
+              <div class="form-group">
+                <label>O subí un archivo .xlsx con el mismo formato (sin encabezados):</label>
+                <div class="custom-file">
+                  <input type="file" class="custom-file-input" id="archivo-xlsx" accept=".xlsx">
+                  <label class="custom-file-label" for="archivo-xlsx">Elegir archivo...</label>
+                </div>
+              </div>
+              <a href="/static/PlantillaTransferenciasDepositos.xlsx" download="PlantillaTransferenciasDepositos.xlsx" class="btn btn-outline-secondary">
+                <i class="fas fa-download"></i> Descargar plantilla de ejemplo
+              </a>
+              <button type="button" id="btn-subir-archivo" class="btn btn-info">
+                <i class="fas fa-upload"></i> Subir y previsualizar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Vista previa -->
+      <div class="row" id="seccion-preview" style="display:none;">
+        <div class="col-12">
+          <div class="card card-secondary">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-table"></i> 2. Vista previa y validación</h3>
+            </div>
+            <div class="card-body">
+              <div id="alertas-preview"></div>
+              <div class="table-responsive">
+                <table class="table table-sm table-striped" id="tabla-preview">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Dep. origen</th>
+                      <th>Ubic. origen</th>
+                      <th>Dep. destino</th>
+                      <th>Ubic. destino</th>
+                      <th>Artículo</th>
+                      <th>Cantidad</th>
+                      <th>Resultado</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <button type="button" id="btn-validar" class="btn btn-primary">
+                <i class="fas fa-check-double"></i> Validar
+              </button>
+              <span class="text-muted ml-2">No mueve stock. Solo verifica contra el sistema.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Ejecutar -->
+      <div class="row" id="seccion-ejecutar" style="display:none;">
+        <div class="col-12">
+          <div class="card card-success">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-check-circle"></i> 3. Ejecutar transferencia</h3>
+            </div>
+            <div class="card-body">
+              <div id="alertas-resultado"></div>
+              <button type="button" id="btn-ejecutar" class="btn btn-success" disabled>
+                <i class="fas fa-play"></i> Ejecutar
+              </button>
+              <span class="text-muted ml-2">Este paso mueve stock real y no se puede deshacer desde acá.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+  <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+  <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/assets/js/adminlte.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      const csrftoken = $('input[name=csrfmiddlewaretoken]').val();
+      const CANT_COLUMNAS = {{ cantidad_columnas }};
+      let filasParseadas = [];
+      let loteValidado = false;
+
+      function parsearTexto(texto) {
+        return texto
+          .split(/\r?\n/)
+          .map(function (linea) { return linea.trim(); })
+          .filter(function (linea) { return linea.length > 0; })
+          .map(function (linea) { return linea.split('\t').map(function (c) { return c.trim(); }); });
+      }
+
+      function mostrarAlertas(contenedor, mensajes, tipo) {
+        const $c = $(contenedor);
+        $c.empty();
+        mensajes.forEach(function (m) {
+          $c.append('<div class="alert alert-' + tipo + '">' + m + '</div>');
+        });
+      }
+
+      function escapar(v) {
+        return $('<div>').text(v === null || v === undefined ? '' : v).html();
+      }
+
+      // Al cambiar los datos se invalida cualquier validación previa.
+      function invalidarValidacion() {
+        loteValidado = false;
+        $('#btn-ejecutar').prop('disabled', true);
+        $('#seccion-ejecutar').hide();
+        $('#alertas-resultado').empty();
+      }
+
+      function renderPreview(filas) {
+        filasParseadas = filas;
+        invalidarValidacion();
+        $('#alertas-preview').empty();
+
+        if (filasParseadas.length === 0) {
+          mostrarAlertas('#alertas-preview', ['No se detectaron filas para previsualizar.'], 'warning');
+          $('#seccion-preview').show();
+          return;
+        }
+
+        const $tbody = $('#tabla-preview tbody');
+        $tbody.empty();
+        filasParseadas.forEach(function (fila, i) {
+          const cols = fila.concat(new Array(Math.max(0, CANT_COLUMNAS - fila.length)).fill(''));
+          const claseFila = fila.length !== CANT_COLUMNAS ? 'table-danger' : '';
+          let html = '<tr class="' + claseFila + '" data-fila="' + (i + 1) + '"><td>' + (i + 1) + '</td>';
+          for (let c = 0; c < CANT_COLUMNAS; c++) {
+            html += '<td>' + escapar(cols[c]) + '</td>';
+          }
+          const aviso = fila.length !== CANT_COLUMNAS
+            ? '<span class="text-danger">Se esperaban ' + CANT_COLUMNAS + ' columnas, hay ' + fila.length + '</span>'
+            : '';
+          html += '<td class="col-resultado">' + aviso + '</td></tr>';
+          $tbody.append(html);
+        });
+
+        $('#seccion-preview').show();
+      }
+
+      function pintarResultados(filasConError) {
+        // Limpia el estado anterior de todas las filas.
+        $('#tabla-preview tbody tr').each(function () {
+          const $tr = $(this);
+          if ($tr.find('td').length && $tr.data('fila')) {
+            $tr.removeClass('table-danger table-success');
+            $tr.find('.col-resultado').empty();
+          }
+        });
+
+        const porFila = {};
+        filasConError.forEach(function (f) { porFila[f.Fila] = f.Resultado; });
+
+        $('#tabla-preview tbody tr').each(function () {
+          const $tr = $(this);
+          const nro = $tr.data('fila');
+          if (porFila[nro]) {
+            $tr.addClass('table-danger');
+            $tr.find('.col-resultado').html('<span class="text-danger">' + escapar(porFila[nro]) + '</span>');
+          } else {
+            $tr.addClass('table-success');
+            $tr.find('.col-resultado').html('<i class="fas fa-check text-success"></i>');
+          }
+        });
+      }
+
+      $('#archivo-xlsx').on('change', function () {
+        const fileName = $(this).val().split('\\').pop();
+        $(this).next('.custom-file-label').html(fileName || 'Elegir archivo...');
+      });
+
+      $('#datos-pegados').on('input', invalidarValidacion);
+
+      $('#btn-previsualizar').click(function () {
+        renderPreview(parsearTexto($('#datos-pegados').val()));
+      });
+
+      $('#btn-subir-archivo').click(function () {
+        const archivo = $('#archivo-xlsx')[0].files[0];
+        if (!archivo) {
+          mostrarAlertas('#alertas-preview', ['Elegí un archivo .xlsx antes de subir.'], 'warning');
+          $('#seccion-preview').show();
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('archivo', archivo);
+
+        $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Subiendo...');
+
+        $.ajax({
+          url: "{% url 'transferencias:transferencias_depositos_subir_archivo' %}",
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrftoken },
+          data: formData,
+          processData: false,
+          contentType: false,
+        }).done(function (resp) {
+          renderPreview(resp.filas || []);
+        }).fail(function (xhr) {
+          const data = xhr.responseJSON || {};
+          mostrarAlertas('#alertas-preview', data.errores || ['Error desconocido al leer el archivo.'], 'danger');
+          $('#seccion-preview').show();
+        }).always(function () {
+          $('#btn-subir-archivo').prop('disabled', false).html('<i class="fas fa-upload"></i> Subir y previsualizar');
+        });
+      });
+
+      function enviarLote(url, $boton, htmlOriginal, esEjecucion) {
+        $boton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
+
+        $.ajax({
+          url: url,
+          method: 'POST',
+          contentType: 'application/json',
+          headers: { 'X-CSRFToken': csrftoken },
+          data: JSON.stringify({ filas: filasParseadas }),
+        }).done(function (resp) {
+          const errores = resp.filas_con_error || [];
+          pintarResultados(errores);
+
+          if (errores.length > 0) {
+            invalidarValidacion();
+            mostrarAlertas('#alertas-preview', [
+              '<strong>' + errores.length + ' fila(s) con problemas.</strong> No se aplicó ningún movimiento. ' +
+              'Corregí las filas marcadas en rojo y volvé a validar.'
+            ], 'danger');
+            return;
+          }
+
+          $('#alertas-preview').empty();
+
+          if (esEjecucion) {
+            loteValidado = false;
+            $('#btn-ejecutar').prop('disabled', true);
+            mostrarAlertas('#alertas-resultado', [
+              '<strong>Transferencia aplicada.</strong> ' + escapar(resp.mensaje || '') +
+              (resp.nro_comprobante ? ' &mdash; Comprobante: <code>' + escapar(resp.nro_comprobante) + '</code>' : '')
+            ], 'success');
+          } else {
+            loteValidado = true;
+            $('#seccion-ejecutar').show();
+            $('#btn-ejecutar').prop('disabled', false);
+            mostrarAlertas('#alertas-resultado', [
+              '<strong>Validación OK:</strong> ' + resp.filas_procesadas +
+              ' fila(s) listas para transferir. Revisá la vista previa y apretá Ejecutar.'
+            ], 'info');
+          }
+        }).fail(function (xhr) {
+          const data = xhr.responseJSON || {};
+          const destino = esEjecucion ? '#alertas-resultado' : '#alertas-preview';
+          mostrarAlertas(destino, data.errores || ['Error desconocido al procesar.'], 'danger');
+          if (esEjecucion) { invalidarValidacion(); }
+        }).always(function () {
+          $boton.prop('disabled', false).html(htmlOriginal);
+          if (esEjecucion) { $('#btn-ejecutar').prop('disabled', !loteValidado); }
+        });
+      }
+
+      $('#btn-validar').click(function () {
+        if (filasParseadas.length === 0) return;
+        enviarLote(
+          "{% url 'transferencias:transferencias_depositos_validar' %}",
+          $(this), '<i class="fas fa-check-double"></i> Validar', false
+        );
+      });
+
+      $('#btn-ejecutar').click(function () {
+        if (!loteValidado || filasParseadas.length === 0) return;
+        if (!confirm('Se va a mover stock real de ' + filasParseadas.length + ' fila(s). ¿Confirmás?')) return;
+        enviarLote(
+          "{% url 'transferencias:transferencias_depositos_ejecutar' %}",
+          $(this), '<i class="fas fa-play"></i> Ejecutar', true
+        );
+      });
+    });
+  </script>
+{% endblock javascripts %}

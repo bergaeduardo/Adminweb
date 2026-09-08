@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'reportes',
     'herramientas',
     'extras',
-    
+    'transferencias',
+
 ]
 
 MIDDLEWARE = [
