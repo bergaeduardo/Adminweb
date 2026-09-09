@@ -173,9 +173,75 @@ def _auditar(usuario, accion, lote_id, filas, filas_con_error=None, resumen=None
 
 @user_passes_test(usuario_puede_transferir, login_url="/login/")
 def transferencias_depositos(request):
+    # Las 52 ubicaciones de los depósitos habilitados van embebidas en la
+    # página (~2 KB) para poblar los desplegables del modo escaneo sin un
+    # round trip por cada elección de depósito. Si el WMS no responde, la
+    # pantalla igual carga y el modo manual sigue funcionando.
+    try:
+        ubicaciones = sql_transferencias.ubicaciones_habilitadas()
+    except Exception:
+        logger.exception('No se pudieron cargar las ubicaciones para el modo escaneo')
+        ubicaciones = []
+
     return render(request, 'transferencias/index.html', {
         'depositos': sorted(DEPOSITOS_HABILITADOS.items()),
         'cantidad_columnas': CANTIDAD_COLUMNAS,
+        'ubicaciones_json': json.dumps(ubicaciones),
+    })
+
+
+@user_passes_test(usuario_puede_transferir, login_url="/login/")
+def transferencias_depositos_buscar_articulo(request):
+    """Resuelve un código escaneado y devuelve dónde tiene saldo.
+
+    Es el único endpoint del modo escaneo. Solo lee: no crea lote, no toca
+    stock. Los mensajes son los que va a ver el operario con el lector en la
+    mano, así que cada situación se distingue explícitamente.
+    """
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    codigo = (request.GET.get('codigo') or '').strip()
+    if not codigo:
+        return JsonResponse({'errores': ['No se recibió ningún código.']}, status=400)
+
+    try:
+        datos = sql_transferencias.buscar_articulo(codigo)
+    except Exception as e:
+        logger.exception('Error al buscar el artículo %r', codigo)
+        return JsonResponse({'errores': [f'Error al buscar el artículo: {str(e)}']}, status=500)
+
+    if datos is None:
+        return JsonResponse({
+            'encontrado': False,
+            'motivo': 'no_existe',
+            'mensaje': f'El código "{codigo}" no existe en Tango.',
+        })
+
+    if not datos['existe_en_wms']:
+        return JsonResponse({
+            'encontrado': False,
+            'motivo': 'sin_wms',
+            'articulo': datos['articulo'],
+            'mensaje': f'El artículo {datos["articulo"]} existe en Tango pero no está dado de alta en el WMS.',
+        })
+
+    if not datos['ubicaciones']:
+        habilitados = ', '.join(sorted(DEPOSITOS_HABILITADOS))
+        return JsonResponse({
+            'encontrado': False,
+            'motivo': 'sin_saldo',
+            'articulo': datos['articulo'],
+            'mensaje': (f'El artículo {datos["articulo"]} no tiene saldo en ninguna ubicación '
+                        f'de los depósitos habilitados ({habilitados}).'),
+        })
+
+    return JsonResponse({
+        'encontrado': True,
+        'articulo': datos['articulo'],
+        'descripcion': datos['descripcion'],
+        'usa_partidas': datos['usa_partidas'],
+        'ubicaciones': datos['ubicaciones'],
     })
 
 

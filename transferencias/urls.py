@@ -11,6 +11,8 @@ urlpatterns = [
          name='transferencias_depositos'),
     path('Depositos/subir-archivo', views.transferencias_depositos_subir_archivo,
          name='transferencias_depositos_subir_archivo'),
+    path('Depositos/buscar-articulo', views.transferencias_depositos_buscar_articulo,
+         name='transferencias_depositos_buscar_articulo'),
     path('Depositos/validar', views.transferencias_depositos_validar,
          name='transferencias_depositos_validar'),
     path('Depositos/ejecutar', views.transferencias_depositos_ejecutar,

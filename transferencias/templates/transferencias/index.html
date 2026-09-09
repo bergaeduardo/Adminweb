@@ -58,7 +58,20 @@
             {% endfor %}
           </ul>
 
-          <h6><i class="fas fa-list-ol"></i> Pasos a seguir</h6>
+          <h6><i class="fas fa-barcode"></i> Modo escaneo (el más rápido)</h6>
+          <p class="mb-1">Pensado para cuando los artículos vienen en una caja y salieron de ubicaciones distintas: en vez de averiguar de dónde salió cada uno, escaneás y el sistema te lo dice.</p>
+          <ol>
+            <li>Escaneá el artículo. El lector tipea el código y manda Enter solo, no hay que apretar nada. <strong>La etiqueta tiene que llevar el código de artículo</strong>, no un EAN.</li>
+            <li>El sistema muestra <strong>dónde tiene saldo</strong>. Si está en una sola ubicación la toma sola; si está en varias, elegís de cuál sale.</li>
+            <li>Elegí el depósito y la ubicación de destino de las listas, y el código de destino: escaneándolo, tipeándolo, o con el botón <strong>"= origen"</strong> si no cambia.</li>
+            <li><strong>"Agregar a la lista"</strong>, o Enter en el campo de artículo de destino.</li>
+            <li>Cada escaneo suma <strong>1</strong>. Si escaneás el mismo artículo, mismo origen y mismo destino tres veces, queda <strong>una sola fila con cantidad 3</strong>.</li>
+            <li>El destino queda puesto para el siguiente ítem, así que si varios van al mismo lugar solo escaneás y agregás.</li>
+            <li>Cuando terminaste la caja, <strong>Validar</strong> y <strong>Ejecutar</strong> como siempre. Si te equivocaste en una fila, la quitás con la <i class="fas fa-times text-danger"></i> de la derecha.</li>
+          </ol>
+          <p><small class="text-muted">Los dos modos comparten la misma lista, así que podés escanear algunas filas y pegar otras desde Excel. Ojo: <strong>Previsualizar</strong> o subir un archivo reemplaza la lista completa.</small></p>
+
+          <h6><i class="fas fa-list-ol"></i> Modo manual: pasos a seguir</h6>
           <ol>
             <li>En Excel armá una lista con {{ cantidad_columnas }} columnas, <strong>sin encabezados</strong>, en este orden:
               Depósito origen, Ubicación origen, <strong>Artículo origen</strong>, Cantidad de baja,
@@ -152,37 +165,131 @@
         </div>
       </div>
 
-      <!-- 1. Pegar datos -->
+      <!-- 1. Cargar datos: dos modos, una sola previsualización -->
       <div class="row">
         <div class="col-12">
-          <div class="card card-primary">
-            <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-paste"></i> 1. Pegar datos</h3>
+          <div class="card card-primary card-outline card-outline-tabs">
+            <div class="card-header p-0 border-bottom-0">
+              <ul class="nav nav-tabs" id="tabs-carga" role="tablist">
+                <li class="nav-item">
+                  <a class="nav-link active" id="tab-escaneo" data-toggle="pill" href="#panel-escaneo"
+                     role="tab" aria-controls="panel-escaneo" aria-selected="true">
+                    <i class="fas fa-barcode"></i> 1. Escanear
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="tab-manual" data-toggle="pill" href="#panel-manual"
+                     role="tab" aria-controls="panel-manual" aria-selected="false">
+                    <i class="fas fa-paste"></i> 1. Pegar desde Excel
+                  </a>
+                </li>
+              </ul>
             </div>
             <div class="card-body">
-              <div class="form-group">
-                <textarea id="datos-pegados" class="form-control" rows="8"
-                  placeholder="Pegá aquí las filas copiadas desde Excel..."></textarea>
-              </div>
-              <button type="button" id="btn-previsualizar" class="btn btn-info">
-                <i class="fas fa-eye"></i> Previsualizar
-              </button>
+              <div class="tab-content" id="tabs-carga-content">
 
-              <hr>
+                <!-- ===================== MODO ESCANEO ===================== -->
+                <div class="tab-pane fade show active" id="panel-escaneo" role="tabpanel" aria-labelledby="tab-escaneo">
+                  <div class="row">
 
-              <div class="form-group">
-                <label>O subí un archivo .xlsx con el mismo formato (sin encabezados):</label>
-                <div class="custom-file">
-                  <input type="file" class="custom-file-input" id="archivo-xlsx" accept=".xlsx">
-                  <label class="custom-file-label" for="archivo-xlsx">Elegir archivo...</label>
+                    <!-- a. escanear -->
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label for="scan-articulo" class="font-weight-bold">
+                          <i class="fas fa-barcode"></i> Escaneá el artículo
+                        </label>
+                        <form id="form-scan" autocomplete="off">
+                          <input type="text" class="form-control form-control-lg" id="scan-articulo"
+                                 placeholder="Escaneá o tipeá el código y Enter" autofocus>
+                        </form>
+                        <small class="form-text text-muted">
+                          El lector tipea el código y manda Enter. La etiqueta tiene que llevar el
+                          <strong>código de artículo</strong>.
+                        </small>
+                      </div>
+                      <div id="scan-estado"></div>
+                    </div>
+
+                    <!-- b. origen -->
+                    <div class="col-md-4">
+                      <label class="font-weight-bold"><i class="fas fa-map-marker-alt"></i> Origen</label>
+                      <div id="scan-origen">
+                        <p class="text-muted mb-0"><small>Escaneá un artículo para ver dónde tiene saldo.</small></p>
+                      </div>
+                    </div>
+
+                    <!-- c. destino -->
+                    <div class="col-md-4">
+                      <label class="font-weight-bold"><i class="fas fa-dolly"></i> Destino</label>
+                      <div class="form-row">
+                        <div class="form-group col-5">
+                          <label for="scan-dep-destino"><small>Depósito</small></label>
+                          <select class="form-control" id="scan-dep-destino">
+                            <option value="">--</option>
+                            {% for codigo, nombre in depositos %}
+                            <option value="{{ codigo }}">{{ codigo }} {{ nombre }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                        <div class="form-group col-7">
+                          <label for="scan-ubic-destino"><small>Ubicación</small></label>
+                          <select class="form-control" id="scan-ubic-destino" disabled>
+                            <option value="">Elegí un depósito</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="scan-art-destino"><small>Artículo de destino</small></label>
+                        <div class="input-group">
+                          <input type="text" class="form-control" id="scan-art-destino"
+                                 placeholder="Escaneá, tipeá, o usá el botón" autocomplete="off">
+                          <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-secondary" id="btn-igual-origen"
+                                    title="Usar el mismo código que el de origen">
+                              = origen
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <button type="button" id="btn-agregar-scan" class="btn btn-primary btn-block" disabled>
+                        <i class="fas fa-plus"></i> Agregar a la lista
+                      </button>
+                    </div>
+                  </div>
                 </div>
+
+                <!-- ===================== MODO MANUAL ===================== -->
+                <div class="tab-pane fade" id="panel-manual" role="tabpanel" aria-labelledby="tab-manual">
+                  <div class="form-group">
+                    <textarea id="datos-pegados" class="form-control" rows="8"
+                      placeholder="Pegá aquí las filas copiadas desde Excel..."></textarea>
+                  </div>
+                  <button type="button" id="btn-previsualizar" class="btn btn-info">
+                    <i class="fas fa-eye"></i> Previsualizar
+                  </button>
+
+                  <hr>
+
+                  <div class="form-group">
+                    <label>O subí un archivo .xlsx con el mismo formato (sin encabezados):</label>
+                    <div class="custom-file">
+                      <input type="file" class="custom-file-input" id="archivo-xlsx" accept=".xlsx">
+                      <label class="custom-file-label" for="archivo-xlsx">Elegir archivo...</label>
+                    </div>
+                  </div>
+                  <a href="/static/PlantillaTransferenciasDepositos.xlsx" download="PlantillaTransferenciasDepositos.xlsx" class="btn btn-outline-secondary">
+                    <i class="fas fa-download"></i> Descargar plantilla de ejemplo
+                  </a>
+                  <button type="button" id="btn-subir-archivo" class="btn btn-info">
+                    <i class="fas fa-upload"></i> Subir y previsualizar
+                  </button>
+                  <p class="text-muted mt-2 mb-0"><small>
+                    Ojo: previsualizar o subir un archivo <strong>reemplaza</strong> la lista completa,
+                    incluidas las filas que hayas agregado escaneando.
+                  </small></p>
+                </div>
+
               </div>
-              <a href="/static/PlantillaTransferenciasDepositos.xlsx" download="PlantillaTransferenciasDepositos.xlsx" class="btn btn-outline-secondary">
-                <i class="fas fa-download"></i> Descargar plantilla de ejemplo
-              </a>
-              <button type="button" id="btn-subir-archivo" class="btn btn-info">
-                <i class="fas fa-upload"></i> Subir y previsualizar
-              </button>
             </div>
           </div>
         </div>
@@ -205,6 +312,7 @@
                       <th colspan="4" class="text-center">Origen (baja)</th>
                       <th colspan="4" class="text-center">Destino (alta)</th>
                       <th rowspan="2">Resultado</th>
+                      <th rowspan="2"></th>
                     </tr>
                     <tr>
                       <th>Dep.</th>
@@ -304,13 +412,18 @@
         return a !== '' && b !== '' && a !== b;
       }
 
+      // Índices de las filas que se agregaron escaneando, para marcarlas.
+      let filasEscaneadas = new Set();
+
       function renderFilas() {
         const $tbody = $('#tabla-preview tbody');
         $tbody.empty();
         filasParseadas.forEach(function (fila, i) {
           const cols = fila.concat(new Array(Math.max(0, CANT_COLUMNAS - fila.length)).fill(''));
           const claseFila = fila.length !== CANT_COLUMNAS ? 'table-danger' : '';
-          let html = '<tr class="' + claseFila + '" data-fila="' + (i + 1) + '"><td>' + (i + 1) + '</td>';
+          const marca = filasEscaneadas.has(i)
+            ? ' <i class="fas fa-barcode text-muted" title="Agregada escaneando"></i>' : '';
+          let html = '<tr class="' + claseFila + '" data-fila="' + (i + 1) + '"><td>' + (i + 1) + marca + '</td>';
           for (let c = 0; c < CANT_COLUMNAS; c++) {
             // El artículo de destino se resalta cuando cambia: esa fila es una
             // recodificación, no un movimiento simple.
@@ -323,16 +436,95 @@
           const aviso = fila.length !== CANT_COLUMNAS
             ? '<span class="text-danger">Se esperaban ' + CANT_COLUMNAS + ' columnas, hay ' + fila.length + '</span>'
             : '';
-          html += '<td class="col-resultado">' + aviso + '</td></tr>';
+          html += '<td class="col-resultado">' + aviso + '</td>';
+          html += '<td><button type="button" class="btn btn-sm btn-outline-danger btn-borrar-fila"'
+                + ' data-fila="' + (i + 1) + '" title="Quitar esta fila">'
+                + '<i class="fas fa-times"></i></button></td></tr>';
           // Fila auxiliar donde se cuelgan las sugerencias de esa fila.
+          // El colspan cubre las 8 columnas de datos; el # y las dos últimas
+          // (resultado y borrar) van aparte.
           html += '<tr class="fila-sugerencias" data-sug-de="' + (i + 1) + '" style="display:none;">'
-                + '<td></td><td colspan="' + CANT_COLUMNAS + '" class="celda-sugerencias"></td><td></td></tr>';
+                + '<td></td><td colspan="' + CANT_COLUMNAS + '" class="celda-sugerencias"></td>'
+                + '<td></td><td></td></tr>';
           $tbody.append(html);
         });
       }
 
+      // Quitar una fila. En un flujo de escaneo un error se corrige sacando la
+      // fila, no editando el textarea.
+      $('#tabla-preview').on('click', '.btn-borrar-fila', function () {
+        const indice = parseInt($(this).data('fila'), 10) - 1;
+        if (isNaN(indice) || !filasParseadas[indice]) return;
+
+        filasParseadas.splice(indice, 1);
+        // Los índices se corren, así que hay que remapear las marcas.
+        const nuevas = new Set();
+        filasEscaneadas.forEach(function (i) {
+          if (i < indice) nuevas.add(i);
+          else if (i > indice) nuevas.add(i - 1);
+        });
+        filasEscaneadas = nuevas;
+
+        renderFilas();
+        invalidarValidacion();
+        sincronizarTextarea();
+        if (filasParseadas.length === 0) {
+          $('#seccion-preview').hide();
+        }
+      });
+
+      // Refleja la lista en el textarea, solo si el usuario venía pegando texto.
+      function sincronizarTextarea() {
+        if ($('#datos-pegados').val().trim().length) {
+          $('#datos-pegados').val(
+            filasParseadas.map(function (f) { return f.join('\t'); }).join('\n')
+          );
+        }
+      }
+
+      /* Agrega una fila acumulando: si ya existe una idéntica salvo las
+         cantidades, le suma 1 en vez de duplicarla. Eso implementa el
+         "1 por escaneo, acumulando". Devuelve el índice de la fila afectada. */
+      function agregarFila(fila, desdeEscaneo) {
+        const iguales = function (a, b) {
+          return a[COL_DEP_ORI] === b[COL_DEP_ORI] && a[COL_UBIC_ORI] === b[COL_UBIC_ORI]
+              && a[COL_ART_ORI] === b[COL_ART_ORI]
+              && a[COL_DEP_DES] === b[COL_DEP_DES] && a[COL_UBIC_DES] === b[COL_UBIC_DES]
+              && a[COL_ART_DES] === b[COL_ART_DES];
+        };
+
+        let indice = -1;
+        for (let i = 0; i < filasParseadas.length; i++) {
+          if (filasParseadas[i].length === CANT_COLUMNAS && iguales(filasParseadas[i], fila)) {
+            indice = i;
+            break;
+          }
+        }
+
+        if (indice >= 0) {
+          const nueva = parseInt(filasParseadas[indice][COL_CANT_BAJA], 10) + parseInt(fila[COL_CANT_BAJA], 10);
+          // Las dos cantidades se mantienen iguales, que es lo que exige la validación.
+          filasParseadas[indice][COL_CANT_BAJA] = String(nueva);
+          filasParseadas[indice][COL_CANT_ALTA] = String(nueva);
+        } else {
+          filasParseadas.push(fila);
+          indice = filasParseadas.length - 1;
+        }
+
+        if (desdeEscaneo) filasEscaneadas.add(indice);
+
+        renderFilas();
+        invalidarValidacion();
+        sincronizarTextarea();
+        $('#seccion-preview').show();
+        return indice;
+      }
+
+      // Reemplaza la lista COMPLETA (pegar texto o subir xlsx), así que también
+      // se van las marcas de escaneo: ya no hay filas escaneadas.
       function renderPreview(filas) {
         filasParseadas = filas;
+        filasEscaneadas = new Set();
         invalidarValidacion();
         $('#alertas-preview').empty();
 
@@ -417,14 +609,195 @@
           + '</strong>. Volvé a apretar <strong>Validar</strong>.'
         ], 'info');
 
-        // Reflejar el cambio también en el textarea, si el usuario pegó texto.
-        const texto = $('#datos-pegados').val();
-        if (texto.trim().length) {
-          $('#datos-pegados').val(
-            filasParseadas.map(function (f) { return f.join('\t'); }).join('\n')
-          );
+        sincronizarTextarea();
+      });
+
+      /* ==================== MODO ESCANEO ====================
+         Un lector de código de barras se comporta como un teclado: tipea el
+         código y manda Enter. Por eso alcanza con escuchar el submit del form,
+         sin ningún driver ni librería. */
+
+      const UBICACIONES = {{ ubicaciones_json|safe }};
+      let origenElegido = null;   // {deposito, ubicacion, saldo}
+      let articuloOrigen = null;  // el código resuelto por la búsqueda
+      let buscando = false;
+      let ultimoScan = { codigo: null, ts: 0 };
+
+      function actualizarBotonAgregar() {
+        const listo = !!(origenElegido && articuloOrigen
+                         && $('#scan-dep-destino').val()
+                         && $('#scan-ubic-destino').val()
+                         && $('#scan-art-destino').val().trim());
+        $('#btn-agregar-scan').prop('disabled', !listo);
+      }
+
+      function pintarOrigen(datos) {
+        const $c = $('#scan-origen');
+        origenElegido = null;
+
+        if (!datos.ubicaciones.length) { $c.empty(); actualizarBotonAgregar(); return; }
+
+        if (datos.ubicaciones.length === 1) {
+          // Caso del 93%: una sola ubicación, se auto-selecciona.
+          const u = datos.ubicaciones[0];
+          origenElegido = u;
+          $c.html('<div class="alert alert-success py-2 mb-1">'
+                + '<strong>' + escapar(u.deposito) + ' / ' + escapar(u.ubicacion) + '</strong>'
+                + ' <span class="badge badge-success">hay ' + Number(u.saldo) + '</span>'
+                + '<br><small>' + escapar(u.nombre) + '</small></div>');
+        } else {
+          let html = '<p class="mb-1"><small class="text-muted">Está en '
+                   + datos.ubicaciones.length + ' ubicaciones. Elegí de dónde sale:</small></p>';
+          datos.ubicaciones.forEach(function (u, i) {
+            html += '<button type="button" class="btn btn-sm btn-outline-primary btn-block text-left mb-1 btn-origen"'
+                  + ' data-idx="' + i + '">'
+                  + '<strong>' + escapar(u.deposito) + ' / ' + escapar(u.ubicacion) + '</strong>'
+                  + ' <span class="badge badge-primary float-right">' + Number(u.saldo) + '</span>'
+                  + '<br><small>' + escapar(u.nombre) + '</small></button>';
+          });
+          $c.html(html);
+          $c.data('ubicaciones', datos.ubicaciones);
+        }
+        actualizarBotonAgregar();
+      }
+
+      $('#scan-origen').on('click', '.btn-origen', function () {
+        const lista = $('#scan-origen').data('ubicaciones') || [];
+        const u = lista[parseInt($(this).data('idx'), 10)];
+        if (!u) return;
+        origenElegido = u;
+        $('#scan-origen .btn-origen').removeClass('btn-primary').addClass('btn-outline-primary');
+        $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+        actualizarBotonAgregar();
+      });
+
+      function estadoScan(mensaje, tipo) {
+        $('#scan-estado').html(mensaje ? '<div class="alert alert-' + tipo + ' py-2 mb-0">' + mensaje + '</div>' : '');
+      }
+
+      $('#form-scan').on('submit', function (e) {
+        e.preventDefault();
+        const codigo = $('#scan-articulo').val().trim();
+        if (!codigo) return;
+
+        // Un lector puede rebotar y disparar dos veces; se ignora el duplicado
+        // inmediato para no sumar una unidad fantasma.
+        const ahora = Date.now();
+        if (ultimoScan.codigo === codigo.toUpperCase() && (ahora - ultimoScan.ts) < 300) {
+          $('#scan-articulo').val('').focus();
+          return;
+        }
+        ultimoScan = { codigo: codigo.toUpperCase(), ts: ahora };
+
+        // Se bloquea el campo mientras la consulta está en vuelo, para que
+        // escaneos rápidos no devuelvan respuestas fuera de orden.
+        if (buscando) return;
+        buscando = true;
+        $('#scan-articulo').prop('disabled', true);
+        estadoScan('<i class="fas fa-spinner fa-spin"></i> Buscando ' + escapar(codigo) + '...', 'info');
+
+        $.ajax({
+          url: "{% url 'transferencias:transferencias_depositos_buscar_articulo' %}",
+          method: 'GET',
+          data: { codigo: codigo },
+        }).done(function (resp) {
+          if (!resp.encontrado) {
+            articuloOrigen = null;
+            origenElegido = null;
+            $('#scan-origen').empty();
+            estadoScan('<i class="fas fa-exclamation-triangle"></i> ' + escapar(resp.mensaje), 'danger');
+            actualizarBotonAgregar();
+            return;
+          }
+
+          articuloOrigen = resp.articulo;
+          estadoScan('<strong>' + escapar(resp.articulo) + '</strong><br><small>'
+                     + escapar(resp.descripcion || '')
+                     + (resp.usa_partidas ? ' <span class="badge badge-warning">usa partidas</span>' : '')
+                     + '</small>', 'success');
+          pintarOrigen(resp);
+        }).fail(function (xhr) {
+          const data = xhr.responseJSON || {};
+          estadoScan(escapar((data.errores || ['Error al buscar el artículo.'])[0]), 'danger');
+        }).always(function () {
+          buscando = false;
+          // El foco vuelve solo, para poder escanear el siguiente sin el mouse.
+          $('#scan-articulo').prop('disabled', false).val('').focus();
+        });
+      });
+
+      // Depósito destino -> filtra la lista de ubicaciones.
+      $('#scan-dep-destino').on('change', function () {
+        const dep = $(this).val();
+        const $u = $('#scan-ubic-destino');
+        $u.empty();
+        if (!dep) {
+          $u.append('<option value="">Elegí un depósito</option>').prop('disabled', true);
+          actualizarBotonAgregar();
+          return;
+        }
+        const opciones = UBICACIONES.filter(function (x) { return x.deposito === dep; });
+        $u.append('<option value="">-- ' + opciones.length + ' ubicación(es) --</option>');
+        opciones.forEach(function (x) {
+          $u.append($('<option>').val(x.ubicacion).text(x.ubicacion + ' — ' + x.nombre));
+        });
+        // Si hay una sola, se elige sola.
+        if (opciones.length === 1) $u.val(opciones[0].ubicacion);
+        $u.prop('disabled', false);
+        actualizarBotonAgregar();
+      });
+
+      $('#scan-ubic-destino, #scan-art-destino').on('change input', actualizarBotonAgregar);
+
+      $('#btn-igual-origen').click(function () {
+        if (!articuloOrigen) return;
+        $('#scan-art-destino').val(articuloOrigen);
+        actualizarBotonAgregar();
+      });
+
+      // Enter en el artículo de destino agrega directamente.
+      $('#scan-art-destino').on('keydown', function (e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+          e.preventDefault();
+          if (!$('#btn-agregar-scan').prop('disabled')) $('#btn-agregar-scan').click();
         }
       });
+
+      $('#btn-agregar-scan').click(function () {
+        if (!origenElegido || !articuloOrigen) return;
+        const depDes = $('#scan-dep-destino').val();
+        const ubicDes = $('#scan-ubic-destino').val();
+        const artDes = $('#scan-art-destino').val().trim().toUpperCase();
+        if (!depDes || !ubicDes || !artDes) return;
+
+        const fila = [
+          origenElegido.deposito, origenElegido.ubicacion, articuloOrigen, '1',
+          depDes, ubicDes, artDes, '1',
+        ];
+
+        const indice = agregarFila(fila, true);
+        const cant = filasParseadas[indice][COL_CANT_BAJA];
+        mostrarAlertas('#alertas-preview', [
+          'Fila ' + (indice + 1) + ': <strong>' + escapar(articuloOrigen) + '</strong> '
+          + escapar(origenElegido.deposito) + '/' + escapar(origenElegido.ubicacion)
+          + ' &rarr; ' + escapar(depDes) + '/' + escapar(ubicDes)
+          + ' <strong>' + escapar(artDes) + '</strong> — cantidad acumulada: <strong>' + escapar(cant) + '</strong>'
+        ], 'success');
+
+        // Se limpia solo el artículo escaneado; el destino queda para el
+        // siguiente ítem, que es lo que hace rápido el proceso.
+        articuloOrigen = null;
+        origenElegido = null;
+        $('#scan-origen').html('<p class="text-muted mb-0"><small>Escaneá el siguiente artículo.</small></p>');
+        estadoScan('', 'info');
+        actualizarBotonAgregar();
+        $('#scan-articulo').val('').focus();
+      });
+
+      // Al volver a la pestaña de escaneo, el foco al campo del lector.
+      $('#tab-escaneo').on('shown.bs.tab', function () { $('#scan-articulo').focus(); });
+
+      /* ==================== fin MODO ESCANEO ==================== */
 
       $('#archivo-xlsx').on('change', function () {
         const fileName = $(this).val().split('\\').pop();
