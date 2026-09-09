@@ -5,13 +5,16 @@
    Lo ÚNICO que llama Django. Orquesta, es dueño de la transacción y del
    applock, y define el contrato de retorno.
 
-   CONTRATO: devuelve SIEMPRE dos resultsets, en este orden:
+   CONTRATO: devuelve SIEMPRE tres resultsets, en este orden:
      1) filas con problema (vacío si el lote está limpio):
-        Fila, DepOrigen, UbicOrigen, DepDestino, UbicDestino, Articulo,
-        Cantidad, Resultado
+        Fila, DepOrigen, UbicOrigen, Articulo, Cantidad,
+        DepDestino, UbicDestino, ArtDestino, CantAlta, Resultado
      2) una única fila de resumen:
         Ok, FilasProcesadas, FilasConError, IdTarea, NroComprobante,
         ComprobInterno, Mensaje
+     3) sugerencias de dónde SÍ está el artículo, para las filas que fallaron
+        por stock (vacío si no aplica):
+        Fila, Articulo, Deposito, Ubicacion, SaldoUbicacion, StockDeposito
 
    RAISERROR/THROW queda reservado para FALLAS TÉCNICAS, nunca para datos malos
    del usuario. Así, del lado de Python, una excepción significa sin ambigüedad
@@ -39,6 +42,18 @@ BEGIN
             /* Sobreviven al ROLLBACK; los usa el CATCH para compensar. */
             @IdTareaAplic INT = NULL, @ComprobIntAplic VARCHAR(8) = NULL;
 
+    /* La crea el orquestador y la puebla EB_TransferDeposito_Validar: un SP
+       anidado ve las tablas temporales de quien lo llamó. Se hace así para que
+       Validar siga sin devolver resultset propio. */
+    CREATE TABLE #Sugerencia (
+        Fila           INT,
+        Articulo       VARCHAR(15) COLLATE Latin1_General_BIN,
+        Deposito       CHAR(2)     COLLATE Latin1_General_BIN,
+        Ubicacion      VARCHAR(30) COLLATE Latin1_General_BIN,
+        SaldoUbicacion DECIMAL(18,4),
+        StockDeposito  DECIMAL(18,4)
+    );
+
     BEGIN TRY
         SELECT @Estado = Estado FROM dbo.EB_TransferDepositoLote WHERE IdLote = @IdLote;
 
@@ -49,8 +64,8 @@ BEGIN
            de volver a mover stock. Un F5 o un doble clic quedan inocuos. */
         IF @Estado = 2
         BEGIN
-            SELECT Fila, DepOrigen, UbicOrigen, DepDestino, UbicDestino,
-                   Articulo, Cantidad, Resultado
+            SELECT Fila, DepOrigen, UbicOrigen, Articulo, Cantidad,
+                   DepDestino, UbicDestino, ArtDestino, CantAlta, Resultado
               FROM dbo.EB_TransferDepositoDet
              WHERE IdLote = @IdLote AND 1 = 0;
 
@@ -62,6 +77,10 @@ BEGIN
                        + CAST(ISNULL(IdTarea, 0) AS VARCHAR(20)) AS Mensaje
               FROM dbo.EB_TransferDepositoLote
              WHERE IdLote = @IdLote;
+
+            /* Tercer resultset vacío: el contrato son SIEMPRE tres. */
+            SELECT Fila, Articulo, Deposito, Ubicacion, SaldoUbicacion, StockDeposito
+              FROM #Sugerencia WHERE 1 = 0;
 
             RETURN 0;
         END
@@ -156,8 +175,8 @@ BEGIN
         END CATCH
 
 Salida:
-        SELECT Fila, DepOrigen, UbicOrigen, DepDestino, UbicDestino,
-               Articulo, Cantidad, Resultado
+        SELECT Fila, DepOrigen, UbicOrigen, Articulo, Cantidad,
+               DepDestino, UbicDestino, ArtDestino, CantAlta, Resultado
           FROM dbo.EB_TransferDepositoDet
          WHERE IdLote = @IdLote AND Estado > 0
          ORDER BY Fila;
@@ -169,6 +188,10 @@ Salida:
                @Prox                                       AS NroComprobante,
                @ProxInt                                    AS ComprobInterno,
                @Mensaje                                    AS Mensaje;
+
+        SELECT Fila, Articulo, Deposito, Ubicacion, SaldoUbicacion, StockDeposito
+          FROM #Sugerencia
+         ORDER BY Fila, SaldoUbicacion DESC, Deposito, Ubicacion;
 
         RETURN 0;
     END TRY

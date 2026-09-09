@@ -45,7 +45,11 @@
           </button>
         </div>
         <div class="modal-body">
-          <p>Esta herramienta <strong>mueve stock de un depósito a otro</strong> de forma masiva: descuenta la cantidad de la ubicación de origen y la suma en la ubicación de destino, en un solo movimiento.</p>
+          <p>Esta herramienta hace dos cosas, según lo que pongas en cada fila:</p>
+          <ul>
+            <li><strong>Transferencia</strong>: si el artículo de origen y el de destino son el <em>mismo código</em>, se mueve stock de una ubicación a otra.</li>
+            <li><strong>Recodificación</strong>: si el artículo de destino es un <em>código distinto</em>, se da de baja el código viejo en el origen y de alta el nuevo en el destino. Puede ser incluso <strong>sin moverse de estante</strong> (mismo depósito y misma ubicación, solo cambia el código).</li>
+          </ul>
 
           <h6><i class="fas fa-warehouse"></i> Depósitos habilitados</h6>
           <ul>
@@ -56,20 +60,27 @@
 
           <h6><i class="fas fa-list-ol"></i> Pasos a seguir</h6>
           <ol>
-            <li>En Excel armá una lista con {{ cantidad_columnas }} columnas, <strong>sin encabezados</strong>: Depósito origen, Ubicación origen, Depósito destino, Ubicación destino, Artículo y Cantidad.</li>
-            <li>La cantidad siempre va <strong>positiva</strong>: el sentido lo dan las columnas de origen y destino.</li>
+            <li>En Excel armá una lista con {{ cantidad_columnas }} columnas, <strong>sin encabezados</strong>, en este orden:
+              Depósito origen, Ubicación origen, <strong>Artículo origen</strong>, Cantidad de baja,
+              Depósito destino, Ubicación destino, <strong>Artículo destino</strong>, Cantidad de alta.</li>
+            <li>Las cantidades van siempre <strong>positivas</strong> y <strong>tienen que ser iguales</strong>. Se piden las dos como control: si tipeás mal una, la fila se rechaza en vez de mover una cantidad equivocada.</li>
             <li>Copiá esas filas (Ctrl+C) y pegalas (Ctrl+V) en el cuadro de texto, o subí el archivo <code>.xlsx</code>.</li>
-            <li>Hacé clic en <strong>"Previsualizar"</strong> para revisar que las columnas se separaron bien.</li>
+            <li>Hacé clic en <strong>"Previsualizar"</strong> para revisar que las columnas se separaron bien. Las filas que cambian de código se marcan con <i class="fas fa-exchange-alt text-primary"></i>.</li>
             <li>Hacé clic en <strong>"Validar"</strong>. Acá se verifica todo contra el sistema sin mover nada de stock.</li>
             <li>Si la validación da todo en verde, se habilita <strong>"Ejecutar"</strong>. Ese paso mueve stock de verdad.</li>
           </ol>
+
+          <h6><i class="fas fa-lightbulb text-warning"></i> Si el artículo no está en el depósito que pusiste</h6>
+          <p>Cuando una fila falla por falta de stock, abajo de esa fila aparecen botones con los depósitos y ubicaciones donde el artículo <strong>sí tiene saldo</strong>, con la cantidad. Si le hacés clic a uno, se reescribe el origen de esa fila y tenés que <strong>volver a Validar</strong> antes de poder ejecutar.</p>
 
           <h6><i class="fas fa-check-double"></i> Qué se valida</h6>
           <ul>
             <li>Que los depósitos de origen y destino estén habilitados.</li>
             <li>Que cada ubicación exista y que <strong>pertenezca al depósito declarado en esa misma fila</strong>.</li>
-            <li>Que el artículo exista en Tango y en el WMS.</li>
+            <li>Que los <strong>dos</strong> artículos existan en Tango y en el WMS.</li>
             <li>Que haya stock suficiente, tanto en la <strong>ubicación de origen</strong> como en el <strong>depósito de origen</strong>.</li>
+            <li>Que las dos cantidades coincidan.</li>
+            <li>Si el <strong>artículo de destino maneja partidas</strong>, que tenga una partida de referencia para poder crearle una. Si no la tiene, la fila se rechaza: aplicarla dejaría el stock por partida descuadrado.</li>
           </ul>
 
           <h6><i class="fas fa-exclamation-triangle text-warning"></i> Si alguna fila falla</h6>
@@ -96,23 +107,42 @@
             </div>
             <div class="card-body">
               <p>Pegá abajo los datos copiados desde Excel, con {{ cantidad_columnas }} columnas por fila separadas por tabulación:</p>
-              <table class="table table-sm table-bordered w-auto">
-                <thead>
-                  <tr>
-                    <th>Dep. origen</th>
-                    <th>Ubic. origen</th>
-                    <th>Dep. destino</th>
-                    <th>Ubic. destino</th>
-                    <th>Artículo</th>
-                    <th>Cantidad</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr class="text-muted">
-                    <td>06</td><td>R1001A01</td><td>20</td><td>A0201001</td><td>XPAKTJ-024</td><td>1</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered w-auto">
+                  <thead>
+                    <tr>
+                      <th colspan="4" class="text-center bg-light">Origen (baja)</th>
+                      <th colspan="4" class="text-center bg-light">Destino (alta)</th>
+                    </tr>
+                    <tr>
+                      <th>Dep.</th>
+                      <th>Ubicación</th>
+                      <th>Artículo</th>
+                      <th>Cant. baja</th>
+                      <th>Dep.</th>
+                      <th>Ubicación</th>
+                      <th>Artículo</th>
+                      <th>Cant. alta</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="text-muted">
+                      <td>06</td><td>R1001A01</td><td>ART-VIEJO</td><td>1</td>
+                      <td>04</td><td>P0401001</td><td>ART-NUEVO</td><td>1</td>
+                    </tr>
+                    <tr class="text-muted">
+                      <td>10</td><td>A0501001</td><td>ART-A</td><td>2</td>
+                      <td>20</td><td>A0201001</td><td>ART-A</td><td>2</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="text-muted mb-1">
+                El <strong>artículo de destino puede ser un código distinto</strong>: en ese caso la fila es
+                una recodificación (baja del viejo, alta del nuevo). Si es el mismo código, es una
+                transferencia simple. Las dos cantidades <strong>tienen que coincidir</strong>: se piden
+                por separado como control, para que un error de tipeo frene la fila.
+              </p>
               <p class="mb-0 text-muted">
                 No incluyas encabezados. Depósitos habilitados:
                 {% for codigo, nombre in depositos %}<span class="badge badge-secondary">{{ codigo }} {{ nombre }}</span> {% endfor %}
@@ -168,17 +198,23 @@
             <div class="card-body">
               <div id="alertas-preview"></div>
               <div class="table-responsive">
-                <table class="table table-sm table-striped" id="tabla-preview">
+                <table class="table table-sm" id="tabla-preview">
                   <thead>
                     <tr>
-                      <th>#</th>
-                      <th>Dep. origen</th>
-                      <th>Ubic. origen</th>
-                      <th>Dep. destino</th>
-                      <th>Ubic. destino</th>
+                      <th rowspan="2">#</th>
+                      <th colspan="4" class="text-center">Origen (baja)</th>
+                      <th colspan="4" class="text-center">Destino (alta)</th>
+                      <th rowspan="2">Resultado</th>
+                    </tr>
+                    <tr>
+                      <th>Dep.</th>
+                      <th>Ubicación</th>
                       <th>Artículo</th>
-                      <th>Cantidad</th>
-                      <th>Resultado</th>
+                      <th>Cant.</th>
+                      <th>Dep.</th>
+                      <th>Ubicación</th>
+                      <th>Artículo</th>
+                      <th>Cant.</th>
                     </tr>
                   </thead>
                   <tbody></tbody>
@@ -257,6 +293,44 @@
         $('#alertas-resultado').empty();
       }
 
+      // Índices de las columnas, en el orden del contrato.
+      const COL_DEP_ORI = 0, COL_UBIC_ORI = 1, COL_ART_ORI = 2, COL_CANT_BAJA = 3;
+      const COL_DEP_DES = 4, COL_UBIC_DES = 5, COL_ART_DES = 6, COL_CANT_ALTA = 7;
+
+      function esRecodificacion(fila) {
+        if (fila.length !== CANT_COLUMNAS) return false;
+        const a = (fila[COL_ART_ORI] || '').trim().toUpperCase();
+        const b = (fila[COL_ART_DES] || '').trim().toUpperCase();
+        return a !== '' && b !== '' && a !== b;
+      }
+
+      function renderFilas() {
+        const $tbody = $('#tabla-preview tbody');
+        $tbody.empty();
+        filasParseadas.forEach(function (fila, i) {
+          const cols = fila.concat(new Array(Math.max(0, CANT_COLUMNAS - fila.length)).fill(''));
+          const claseFila = fila.length !== CANT_COLUMNAS ? 'table-danger' : '';
+          let html = '<tr class="' + claseFila + '" data-fila="' + (i + 1) + '"><td>' + (i + 1) + '</td>';
+          for (let c = 0; c < CANT_COLUMNAS; c++) {
+            // El artículo de destino se resalta cuando cambia: esa fila es una
+            // recodificación, no un movimiento simple.
+            const resaltar = (c === COL_ART_DES && esRecodificacion(fila));
+            html += '<td' + (resaltar ? ' class="font-weight-bold text-primary"' : '') + '>'
+                  + escapar(cols[c])
+                  + (resaltar ? ' <i class="fas fa-exchange-alt" title="Cambia el código: recodificación"></i>' : '')
+                  + '</td>';
+          }
+          const aviso = fila.length !== CANT_COLUMNAS
+            ? '<span class="text-danger">Se esperaban ' + CANT_COLUMNAS + ' columnas, hay ' + fila.length + '</span>'
+            : '';
+          html += '<td class="col-resultado">' + aviso + '</td></tr>';
+          // Fila auxiliar donde se cuelgan las sugerencias de esa fila.
+          html += '<tr class="fila-sugerencias" data-sug-de="' + (i + 1) + '" style="display:none;">'
+                + '<td></td><td colspan="' + CANT_COLUMNAS + '" class="celda-sugerencias"></td><td></td></tr>';
+          $tbody.append(html);
+        });
+      }
+
       function renderPreview(filas) {
         filasParseadas = filas;
         invalidarValidacion();
@@ -268,50 +342,89 @@
           return;
         }
 
-        const $tbody = $('#tabla-preview tbody');
-        $tbody.empty();
-        filasParseadas.forEach(function (fila, i) {
-          const cols = fila.concat(new Array(Math.max(0, CANT_COLUMNAS - fila.length)).fill(''));
-          const claseFila = fila.length !== CANT_COLUMNAS ? 'table-danger' : '';
-          let html = '<tr class="' + claseFila + '" data-fila="' + (i + 1) + '"><td>' + (i + 1) + '</td>';
-          for (let c = 0; c < CANT_COLUMNAS; c++) {
-            html += '<td>' + escapar(cols[c]) + '</td>';
-          }
-          const aviso = fila.length !== CANT_COLUMNAS
-            ? '<span class="text-danger">Se esperaban ' + CANT_COLUMNAS + ' columnas, hay ' + fila.length + '</span>'
-            : '';
-          html += '<td class="col-resultado">' + aviso + '</td></tr>';
-          $tbody.append(html);
-        });
-
+        renderFilas();
         $('#seccion-preview').show();
       }
 
-      function pintarResultados(filasConError) {
-        // Limpia el estado anterior de todas las filas.
-        $('#tabla-preview tbody tr').each(function () {
-          const $tr = $(this);
-          if ($tr.find('td').length && $tr.data('fila')) {
-            $tr.removeClass('table-danger table-success');
-            $tr.find('.col-resultado').empty();
-          }
-        });
-
+      function pintarResultados(filasConError, sugerencias) {
         const porFila = {};
         filasConError.forEach(function (f) { porFila[f.Fila] = f.Resultado; });
 
-        $('#tabla-preview tbody tr').each(function () {
+        const sugPorFila = {};
+        (sugerencias || []).forEach(function (s) {
+          if (!sugPorFila[s.Fila]) sugPorFila[s.Fila] = [];
+          sugPorFila[s.Fila].push(s);
+        });
+
+        $('#tabla-preview tbody tr[data-fila]').each(function () {
           const $tr = $(this);
           const nro = $tr.data('fila');
+          $tr.removeClass('table-danger table-success');
+          const $res = $tr.find('.col-resultado');
+          $res.empty();
+
           if (porFila[nro]) {
             $tr.addClass('table-danger');
-            $tr.find('.col-resultado').html('<span class="text-danger">' + escapar(porFila[nro]) + '</span>');
+            $res.html('<span class="text-danger">' + escapar(porFila[nro]) + '</span>');
           } else {
             $tr.addClass('table-success');
-            $tr.find('.col-resultado').html('<i class="fas fa-check text-success"></i>');
+            $res.html('<i class="fas fa-check text-success"></i>');
           }
+
+          // Sugerencias: "no está acá, pero sí está allá".
+          const $auxiliar = $('#tabla-preview tbody tr[data-sug-de="' + nro + '"]');
+          const $celda = $auxiliar.find('.celda-sugerencias');
+          $celda.empty();
+          const lista = sugPorFila[nro];
+          if (!lista || !lista.length) {
+            $auxiliar.hide();
+            return;
+          }
+
+          let html = '<div class="small text-muted mb-1">'
+                   + '<i class="fas fa-lightbulb text-warning"></i> El artículo <strong>'
+                   + escapar(lista[0].Articulo) + '</strong> sí tiene stock acá. '
+                   + 'Elegí una opción para usar ese origen:</div>';
+          lista.forEach(function (s) {
+            html += '<button type="button" class="btn btn-sm btn-outline-primary mr-1 mb-1 btn-sugerencia"'
+                  + ' data-fila="' + nro + '"'
+                  + ' data-dep="' + escapar(s.Deposito) + '"'
+                  + ' data-ubic="' + escapar(s.Ubicacion) + '">'
+                  + 'Usar ' + escapar(s.Deposito) + ' / ' + escapar(s.Ubicacion)
+                  + ' <span class="badge badge-primary">' + Number(s.SaldoUbicacion) + '</span>'
+                  + '</button>';
+          });
+          $celda.html(html);
+          $auxiliar.show();
         });
       }
+
+      // Aplicar una sugerencia: reescribe el origen de esa fila y obliga a
+      // volver a validar antes de poder ejecutar.
+      $('#tabla-preview').on('click', '.btn-sugerencia', function () {
+        const $b = $(this);
+        const indice = parseInt($b.data('fila'), 10) - 1;
+        if (isNaN(indice) || !filasParseadas[indice]) return;
+
+        filasParseadas[indice][COL_DEP_ORI] = String($b.data('dep'));
+        filasParseadas[indice][COL_UBIC_ORI] = String($b.data('ubic'));
+
+        renderFilas();
+        invalidarValidacion();
+        mostrarAlertas('#alertas-preview', [
+          'Se cambió el origen de la fila ' + (indice + 1) + ' a <strong>'
+          + escapar(String($b.data('dep'))) + ' / ' + escapar(String($b.data('ubic')))
+          + '</strong>. Volvé a apretar <strong>Validar</strong>.'
+        ], 'info');
+
+        // Reflejar el cambio también en el textarea, si el usuario pegó texto.
+        const texto = $('#datos-pegados').val();
+        if (texto.trim().length) {
+          $('#datos-pegados').val(
+            filasParseadas.map(function (f) { return f.join('\t'); }).join('\n')
+          );
+        }
+      });
 
       $('#archivo-xlsx').on('change', function () {
         const fileName = $(this).val().split('\\').pop();
@@ -366,13 +479,16 @@
           data: JSON.stringify({ filas: filasParseadas }),
         }).done(function (resp) {
           const errores = resp.filas_con_error || [];
-          pintarResultados(errores);
+          pintarResultados(errores, resp.sugerencias || []);
 
           if (errores.length > 0) {
             invalidarValidacion();
+            const hayS = (resp.sugerencias || []).length > 0;
             mostrarAlertas('#alertas-preview', [
               '<strong>' + errores.length + ' fila(s) con problemas.</strong> No se aplicó ningún movimiento. ' +
-              'Corregí las filas marcadas en rojo y volvé a validar.'
+              'Corregí las filas marcadas en rojo y volvé a validar.' +
+              (hayS ? ' Para las que no tienen stock en el depósito indicado, abajo de cada fila te digo '
+                    + 'dónde sí está el artículo.' : '')
             ], 'danger');
             return;
           }

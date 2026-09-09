@@ -14,6 +14,7 @@ from herramientas.sql_muestras_articulos import parsear_xlsx_ajuste
 from .constantes import (
     CANTIDAD_COLUMNAS,
     DEPOSITOS_HABILITADOS,
+    ETIQUETAS_COLUMNAS,
     GRUPOS_HABILITADOS,
     normalizar_deposito,
 )
@@ -33,6 +34,25 @@ def usuario_puede_transferir(user):
     ).exists() or user.is_superuser
 
 
+def _entero_positivo(valor_crudo, etiqueta, problemas):
+    """Devuelve el entero, o None acumulando el problema en la lista."""
+    try:
+        # Excel puede entregar '2.0' en una celda numérica.
+        como_float = float(valor_crudo)
+    except (ValueError, TypeError):
+        problemas.append(f'la cantidad {etiqueta} "{valor_crudo}" no es un número')
+        return None
+
+    entero = int(como_float)
+    if como_float != entero:
+        problemas.append(f'la cantidad {etiqueta} "{valor_crudo}" debe ser un número entero')
+        return None
+    if entero <= 0:
+        problemas.append(f'la cantidad {etiqueta} debe ser mayor a cero')
+        return None
+    return entero
+
+
 def _validar_forma(filas_crudas):
     """Valida forma y normaliza, sin tocar la base. Devuelve (filas, errores).
 
@@ -46,12 +66,12 @@ def _validar_forma(filas_crudas):
         if len(fila) != CANTIDAD_COLUMNAS:
             errores.append(
                 f'Fila {indice}: se esperaban {CANTIDAD_COLUMNAS} columnas '
-                f'(Dep. origen, Ubic. origen, Dep. destino, Ubic. destino, Artículo, Cantidad), '
-                f'se recibieron {len(fila)}.'
+                f'({", ".join(ETIQUETAS_COLUMNAS)}), se recibieron {len(fila)}.'
             )
             continue
 
-        dep_o_crudo, ubic_o, dep_d_crudo, ubic_d, articulo, cantidad_cruda = [str(v).strip() for v in fila]
+        (dep_o_crudo, ubic_o, art_o, cant_baja_cruda,
+         dep_d_crudo, ubic_d, art_d, cant_alta_cruda) = [str(v).strip() for v in fila]
 
         problemas = []
 
@@ -73,30 +93,41 @@ def _validar_forma(filas_crudas):
             problemas.append('la ubicación de origen es obligatoria')
         if not ubic_d:
             problemas.append('la ubicación de destino es obligatoria')
-        if not articulo:
-            problemas.append('el artículo es obligatorio')
+        if not art_o:
+            problemas.append('el artículo de origen es obligatorio')
+        if not art_d:
+            problemas.append('el artículo de destino es obligatorio')
 
-        if dep_o and dep_d and ubic_o and ubic_d and dep_o == dep_d and ubic_o.upper() == ubic_d.upper():
-            problemas.append('el origen y el destino son la misma ubicación')
+        # Recodificar en el lugar es válido (mismo depósito y ubicación con
+        # código distinto). Lo único que no tiene sentido es que las tres cosas
+        # sean iguales: esa fila no haría nada.
+        if (dep_o and dep_d and ubic_o and ubic_d and art_o and art_d
+                and dep_o == dep_d
+                and ubic_o.upper() == ubic_d.upper()
+                and art_o.upper() == art_d.upper()):
+            problemas.append(
+                'la fila no cambia nada: depósito, ubicación y artículo son iguales en origen y destino'
+            )
 
-        cantidad = None
-        try:
-            # Excel puede entregar '2.0' en una celda numérica.
-            cantidad = int(float(cantidad_cruda))
-            if float(cantidad_cruda) != cantidad:
-                problemas.append(f'la cantidad "{cantidad_cruda}" debe ser un número entero')
-                cantidad = None
-            elif cantidad <= 0:
-                problemas.append('la cantidad debe ser mayor a cero')
-                cantidad = None
-        except (ValueError, TypeError):
-            problemas.append(f'la cantidad "{cantidad_cruda}" no es un número')
+        cant_baja = _entero_positivo(cant_baja_cruda, 'de baja', problemas)
+        cant_alta = _entero_positivo(cant_alta_cruda, 'de alta', problemas)
+
+        # Doble control de tipeo: se piden las dos cantidades justamente para
+        # que un error al tipear una de ellas frene la fila en vez de mover una
+        # cantidad equivocada.
+        if cant_baja is not None and cant_alta is not None and cant_baja != cant_alta:
+            problemas.append(
+                f'la cantidad de baja ({cant_baja}) y la de alta ({cant_alta}) deben ser iguales'
+            )
 
         if problemas:
             errores.append(f'Fila {indice}: ' + '; '.join(problemas) + '.')
             continue
 
-        filas.append((dep_o, ubic_o.upper(), dep_d, ubic_d.upper(), articulo.upper(), cantidad))
+        filas.append((
+            dep_o, ubic_o.upper(), art_o.upper(), cant_baja,
+            dep_d, ubic_d.upper(), art_d.upper(), cant_alta,
+        ))
 
     return filas, errores
 
@@ -195,7 +226,7 @@ def _procesar(request, solo_validar):
         return JsonResponse({'errores': [f'Error al cargar los datos: {str(e)}']}, status=500)
 
     try:
-        filas_con_error, resumen = sql_transferencias.procesar_lote(
+        filas_con_error, resumen, sugerencias = sql_transferencias.procesar_lote(
             lote_id, request.user.username, HOST_TANGO, solo_validar
         )
     except Exception as e:
@@ -213,6 +244,7 @@ def _procesar(request, solo_validar):
         'lote_id': str(lote_id),
         'ok': bool(resumen.get('Ok')),
         'filas_con_error': filas_con_error,
+        'sugerencias': sugerencias,
         'filas_procesadas': resumen.get('FilasProcesadas'),
         'cantidad_errores': resumen.get('FilasConError'),
         'numero_tarea': resumen.get('IdTarea'),

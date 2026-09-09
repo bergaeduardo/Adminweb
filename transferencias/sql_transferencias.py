@@ -40,8 +40,13 @@ def crear_lote(lote_id, usuario, host, filas):
     """Inserta la cabecera del lote y su detalle.
 
     `filas` es una lista de tuplas ya validadas en forma:
-    (dep_origen, ubic_origen, dep_destino, ubic_destino, articulo, cantidad).
+    (dep_origen, ubic_origen, art_origen, cant_baja,
+     dep_destino, ubic_destino, art_destino, cant_alta).
     La `Fila` (número que ve el usuario) la asigna Django, empezando en 1.
+
+    Ojo con los nombres de las columnas: `Articulo` y `Cantidad` son EL LADO DE
+    ORIGEN (se mantienen así de la v1 para no migrar los lotes ya aplicados) y
+    el destino va en `ArtDestino` / `CantAlta`.
     """
     _usar_base_laker_sa()
     with connections['mi_db_2'].cursor() as cursor:
@@ -55,22 +60,28 @@ def crear_lote(lote_id, usuario, host, filas):
         cursor.executemany(
             '''
             INSERT INTO EB_TransferDepositoDet
-                (IdLote, Fila, DepOrigen, UbicOrigen, DepDestino, UbicDestino, Articulo, Cantidad)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                (IdLote, Fila,
+                 DepOrigen, UbicOrigen, Articulo, Cantidad,
+                 DepDestino, UbicDestino, ArtDestino, CantAlta)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ''',
             [
-                (str(lote_id), indice, dep_o, ubic_o, dep_d, ubic_d, articulo, cantidad)
-                for indice, (dep_o, ubic_o, dep_d, ubic_d, articulo, cantidad) in enumerate(filas, start=1)
+                (str(lote_id), indice, dep_o, ubic_o, art_o, cant_baja,
+                 dep_d, ubic_d, art_d, cant_alta)
+                for indice, (dep_o, ubic_o, art_o, cant_baja,
+                             dep_d, ubic_d, art_d, cant_alta) in enumerate(filas, start=1)
             ],
         )
 
 
 def procesar_lote(lote_id, usuario, host, solo_validar):
-    """Ejecuta el SP y devuelve (filas_con_error, resumen).
+    """Ejecuta el SP y devuelve (filas_con_error, resumen, sugerencias).
 
-    `filas_con_error` es una lista de dicts con la fila y su mensaje.
-    `resumen` es un dict con Ok / FilasProcesadas / FilasConError / IdTarea /
-    NroComprobante / ComprobInterno / Mensaje.
+    El SP devuelve SIEMPRE tres resultsets, en este orden:
+      1) filas con problema (Fila + Resultado + los datos de entrada)
+      2) una única fila de resumen (Ok / FilasProcesadas / FilasConError /
+         IdTarea / NroComprobante / ComprobInterno / Mensaje)
+      3) sugerencias de dónde sí está el artículo (vacío si no hace falta)
     """
     _usar_base_laker_sa()
     with connections['mi_db_2'].cursor() as cursor:
@@ -87,7 +98,11 @@ def procesar_lote(lote_id, usuario, host, solo_validar):
             if resumenes:
                 resumen = resumenes[0]
 
-    return filas_con_error, resumen
+        sugerencias = []
+        if cursor.nextset():
+            sugerencias = _filas_como_dicts(cursor)
+
+    return filas_con_error, resumen, sugerencias
 
 
 def borrar_lote(lote_id):

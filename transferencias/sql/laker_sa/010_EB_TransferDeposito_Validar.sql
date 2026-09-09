@@ -39,14 +39,20 @@ BEGIN
                              THEN RIGHT('00' + LTRIM(RTRIM(d.DepOrigen)), 2) END,
         DepDestinoN   = CASE WHEN LEN(LTRIM(RTRIM(ISNULL(d.DepDestino, '')))) BETWEEN 1 AND 2
                              THEN RIGHT('00' + LTRIM(RTRIM(d.DepDestino)), 2) END,
+        /* Articulo/ArticuloN son EL LADO DE ORIGEN (nombres heredados de la
+           v1, cuando el código no podía cambiar). El destino va en ArtDestino. */
         ArticuloN     = CASE WHEN LEN(LTRIM(RTRIM(ISNULL(d.Articulo, '')))) BETWEEN 1 AND 15
                              THEN UPPER(LTRIM(RTRIM(d.Articulo))) END,
+        ArtDestinoN   = CASE WHEN LEN(LTRIM(RTRIM(ISNULL(d.ArtDestino, '')))) BETWEEN 1 AND 15
+                             THEN UPPER(LTRIM(RTRIM(d.ArtDestino))) END,
         UbicOrigen    = UPPER(LTRIM(RTRIM(ISNULL(d.UbicOrigen, '')))),
         UbicDestino   = UPPER(LTRIM(RTRIM(ISNULL(d.UbicDestino, '')))),
-        IdUbicOrigen  = NULL,
-        IdUbicDestino = NULL,
-        IdArticuloWms = NULL,
-        UsaPartida    = NULL
+        IdUbicOrigen      = NULL,
+        IdUbicDestino     = NULL,
+        IdArticuloWms     = NULL,
+        IdArtDestinoWms   = NULL,
+        UsaPartida        = NULL,
+        UsaPartidaDestino = NULL
     FROM dbo.EB_TransferDepositoDet d
     WHERE d.IdLote = @IdLote;
 
@@ -102,6 +108,11 @@ BEGIN
     JOIN #ArtWms a ON a.Cod_Articulo = d.ArticuloN
     WHERE d.IdLote = @IdLote;
 
+    UPDATE d SET IdArtDestinoWms = a.id_Articulo
+    FROM dbo.EB_TransferDepositoDet d
+    JOIN #ArtWms a ON a.Cod_Articulo = d.ArtDestinoN
+    WHERE d.IdLote = @IdLote;
+
     /* ---------------------------------------------------------------- 3
        Artículos válidos en Tango. Misma consulta que usa la herramienta de
        muestras (excluye carpetas ocultas con DESCRIP NOT LIKE '[_]%'), pero
@@ -120,14 +131,21 @@ BEGIN
     JOIN STA11ITC B ON A.COD_ARTICU = B.CODE
     JOIN STA11FLD C ON B.IDFOLDER = C.IDFOLDER
     WHERE C.DESCRIP NOT LIKE '[_]%'
+      /* Los artículos de AMBAS puntas: el código puede cambiar en el destino. */
       AND EXISTS (SELECT 1 FROM dbo.EB_TransferDepositoDet d
                   WHERE d.IdLote = @IdLote
-                    AND d.ArticuloN = LTRIM(RTRIM(A.COD_ARTICU)) COLLATE Latin1_General_BIN)
+                    AND (d.ArticuloN   = LTRIM(RTRIM(A.COD_ARTICU)) COLLATE Latin1_General_BIN
+                      OR d.ArtDestinoN = LTRIM(RTRIM(A.COD_ARTICU)) COLLATE Latin1_General_BIN))
     GROUP BY LTRIM(RTRIM(A.COD_ARTICU));
 
     UPDATE d SET UsaPartida = t.usa_partid
     FROM dbo.EB_TransferDepositoDet d
     JOIN #ArtTango t ON t.COD_ARTICU = d.ArticuloN
+    WHERE d.IdLote = @IdLote;
+
+    UPDATE d SET UsaPartidaDestino = t.usa_partid
+    FROM dbo.EB_TransferDepositoDet d
+    JOIN #ArtTango t ON t.COD_ARTICU = d.ArtDestinoN
     WHERE d.IdLote = @IdLote;
 
     /* ---------------------------------------------------------------- 4
@@ -139,7 +157,14 @@ BEGIN
        usuario en el SQL dinámico: no hay superficie de inyección.
        El producto cartesiano de las dos listas sobre-trae pares que no
        interesan, y está bien: se joinea localmente contra los pares exactos.
-       Sobre-traer es mucho más barato que correlacionar remotamente.         */
+       Sobre-traer es mucho más barato que correlacionar remotamente.
+
+       La lista de ubicaciones son TODAS las de los 4 depósitos habilitados
+       (hoy 52), no solo las del lote. Cuesta prácticamente lo mismo — el costo
+       lo dominan los seeks por artículo — y con eso este único viaje remoto
+       alimenta las dos cosas: la validación de stock de la sección 7 y las
+       sugerencias de la 8. Antes eran dos OPENQUERY, y el segundo era un
+       superconjunto del primero.                                             */
     CREATE TABLE #SaldoUbic (
         id_Articulo  INT,
         id_Ubicacion INT,
@@ -153,9 +178,9 @@ BEGIN
     FROM (SELECT DISTINCT IdArticuloWms AS x FROM dbo.EB_TransferDepositoDet
           WHERE IdLote = @IdLote AND IdArticuloWms IS NOT NULL) a;
 
-    SELECT @ubis = STRING_AGG(CAST(x AS VARCHAR(12)), ',')
-    FROM (SELECT DISTINCT IdUbicOrigen AS x FROM dbo.EB_TransferDepositoDet
-          WHERE IdLote = @IdLote AND IdUbicOrigen IS NOT NULL) u;
+    SELECT @ubis = STRING_AGG(CAST(u.id_Ubicacion AS VARCHAR(12)), ',')
+    FROM #Ubic u
+    JOIN @DepHabilitados h ON h.Cod = u.Num_Deposito;
 
     IF @arts IS NOT NULL AND @ubis IS NOT NULL
     BEGIN
@@ -177,10 +202,30 @@ BEGIN
     END
 
     /* ---------------------------------------------------------------- 5
-       Stock de depósito (sta19) y partidas (sta10) del ORIGEN.
+       Stock de depósito (sta19) y partidas (sta10).
+
+       A diferencia de la v1, se traen para LOS 4 DEPÓSITOS HABILITADOS y para
+       los artículos de AMBAS puntas, no solo para el par (DepOrigen, ArtOrigen):
+         - el destino hace falta para validar sus partidas;
+         - los otros depósitos hacen falta para armar la sugerencia de "el
+           artículo no está acá pero sí está allá".
+       Sigue siendo un seek por IX_0 (COD_DEPOSI, COD_ARTICU): son 4 depósitos
+       por la cantidad de artículos del lote.
+
        El predicado compara las columnas sin envolverlas en RTRIM para que el
-       índice IX_0 (COD_DEPOSI, COD_ARTICU) siga siendo seekable; los CHAR de
-       Tango comparan con semántica de blank-padding, así que matchean igual. */
+       índice siga siendo seekable; los CHAR de Tango comparan con semántica de
+       blank-padding, así que matchean igual.                                  */
+    /* Los artículos del lote, de las dos puntas, sin repetir. */
+    CREATE TABLE #ArtLote (
+        COD_ARTICU VARCHAR(15) COLLATE Latin1_General_BIN PRIMARY KEY
+    );
+    INSERT #ArtLote (COD_ARTICU)
+    SELECT ArticuloN FROM dbo.EB_TransferDepositoDet
+     WHERE IdLote = @IdLote AND ArticuloN IS NOT NULL
+    UNION
+    SELECT ArtDestinoN FROM dbo.EB_TransferDepositoDet
+     WHERE IdLote = @IdLote AND ArtDestinoN IS NOT NULL;
+
     CREATE TABLE #Sta19 (
         COD_DEPOSI CHAR(2) COLLATE Latin1_General_BIN,
         COD_ARTICU VARCHAR(15) COLLATE Latin1_General_BIN,
@@ -200,20 +245,15 @@ BEGIN
         INSERT #Sta19 (COD_DEPOSI, COD_ARTICU, cant_stock)
         SELECT s.COD_DEPOSI, LTRIM(RTRIM(s.COD_ARTICU)), ISNULL(s.cant_stock, 0)
         FROM dbo.sta19 s WITH (UPDLOCK, HOLDLOCK)
-        WHERE EXISTS (SELECT 1 FROM dbo.EB_TransferDepositoDet d
-                      WHERE d.IdLote = @IdLote
-                        AND d.DepOrigenN = s.COD_DEPOSI
-                        AND d.ArticuloN = s.COD_ARTICU);
+        JOIN @DepHabilitados h ON h.Cod = s.COD_DEPOSI
+        JOIN #ArtLote al ON al.COD_ARTICU = s.COD_ARTICU;
 
         INSERT #Sta10 (COD_DEPOSI, COD_ARTICU, Disponible)
         SELECT p.COD_DEPOSI, LTRIM(RTRIM(p.COD_ARTICU)), SUM(p.cantidad)
         FROM dbo.sta10 p WITH (UPDLOCK, HOLDLOCK)
+        JOIN @DepHabilitados h ON h.Cod = p.COD_DEPOSI
+        JOIN #ArtLote al ON al.COD_ARTICU = p.COD_ARTICU
         WHERE p.cantidad > 0
-          AND EXISTS (SELECT 1 FROM dbo.EB_TransferDepositoDet d
-                      WHERE d.IdLote = @IdLote
-                        AND d.DepOrigenN = p.COD_DEPOSI
-                        AND d.ArticuloN = p.COD_ARTICU
-                        AND d.UsaPartida = 1)
         GROUP BY p.COD_DEPOSI, LTRIM(RTRIM(p.COD_ARTICU));
     END
     ELSE
@@ -221,20 +261,15 @@ BEGIN
         INSERT #Sta19 (COD_DEPOSI, COD_ARTICU, cant_stock)
         SELECT s.COD_DEPOSI, LTRIM(RTRIM(s.COD_ARTICU)), ISNULL(s.cant_stock, 0)
         FROM dbo.sta19 s
-        WHERE EXISTS (SELECT 1 FROM dbo.EB_TransferDepositoDet d
-                      WHERE d.IdLote = @IdLote
-                        AND d.DepOrigenN = s.COD_DEPOSI
-                        AND d.ArticuloN = s.COD_ARTICU);
+        JOIN @DepHabilitados h ON h.Cod = s.COD_DEPOSI
+        JOIN #ArtLote al ON al.COD_ARTICU = s.COD_ARTICU;
 
         INSERT #Sta10 (COD_DEPOSI, COD_ARTICU, Disponible)
         SELECT p.COD_DEPOSI, LTRIM(RTRIM(p.COD_ARTICU)), SUM(p.cantidad)
         FROM dbo.sta10 p
+        JOIN @DepHabilitados h ON h.Cod = p.COD_DEPOSI
+        JOIN #ArtLote al ON al.COD_ARTICU = p.COD_ARTICU
         WHERE p.cantidad > 0
-          AND EXISTS (SELECT 1 FROM dbo.EB_TransferDepositoDet d
-                      WHERE d.IdLote = @IdLote
-                        AND d.DepOrigenN = p.COD_DEPOSI
-                        AND d.ArticuloN = p.COD_ARTICU
-                        AND d.UsaPartida = 1)
         GROUP BY p.COD_DEPOSI, LTRIM(RTRIM(p.COD_ARTICU));
     END
 
@@ -273,6 +308,10 @@ BEGIN
         NetoSalida DECIMAL(18,4),
         PRIMARY KEY (COD_DEPOSI, COD_ARTICU)
     );
+    /* La pata negativa lleva el artículo de ORIGEN y la positiva el de DESTINO.
+       Como está keyeado por (depósito, artículo), si los códigos son distintos
+       simplemente no netean entre sí — que es exactamente lo correcto: el
+       código viejo sale y el nuevo entra, son dos saldos independientes. */
     INSERT #DemDep (COD_DEPOSI, COD_ARTICU, NetoSalida)
     SELECT x.COD_DEPOSI, x.COD_ARTICU, SUM(x.Cant)
     FROM (
@@ -280,9 +319,9 @@ BEGIN
         FROM dbo.EB_TransferDepositoDet
         WHERE IdLote = @IdLote AND DepOrigenN IS NOT NULL AND ArticuloN IS NOT NULL AND Cantidad > 0
         UNION ALL
-        SELECT DepDestinoN, ArticuloN, -Cantidad
+        SELECT DepDestinoN, ArtDestinoN, -CantAlta
         FROM dbo.EB_TransferDepositoDet
-        WHERE IdLote = @IdLote AND DepDestinoN IS NOT NULL AND ArticuloN IS NOT NULL AND Cantidad > 0
+        WHERE IdLote = @IdLote AND DepDestinoN IS NOT NULL AND ArtDestinoN IS NOT NULL AND CantAlta > 0
     ) x
     GROUP BY x.COD_DEPOSI, x.COD_ARTICU
     HAVING SUM(x.Cant) > 0;   -- solo importan los depósitos que quedan netos negativos
@@ -295,15 +334,29 @@ BEGIN
 
     /* --- estructurales --- */
     INSERT #Err (Fila, Prioridad, Mensaje)
-    SELECT Fila, 10, 'la cantidad debe ser un entero mayor a cero'
-    FROM dbo.EB_TransferDepositoDet
-    WHERE IdLote = @IdLote AND (Cantidad IS NULL OR Cantidad <= 0 OR Cantidad <> FLOOR(Cantidad));
-
-    INSERT #Err (Fila, Prioridad, Mensaje)
-    SELECT Fila, 10, 'faltan datos obligatorios (ubicaciones y artículo)'
+    SELECT Fila, 10, 'las cantidades deben ser enteros mayores a cero'
     FROM dbo.EB_TransferDepositoDet
     WHERE IdLote = @IdLote
-      AND (NULLIF(UbicOrigen, '') IS NULL OR NULLIF(UbicDestino, '') IS NULL OR ArticuloN IS NULL);
+      AND (Cantidad IS NULL OR Cantidad <= 0 OR Cantidad <> FLOOR(Cantidad)
+        OR CantAlta IS NULL OR CantAlta <= 0 OR CantAlta <> FLOOR(CantAlta));
+
+    /* Doble control de tipeo: se piden las dos cantidades para que un error al
+       tipear una frene la fila en vez de mover una cantidad equivocada. */
+    INSERT #Err (Fila, Prioridad, Mensaje)
+    SELECT Fila, 10,
+           'la cantidad de baja (' + CONVERT(VARCHAR(20), CAST(Cantidad AS DECIMAL(18,2)))
+           + ') y la de alta (' + CONVERT(VARCHAR(20), CAST(CantAlta AS DECIMAL(18,2)))
+           + ') deben ser iguales'
+    FROM dbo.EB_TransferDepositoDet
+    WHERE IdLote = @IdLote AND Cantidad IS NOT NULL AND CantAlta IS NOT NULL
+      AND Cantidad <> CantAlta;
+
+    INSERT #Err (Fila, Prioridad, Mensaje)
+    SELECT Fila, 10, 'faltan datos obligatorios (ubicaciones y artículos)'
+    FROM dbo.EB_TransferDepositoDet
+    WHERE IdLote = @IdLote
+      AND (NULLIF(UbicOrigen, '') IS NULL OR NULLIF(UbicDestino, '') IS NULL
+        OR ArticuloN IS NULL OR ArtDestinoN IS NULL);
 
     INSERT #Err (Fila, Prioridad, Mensaje)
     SELECT Fila, 11, 'el depósito de origen "' + ISNULL(DepOrigen, '') + '" no está habilitado (04/06/10/20)'
@@ -317,10 +370,16 @@ BEGIN
     WHERE IdLote = @IdLote
       AND (DepDestinoN IS NULL OR DepDestinoN NOT IN (SELECT Cod FROM @DepHabilitados));
 
+    /* Recodificar en el lugar es VÁLIDO (misma ubicación, código distinto).
+       Lo único sin sentido es que las tres cosas sean iguales: esa fila no
+       haría nada. */
     INSERT #Err (Fila, Prioridad, Mensaje)
-    SELECT Fila, 12, 'el origen y el destino son la misma ubicación'
+    SELECT Fila, 12, 'la fila no cambia nada: depósito, ubicación y artículo son iguales en origen y destino'
     FROM dbo.EB_TransferDepositoDet
-    WHERE IdLote = @IdLote AND UbicOrigen = UbicDestino AND DepOrigenN = DepDestinoN;
+    WHERE IdLote = @IdLote
+      AND UbicOrigen = UbicDestino
+      AND DepOrigenN = DepDestinoN
+      AND ArticuloN = ArtDestinoN;
 
     /* --- existencia de ubicaciones --- */
     INSERT #Err (Fila, Prioridad, Mensaje)
@@ -350,17 +409,55 @@ BEGIN
     JOIN #Ubic u ON u.id_Ubicacion = d.IdUbicDestino
     WHERE d.IdLote = @IdLote AND d.DepDestinoN IS NOT NULL AND u.Num_Deposito <> d.DepDestinoN;
 
-    /* --- artículo --- */
+    /* --- artículo de ORIGEN --- */
     INSERT #Err (Fila, Prioridad, Mensaje)
-    SELECT d.Fila, 30, 'el artículo "' + d.ArticuloN + '" no existe en Tango'
+    SELECT d.Fila, 30, 'el artículo de origen "' + d.ArticuloN + '" no existe en Tango'
     FROM dbo.EB_TransferDepositoDet d
     WHERE d.IdLote = @IdLote AND d.ArticuloN IS NOT NULL
       AND NOT EXISTS (SELECT 1 FROM #ArtTango t WHERE t.COD_ARTICU = d.ArticuloN);
 
     INSERT #Err (Fila, Prioridad, Mensaje)
-    SELECT d.Fila, 30, 'el artículo "' + d.ArticuloN + '" no existe en el WMS'
+    SELECT d.Fila, 30, 'el artículo de origen "' + d.ArticuloN + '" no existe en el WMS'
     FROM dbo.EB_TransferDepositoDet d
     WHERE d.IdLote = @IdLote AND d.ArticuloN IS NOT NULL AND d.IdArticuloWms IS NULL;
+
+    /* --- artículo de DESTINO (puede ser un código distinto) --- */
+    INSERT #Err (Fila, Prioridad, Mensaje)
+    SELECT d.Fila, 31, 'el artículo de destino "' + d.ArtDestinoN + '" no existe en Tango'
+    FROM dbo.EB_TransferDepositoDet d
+    WHERE d.IdLote = @IdLote AND d.ArtDestinoN IS NOT NULL
+      AND NOT EXISTS (SELECT 1 FROM #ArtTango t WHERE t.COD_ARTICU = d.ArtDestinoN);
+
+    INSERT #Err (Fila, Prioridad, Mensaje)
+    SELECT d.Fila, 31, 'el artículo de destino "' + d.ArtDestinoN + '" no existe en el WMS'
+    FROM dbo.EB_TransferDepositoDet d
+    WHERE d.IdLote = @IdLote AND d.ArtDestinoN IS NOT NULL AND d.IdArtDestinoWms IS NULL;
+
+    /* --- partida de referencia para el DESTINO ---
+       Una partida pertenece a un artículo, así que si el código cambia no se
+       puede arrastrar la del origen: el destino necesita su propia partida.
+       Para crearla, CrearNuevaPartida busca sof_partidas.ULTIMA_PARTIDA de ESE
+       artículo; si no hay ninguna, no puede.
+
+       Se valida ACÁ a propósito. La herramienta de muestras llama al SP que se
+       come ese error en silencio (nadie lee su @TIPORESULTADO), y por eso hoy
+       sta10 quedó desfasado contra sta19. Preferimos rechazar la fila antes que
+       aplicar un movimiento que descuadra las partidas.                       */
+    INSERT #Err (Fila, Prioridad, Mensaje)
+    SELECT d.Fila, 32,
+           'el artículo de destino "' + d.ArtDestinoN + '" usa partidas y no tiene ninguna '
+           + 'partida de referencia para crearle una en el depósito ' + d.DepDestinoN
+    FROM dbo.EB_TransferDepositoDet d
+    WHERE d.IdLote = @IdLote
+      AND d.UsaPartidaDestino = 1
+      AND d.ArtDestinoN IS NOT NULL
+      AND d.DepDestinoN IS NOT NULL
+      /* no tiene ya una partida en el depósito destino ... */
+      AND NOT EXISTS (SELECT 1 FROM #Sta10 p
+                      WHERE p.COD_DEPOSI = d.DepDestinoN AND p.COD_ARTICU = d.ArtDestinoN)
+      /* ... ni hay de dónde heredarla */
+      AND NOT EXISTS (SELECT 1 FROM dbo.sof_partidas sp
+                      WHERE sp.cod_articu = d.ArtDestinoN);
 
     /* --- stock: ubicación de origen (bruto) --- */
     INSERT #Err (Fila, Prioridad, Mensaje)
@@ -407,6 +504,50 @@ BEGIN
         FROM #Err x WHERE x.Fila = d.Fila
     ) e
     WHERE d.IdLote = @IdLote AND e.Msgs IS NOT NULL;
+
+    /* ---------------------------------------------------------------- 8
+       SUGERENCIAS: "el artículo no está en el depósito que pusiste, pero sí
+       está en este otro".
+
+       Solo se calcula para las filas que fallaron POR STOCK (prioridad >= 40).
+       Si la fila falló porque el código está mal escrito o la ubicación no
+       existe, sugerir un depósito no ayuda: primero hay que arreglar el dato.
+
+       Se escribe en #Sugerencia, que crea el ORQUESTADOR
+       (EB_TransferDeposito_Procesar) antes de llamar acá. Es el idioma normal
+       de T-SQL: un SP anidado ve las tablas temporales de quien lo llamó. Se
+       hace así para que este SP siga sin devolver resultset y pueda invocarse
+       desde otro sin contaminar su salida. Si no existe, no se hace nada — así
+       el SP se puede correr suelto para diagnosticar.                         */
+    IF OBJECT_ID('tempdb..#Sugerencia') IS NULL
+        RETURN 0;
+
+    IF NOT EXISTS (SELECT 1 FROM #Err WHERE Prioridad >= 40)
+        RETURN 0;
+
+    /* No hace falta ningún viaje remoto extra: #SaldoUbic ya trae el saldo de
+       los artículos del lote en TODAS las ubicaciones de los 4 depósitos.
+
+       Una sugerencia por (fila, ubicación con saldo). Se excluye el lugar que
+       el usuario ya puso, que es justamente el que no tiene stock. */
+    INSERT #Sugerencia (Fila, Articulo, Deposito, Ubicacion, SaldoUbicacion, StockDeposito)
+    SELECT d.Fila,
+           d.ArticuloN,
+           u.Num_Deposito,
+           u.Cod_Ubicacion,
+           s.Saldo,
+           ISNULL(t.cant_stock, 0)
+    FROM dbo.EB_TransferDepositoDet d
+    JOIN #SaldoUbic s  ON s.id_Articulo = d.IdArticuloWms
+    JOIN #Ubic u       ON u.id_Ubicacion = s.id_Ubicacion
+    LEFT JOIN #Sta19 t ON t.COD_DEPOSI = u.Num_Deposito AND t.COD_ARTICU = d.ArticuloN
+    WHERE d.IdLote = @IdLote
+      AND d.IdArticuloWms IS NOT NULL
+      AND s.Saldo > 0
+      AND NOT (u.Num_Deposito = d.DepOrigenN AND u.Cod_Ubicacion = d.UbicOrigen)
+      /* solo para las filas que fallaron POR STOCK */
+      AND EXISTS (SELECT 1 FROM #Err e WHERE e.Fila = d.Fila AND e.Prioridad >= 40)
+    GROUP BY d.Fila, d.ArticuloN, u.Num_Deposito, u.Cod_Ubicacion, s.Saldo, ISNULL(t.cant_stock, 0);
 
     RETURN 0;
 END

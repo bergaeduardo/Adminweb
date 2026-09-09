@@ -13,8 +13,22 @@ DEPOSITOS_HABILITADOS = {
 }
 
 # Orden de las columnas del Excel / del texto pegado.
-COLUMNAS = ['DepOrigen', 'UbicOrigen', 'DepDestino', 'UbicDestino', 'Articulo', 'Cantidad']
+#
+# El artículo puede CAMBIAR entre origen y destino: la operación es una
+# recodificación con movimiento (baja de un código en el origen, alta de otro
+# en el destino). Las dos cantidades se piden por separado como doble control
+# de tipeo, pero la validación exige que coincidan.
+COLUMNAS = [
+    'DepOrigen', 'UbicOrigen', 'ArtOrigen', 'CantBaja',
+    'DepDestino', 'UbicDestino', 'ArtDestino', 'CantAlta',
+]
 CANTIDAD_COLUMNAS = len(COLUMNAS)
+
+# Etiquetas para los mensajes de error, en el mismo orden.
+ETIQUETAS_COLUMNAS = [
+    'Dep. origen', 'Ubic. origen', 'Art. origen', 'Cant. baja',
+    'Dep. destino', 'Ubic. destino', 'Art. destino', 'Cant. alta',
+]
 
 GRUPOS_HABILITADOS = ['admin', 'abastecimiento_sup']
 

@@ -29,10 +29,16 @@ thin_border = Border(
     bottom=Side(style='thin'),
 )
 
-# Sin encabezados: Dep. origen, Ubic. origen, Dep. destino, Ubic. destino, Artículo, Cantidad
+# Sin encabezados, en este orden:
+#   Dep. origen, Ubic. origen, Art. origen, Cant. baja,
+#   Dep. destino, Ubic. destino, Art. destino, Cant. alta
 ejemplos = [
-    ['06', 'R1001A01', '20', 'A0201001', 'ARTICULO-001', 1],
-    ['10', 'A0501001', '04', 'P0401001', 'ARTICULO-002', 2],
+    # Recodificación: el código cambia en el destino.
+    ['06', 'R1001A01', 'ARTICULO-VIEJO', 1, '04', 'P0401001', 'ARTICULO-NUEVO', 1],
+    # Transferencia simple: el mismo código se mueve de lugar.
+    ['10', 'A0501001', 'ARTICULO-002', 2, '20', 'A0201001', 'ARTICULO-002', 2],
+    # Recodificación en el lugar: no se mueve de estante, solo cambia el código.
+    ['06', 'R1002A01', 'ARTICULO-VIEJO2', 3, '06', 'R1002A01', 'ARTICULO-NUEVO2', 3],
 ]
 
 for fila_idx, ejemplo in enumerate(ejemplos, start=1):
@@ -42,10 +48,10 @@ for fila_idx, ejemplo in enumerate(ejemplos, start=1):
         celda.font = example_font
         celda.border = thin_border
         # Los códigos de depósito van como texto para no perder el cero inicial.
-        if col_idx in (1, 3):
+        if col_idx in (1, 5):
             celda.number_format = '@'
 
-for columna, ancho in zip('ABCDEF', (14, 16, 14, 16, 20, 10)):
+for columna, ancho in zip('ABCDEFGH', (12, 15, 20, 11, 12, 15, 20, 11)):
     hoja_datos.column_dimensions[columna].width = ancho
 
 hoja_instrucciones = libro.create_sheet('Instrucciones')
@@ -57,10 +63,20 @@ instrucciones = [
     ('', None),
     ('  A - Depósito de origen      (04, 06, 10 o 20)', None),
     ('  B - Ubicación de origen     (código de ubicación del WMS)', None),
-    ('  C - Depósito de destino     (04, 06, 10 o 20)', None),
-    ('  D - Ubicación de destino    (código de ubicación del WMS)', None),
-    ('  E - Código de artículo', None),
-    ('  F - Cantidad                (entero POSITIVO)', None),
+    ('  C - Artículo de origen      (el código que se da de BAJA)', None),
+    ('  D - Cantidad de baja        (entero POSITIVO)', None),
+    ('  E - Depósito de destino     (04, 06, 10 o 20)', None),
+    ('  F - Ubicación de destino    (código de ubicación del WMS)', None),
+    ('  G - Artículo de destino     (el código que se da de ALTA)', None),
+    ('  H - Cantidad de alta        (entero POSITIVO, igual a la de baja)', None),
+    ('', None),
+    ('Transferencia o recodificación', 'titulo'),
+    ('  * Si el artículo de destino es el MISMO código, es una transferencia:', None),
+    ('    el artículo se mueve de una ubicación a otra.', None),
+    ('  * Si es un código DISTINTO, es una recodificación: se da de baja el', None),
+    ('    código viejo y de alta el nuevo.', None),
+    ('  * Se puede recodificar sin moverse de estante: mismo depósito y misma', None),
+    ('    ubicación, cambiando solo el código.', None),
     ('', None),
     ('Depósitos habilitados', 'titulo'),
     ('  04 - OUTLET', None),
@@ -69,8 +85,15 @@ instrucciones = [
     ('  20 - ARREGLOS PRODUCCION', None),
     ('', None),
     ('Cosas importantes', 'titulo'),
-    ('  * La cantidad SIEMPRE va positiva. El sentido lo dan las columnas', None),
+    ('  * Las cantidades SIEMPRE van positivas. El sentido lo dan las columnas', None),
     ('    de origen y destino, no el signo.', None),
+    ('  * Las dos cantidades tienen que ser IGUALES. Se piden por separado', None),
+    ('    como control: si tipeás mal una, la fila se rechaza en vez de mover', None),
+    ('    una cantidad equivocada.', None),
+    ('  * Si el artículo de destino maneja partidas y no tiene ninguna partida', None),
+    ('    de referencia, la fila se rechaza.', None),
+    ('  * Si el artículo no tiene stock en el depósito que pusiste, la pantalla', None),
+    ('    te va a decir en cuál de los 4 sí está y te deja corregirlo con un clic.', None),
     ('  * Cada ubicación tiene que pertenecer al depósito que declarás en la', None),
     ('    misma fila. Si no coincide, la fila se rechaza.', None),
     ('  * Los códigos de depósito llevan dos dígitos ("04", no "4"). La', None),

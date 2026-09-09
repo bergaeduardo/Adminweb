@@ -107,20 +107,26 @@ BEGIN
         'P', 0, 0,
         0, 0, 0, 0
     FROM (
+        /* La pata 'S' lleva el código y la cantidad de ORIGEN, la 'E' los de
+           DESTINO. Si el código cambia, en el comprobante se ve el viejo
+           saliendo y el nuevo entrando: eso es una recodificación. */
         SELECT Fila, 1 AS Orden, 'S' AS TipoMov,
-               DepOrigenN  AS CodDeposi, DepDestinoN AS DeposiDde, ArticuloN, Cantidad
+               DepOrigenN  AS CodDeposi, DepDestinoN AS DeposiDde,
+               ArticuloN, Cantidad
         FROM dbo.EB_TransferDepositoDet WHERE IdLote = @IdLote
         UNION ALL
         SELECT Fila, 2, 'E',
-               DepDestinoN, DepOrigenN, ArticuloN, Cantidad
+               DepDestinoN, DepOrigenN,
+               ArtDestinoN, CantAlta
         FROM dbo.EB_TransferDepositoDet WHERE IdLote = @IdLote
     ) l;
 
     /* ---------------------------------------------------------------- 4
        sta19: delta agregado por (depósito, artículo).
-       Un movimiento intra-depósito da delta 0 y se descarta con el HAVING:
-       sta19 no conoce ubicaciones, así que reubicar dentro del mismo depósito
-       no cambia su stock.                                                    */
+       Una reubicación del MISMO código dentro del MISMO depósito da delta 0 y
+       se descarta con el HAVING: sta19 no conoce ubicaciones. En cambio una
+       recodificación en el lugar (mismo depósito, código distinto) sí produce
+       dos deltas: -1 al código viejo y +1 al nuevo.                          */
     DECLARE @Delta TABLE (
         COD_DEPOSI CHAR(2)     COLLATE Latin1_General_BIN,
         COD_ARTICU VARCHAR(15) COLLATE Latin1_General_BIN,
@@ -133,7 +139,7 @@ BEGIN
         SELECT DepOrigenN AS COD_DEPOSI, ArticuloN AS COD_ARTICU, -Cantidad AS Cant
         FROM dbo.EB_TransferDepositoDet WHERE IdLote = @IdLote
         UNION ALL
-        SELECT DepDestinoN, ArticuloN, Cantidad
+        SELECT DepDestinoN, ArtDestinoN, CantAlta
         FROM dbo.EB_TransferDepositoDet WHERE IdLote = @IdLote
     ) x
     GROUP BY x.COD_DEPOSI, x.COD_ARTICU
@@ -166,54 +172,68 @@ BEGIN
     DEALLOCATE cFaltantes;
 
     /* ---------------------------------------------------------------- 5
-       sta10: mover la partida CONSERVANDO su número.
-       Solo para artículos con usa_partid = 1, y solo cuando el depósito
-       cambia (si origen = destino la partida no se mueve de (art, depósito)).
+       sta10: partidas. Se separa en dos casos, porque UNA PARTIDA PERTENECE A
+       UN ARTÍCULO y por lo tanto no se puede arrastrar a otro código:
 
-       Se recorre la demanda AGREGADA por (artículo, dep.origen, dep.destino),
-       no fila por fila: en estos depósitos el 91% de los pares tiene una sola
-       partida y ninguno más de dos, así que son 1-2 iteraciones internas.
+       5a. MISMO CÓDIGO, distinto depósito -> la partida se MUEVE conservando su
+           número, fecha y fecha_vto. Es el comportamiento de la v1.
+       5b. CÓDIGO DISTINTO (recodificación) -> las dos puntas son independientes:
+           se descuenta la partida del código viejo y el código nuevo recibe SU
+           PROPIA partida (la última conocida en sof_partidas, vía
+           CrearNuevaPartida). Además cada punta se hace solo si ESE artículo
+           usa partidas: origen y destino pueden diferir en usa_partid.
+
+       No se toca nada si el código y el depósito son los mismos: ahí la partida
+       no se mueve de (artículo, depósito), solo cambia de estante.
+
+       Se recorre la demanda AGREGADA, no fila por fila: en estos depósitos el
+       91% de los pares tiene una sola partida y ninguno más de dos, así que son
+       1-2 iteraciones internas.
        Orden de consumo: FIFO por vencimiento real, dejando al final las que
        tienen el centinela 1800-01-01 (muy comunes acá), con id_sta10 como
        desempate determinístico.                                             */
-    DECLARE @DemPart TABLE (
+    DECLARE @idOrigen INT, @nPart VARCHAR(25), @dispo DECIMAL(18,4),
+            @fec DATETIME, @fecVto DATETIME, @toma DECIMAL(18,4),
+            @resta DECIMAL(18,4),
+            @pArt VARCHAR(15), @pOri CHAR(2), @pDes CHAR(2), @pCant DECIMAL(18,4),
+            @msgPart VARCHAR(200), @tipoPart INT;
+
+    /* ---- 5a. mismo código, se mueve la partida ---- */
+    DECLARE @MoveIgual TABLE (
         COD_ARTICU  VARCHAR(15) COLLATE Latin1_General_BIN,
         DEP_ORIGEN  CHAR(2)     COLLATE Latin1_General_BIN,
         DEP_DESTINO CHAR(2)     COLLATE Latin1_General_BIN,
         Cantidad    DECIMAL(18,4),
         PRIMARY KEY (COD_ARTICU, DEP_ORIGEN, DEP_DESTINO)
     );
-    INSERT @DemPart (COD_ARTICU, DEP_ORIGEN, DEP_DESTINO, Cantidad)
+    INSERT @MoveIgual (COD_ARTICU, DEP_ORIGEN, DEP_DESTINO, Cantidad)
     SELECT ArticuloN, DepOrigenN, DepDestinoN, SUM(Cantidad)
     FROM dbo.EB_TransferDepositoDet
-    WHERE IdLote = @IdLote AND UsaPartida = 1 AND DepOrigenN <> DepDestinoN
+    WHERE IdLote = @IdLote
+      AND UsaPartida = 1
+      AND ArticuloN = ArtDestinoN
+      AND DepOrigenN <> DepDestinoN
     GROUP BY ArticuloN, DepOrigenN, DepDestinoN;
 
-    DECLARE @pArt VARCHAR(15), @pOri CHAR(2), @pDes CHAR(2), @pCant DECIMAL(18,4);
-    DECLARE cPart CURSOR LOCAL FAST_FORWARD FOR
-        SELECT COD_ARTICU, DEP_ORIGEN, DEP_DESTINO, Cantidad FROM @DemPart;
-    OPEN cPart;
-    FETCH NEXT FROM cPart INTO @pArt, @pOri, @pDes, @pCant;
+    DECLARE cMove CURSOR LOCAL FAST_FORWARD FOR
+        SELECT COD_ARTICU, DEP_ORIGEN, DEP_DESTINO, Cantidad FROM @MoveIgual;
+    OPEN cMove;
+    FETCH NEXT FROM cMove INTO @pArt, @pOri, @pDes, @pCant;
     WHILE @@FETCH_STATUS = 0
     BEGIN
-        DECLARE @resta DECIMAL(18,4) = @pCant;
+        SET @resta = @pCant;
 
         WHILE @resta > 0
         BEGIN
-            DECLARE @idOrigen INT, @nPart VARCHAR(25), @dispo DECIMAL(18,4),
-                    @fec DATETIME, @fecVto DATETIME, @toma DECIMAL(18,4);
+            SET @idOrigen = NULL;
 
             SELECT TOP (1)
-                   @idOrigen = p.id_sta10,
-                   @nPart    = p.n_partida,
-                   @dispo    = p.cantidad,
-                   @fec      = p.fecha,
-                   @fecVto   = p.fecha_vto
+                   @idOrigen = p.id_sta10, @nPart = p.n_partida,
+                   @dispo = p.cantidad, @fec = p.fecha, @fecVto = p.fecha_vto
             FROM dbo.sta10 p
             WHERE p.COD_ARTICU = @pArt AND p.COD_DEPOSI = @pOri AND p.cantidad > 0
             ORDER BY CASE WHEN p.fecha_vto <= '18010101' THEN 1 ELSE 0 END,
-                     p.fecha_vto,
-                     p.id_sta10;
+                     p.fecha_vto, p.id_sta10;
 
             IF @idOrigen IS NULL
                 THROW 51011, 'No hay partidas suficientes en el origen para completar la transferencia.', 1;
@@ -222,21 +242,18 @@ BEGIN
 
             UPDATE dbo.sta10 SET cantidad = cantidad - @toma WHERE id_sta10 = @idOrigen;
 
-            /* Destino: misma partida. Si ya existe se incrementa, si no se crea
-               con el MISMO n_partida, fecha y fecha_vto que la del origen. */
+            /* Destino: MISMA partida. Si ya existe se incrementa, si no se crea
+               con el mismo n_partida, fecha y fecha_vto que la del origen. */
             IF EXISTS (SELECT 1 FROM dbo.sta10
                        WHERE COD_ARTICU = @pArt AND COD_DEPOSI = @pDes
                          AND n_partida = @nPart COLLATE Modern_Spanish_CI_AI)
-            BEGIN
                 UPDATE dbo.sta10
                    SET cantidad = cantidad + @toma
                  WHERE id_sta10 = (
                         SELECT MAX(id_sta10) FROM dbo.sta10
                         WHERE COD_ARTICU = @pArt AND COD_DEPOSI = @pDes
                           AND n_partida = @nPart COLLATE Modern_Spanish_CI_AI);
-            END
             ELSE
-            BEGIN
                 INSERT INTO dbo.sta10
                     (filler, cant_despa, cantidad, cod_articu, cod_deposi,
                      costo_bloq, costo_ex, costo_lo, n_partida, saldo_ant,
@@ -247,20 +264,127 @@ BEGIN
                      0, 0, 0, @nPart, 0,
                      0, @fec, @fecVto, 0,
                      0, 0);
-            END
 
             SET @resta = @resta - @toma;
-            SET @idOrigen = NULL;
         END
 
-        FETCH NEXT FROM cPart INTO @pArt, @pOri, @pDes, @pCant;
+        FETCH NEXT FROM cMove INTO @pArt, @pOri, @pDes, @pCant;
     END
-    CLOSE cPart;
-    DEALLOCATE cPart;
+    CLOSE cMove;
+    DEALLOCATE cMove;
+
+    /* ---- 5b-i. código distinto: BAJA de la partida del código viejo ---- */
+    DECLARE @BajaDistinto TABLE (
+        COD_ARTICU VARCHAR(15) COLLATE Latin1_General_BIN,
+        COD_DEPOSI CHAR(2)     COLLATE Latin1_General_BIN,
+        Cantidad   DECIMAL(18,4),
+        PRIMARY KEY (COD_ARTICU, COD_DEPOSI)
+    );
+    INSERT @BajaDistinto (COD_ARTICU, COD_DEPOSI, Cantidad)
+    SELECT ArticuloN, DepOrigenN, SUM(Cantidad)
+    FROM dbo.EB_TransferDepositoDet
+    WHERE IdLote = @IdLote AND UsaPartida = 1 AND ArticuloN <> ArtDestinoN
+    GROUP BY ArticuloN, DepOrigenN;
+
+    DECLARE cBaja CURSOR LOCAL FAST_FORWARD FOR
+        SELECT COD_ARTICU, COD_DEPOSI, Cantidad FROM @BajaDistinto;
+    OPEN cBaja;
+    FETCH NEXT FROM cBaja INTO @pArt, @pOri, @pCant;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        SET @resta = @pCant;
+
+        WHILE @resta > 0
+        BEGIN
+            SET @idOrigen = NULL;
+
+            SELECT TOP (1) @idOrigen = p.id_sta10, @dispo = p.cantidad
+            FROM dbo.sta10 p
+            WHERE p.COD_ARTICU = @pArt AND p.COD_DEPOSI = @pOri AND p.cantidad > 0
+            ORDER BY CASE WHEN p.fecha_vto <= '18010101' THEN 1 ELSE 0 END,
+                     p.fecha_vto, p.id_sta10;
+
+            IF @idOrigen IS NULL
+                THROW 51012, 'No hay partidas suficientes del codigo de origen para completar la recodificacion.', 1;
+
+            SET @toma = CASE WHEN @dispo < @resta THEN @dispo ELSE @resta END;
+            UPDATE dbo.sta10 SET cantidad = cantidad - @toma WHERE id_sta10 = @idOrigen;
+            SET @resta = @resta - @toma;
+        END
+
+        FETCH NEXT FROM cBaja INTO @pArt, @pOri, @pCant;
+    END
+    CLOSE cBaja;
+    DEALLOCATE cBaja;
+
+    /* ---- 5b-ii. código distinto: ALTA en la partida propia del código nuevo ---- */
+    DECLARE @AltaDistinto TABLE (
+        COD_ARTICU VARCHAR(15) COLLATE Latin1_General_BIN,
+        COD_DEPOSI CHAR(2)     COLLATE Latin1_General_BIN,
+        Cantidad   DECIMAL(18,4),
+        PRIMARY KEY (COD_ARTICU, COD_DEPOSI)
+    );
+    INSERT @AltaDistinto (COD_ARTICU, COD_DEPOSI, Cantidad)
+    SELECT ArtDestinoN, DepDestinoN, SUM(CantAlta)
+    FROM dbo.EB_TransferDepositoDet
+    WHERE IdLote = @IdLote AND UsaPartidaDestino = 1 AND ArticuloN <> ArtDestinoN
+    GROUP BY ArtDestinoN, DepDestinoN;
+
+    DECLARE cAlta CURSOR LOCAL FAST_FORWARD FOR
+        SELECT COD_ARTICU, COD_DEPOSI, Cantidad FROM @AltaDistinto;
+    OPEN cAlta;
+    FETCH NEXT FROM cAlta INTO @pArt, @pDes, @pCant;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        IF EXISTS (SELECT 1 FROM dbo.sta10
+                   WHERE COD_ARTICU = @pArt AND COD_DEPOSI = @pDes AND cantidad > 0)
+        BEGIN
+            /* Ya tiene partida en ese depósito: se acredita en la última. */
+            UPDATE dbo.sta10
+               SET cantidad = cantidad + @pCant
+             WHERE id_sta10 = (
+                    SELECT MAX(id_sta10) FROM dbo.sta10
+                    WHERE COD_ARTICU = @pArt AND COD_DEPOSI = @pDes AND cantidad > 0);
+        END
+        ELSE
+        BEGIN
+            /* No tiene: se le crea una a partir de SU propia última partida
+               conocida (sof_partidas). La validación ya garantizó que existe;
+               igual se chequea el resultado y se aborta si no — que es
+               justamente el error que la herramienta de muestras se come en
+               silencio y por el que sta10 quedó desfasado contra sta19. */
+            SET @msgPart = NULL;
+            SET @tipoPart = 0;
+
+            EXEC dbo.CrearNuevaPartida
+                 @COD_ARTICU = @pArt,
+                 @DEP_DESTINO = @pDes,
+                 @CANTIDAD = @pCant,
+                 @MENSAJERESULTADO = @msgPart OUTPUT,
+                 @TIPORESULTADO = @tipoPart OUTPUT;
+
+            IF @tipoPart = 1
+                THROW 51013, 'No se pudo crear la partida del codigo de destino: no tiene ninguna partida de referencia.', 1;
+        END
+
+        FETCH NEXT FROM cAlta INTO @pArt, @pDes, @pCant;
+    END
+    CLOSE cAlta;
+    DEALLOCATE cAlta;
 
     /* ---------------------------------------------------------------- 6
-       WMS: un solo INSERT ... SELECT para todo el lote, con AMBAS ubicaciones
-       reales. Va ÚLTIMO a propósito (ver cabecera).                          */
+       WMS: un solo INSERT ... SELECT para todo el lote. Va ÚLTIMO a propósito
+       (ver cabecera).
+
+       Movimientos tiene UN SOLO artículo por fila, así que:
+         - código y cantidad iguales -> UNA fila con ambas ubicaciones reales,
+           que es como el WMS representa una transferencia (un evento);
+         - código o cantidad distintos -> DOS filas: la salida del código viejo
+           (id_ubicacionDestino = 0) y la entrada del nuevo
+           (id_ubicacionOrigen = 0). Es el mismo patrón con el que la
+           herramienta de muestras registra las altas.
+       El saldo por ubicación se calcula como SUM(destino) - SUM(origen), así
+       que las dos formas dan el mismo resultado en los saldos.               */
     DECLARE @HashUsuario NVARCHAR(500) = (
         SELECT TOP (1) CAST(au.Id AS NVARCHAR(500))
         FROM [XL-SALES\SQLEXPRESS].[UbicacionesStockMvc].dbo.AspNetUsers au
@@ -277,13 +401,38 @@ BEGIN
         (id_ubicacionDestino, id_ubicacionOrigen, id_Articulo, id_usuarios,
          id_Comprobante, Cantidad_Asosciada, Origen_Tango, detalle, Fecha,
          NCompInt, NComp, id_Tarea, IdEstadoArticuloOrigen, IdEstadoArticuloDestino)
-    SELECT d.IdUbicDestino, d.IdUbicOrigen, d.IdArticuloWms, @HashUsuario,
-           0, d.Cantidad, '',
-           'Transferencia ' + d.DepOrigenN + '->' + d.DepDestinoN + ' ' + d.ArticuloN,
+    SELECT m.IdUbicDestino, m.IdUbicOrigen, m.IdArticulo, @HashUsuario,
+           0, m.Cantidad, '',
+           LEFT(m.Detalle, 100),
            @Fecha,
            @PROXINTERNO, @PROXIMO, @IdTarea, 1, 1
-    FROM dbo.EB_TransferDepositoDet d
-    WHERE d.IdLote = @IdLote;
+    FROM (
+        /* Caso simple: mismo código y misma cantidad -> un solo evento. */
+        SELECT d.IdUbicDestino, d.IdUbicOrigen, d.IdArticuloWms AS IdArticulo, d.Cantidad,
+               'Transferencia ' + d.DepOrigenN + '->' + d.DepDestinoN + ' ' + d.ArticuloN AS Detalle
+        FROM dbo.EB_TransferDepositoDet d
+        WHERE d.IdLote = @IdLote
+          AND d.ArticuloN = d.ArtDestinoN
+          AND d.Cantidad = d.CantAlta
+
+        UNION ALL
+
+        /* Recodificación: salida del código viejo. */
+        SELECT 0, d.IdUbicOrigen, d.IdArticuloWms, d.Cantidad,
+               'Recodif salida ' + d.DepOrigenN + ' ' + d.ArticuloN + '=>' + d.ArtDestinoN
+        FROM dbo.EB_TransferDepositoDet d
+        WHERE d.IdLote = @IdLote
+          AND NOT (d.ArticuloN = d.ArtDestinoN AND d.Cantidad = d.CantAlta)
+
+        UNION ALL
+
+        /* Recodificación: entrada del código nuevo. */
+        SELECT d.IdUbicDestino, 0, d.IdArtDestinoWms, d.CantAlta,
+               'Recodif entrada ' + d.DepDestinoN + ' ' + d.ArtDestinoN + '<=' + d.ArticuloN
+        FROM dbo.EB_TransferDepositoDet d
+        WHERE d.IdLote = @IdLote
+          AND NOT (d.ArticuloN = d.ArtDestinoN AND d.Cantidad = d.CantAlta)
+    ) m;
 
     /* ---------------------------------------------------------------- 7
        Cierre del lote.                                                       */
