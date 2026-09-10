@@ -2583,6 +2583,12 @@ def RegistroPagoServicios(request):
     dir_iframe = DIR_HERAMIENTAS['RegistroPagoServicios'] #+ UserName
     return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
 
+@login_required(login_url="/login/")
+def CobranzasMayoristas(request, UserName):
+    Nombre = 'Cobranzas Mayoristas'
+    dir_iframe = DIR_HERAMIENTAS['CobranzasMayoristas'] + UserName
+    return render(request, 'home/PlantillaHerramientas.html', {'dir_iframe': dir_iframe,'Nombre':Nombre })
+
 # Administracion_CE             ***Comercio Exterior***
 @login_required(login_url="/login/")
 def Cargarcontenedor(request):

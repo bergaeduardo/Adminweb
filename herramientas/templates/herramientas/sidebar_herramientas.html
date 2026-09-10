@@ -373,6 +373,14 @@
         <!-- <span class="badge badge-info right">New</span> -->
       </a>
     </li>
+    <li class="nav-item">
+      <a href="/../Herramientas/CobranzasMayoristas/{{ request.user.username }}"
+        class="nav-link {% if 'CobranzasMayoristas' in request.path %} active {% endif %}">
+        <i class="far fa-circle nav-icon"></i>
+        <p>Cobranzas Mayoristas</p>
+        <!-- <span class="badge badge-info right">New</span> -->
+      </a>
+    </li>
     {% endif %}
 
     {% if request.user.id == 42 or request.user.id == 67 or request.user.id == 92 or request.user|has_any_group:"admin" %}

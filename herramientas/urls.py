@@ -122,7 +122,6 @@ urlpatterns = [
     path('ControlMasivoCobranza', views.ControlMasivoCobranza, name='herramientas_control_masivo_cobranza'),
     path('CargarContratosDeAlquiler', views.CargarContratosDeAlquiler, name='herramientas_cargar_contratos_alquiler'),
     path('RelacionesCtaCont', views.RelacionesCtaCont, name='herramientas_relaciones_cuenta_contable'),
-  
     path('CargaFacturasSuc', views.CargaFacturasSuc, name='herramientas_carga_facturas_sucursales'),
     path('EgresosCajaTesoreria', views.EgresosCajaTesoreria, name='herramientas_egresos_caja_tesoreria'),
     path('GestionDeProveedores',views.GestionDeProveedores, name='herramientas_gestion_proveedores'),
@@ -130,6 +129,7 @@ urlpatterns = [
     path('VentasLocatarios', views.VentasLocatarios, name='herramientas_ventas_locatarios'),
     path('FacturasDirectores', views.FacturasDirectores, name='herramientas_facturas_directores'),
     path('RegistroPagoServicios', views.RegistroPagoServicios, name='herramientas_registro_pago_servicios'),
+    path('CobranzasMayoristas/<str:UserName>', views.CobranzasMayoristas, name='herramientas_cobranzas_mayoristas'),
 
 
     # Administracion_CE             ***Comercio Exterior***

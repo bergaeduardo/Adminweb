@@ -158,6 +158,7 @@ DIR_HERAMIENTAS = {
     'VentasLocatarios':SERVIDOR['production'] + 'administracion/impuestos/alquileres/locatarios/',
     'FacturasDirectores':SERVIDOR['production'] + 'administracion/tesoreria/egresosDirectores/proveedores.php',
     'RegistroPagoServicios':SERVIDOR['production'] + 'administracion/tesoreria/cajaDirectores/formPagoServicios.php',
+    'CobranzasMayoristas':SERVIDOR['production'] + 'administracion/tesoreria/cobranzas/mayoristas.php?userName=',
     # RRHH
     # 'adminEmpleados':SERVIDOR['production'] + 'administracion/recursosHumanos/controlHorarios/controlHorario.php',
     'altaVendedores':SERVIDOR['production'] + 'recursoshumanos/altaVendedores/altaVendedores.php',
