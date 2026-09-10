@@ -17,4 +17,8 @@ urlpatterns = [
          name='transferencias_depositos_validar'),
     path('Depositos/ejecutar', views.transferencias_depositos_ejecutar,
          name='transferencias_depositos_ejecutar'),
+    path('Depositos/historial', views.transferencias_depositos_historial,
+         name='transferencias_depositos_historial'),
+    path('Depositos/historial/exportar', views.transferencias_depositos_historial_exportar,
+         name='transferencias_depositos_historial_exportar'),
 ]

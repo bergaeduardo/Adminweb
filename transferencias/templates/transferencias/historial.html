@@ -1,0 +1,300 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Historial de Transferencias {% endblock %}
+
+{% block stylesheets %}
+  <link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="content-wrapper">
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-7">
+          <h1><i class="fas fa-history"></i> Historial de Transferencias</h1>
+          <p class="text-muted mb-0">
+            <small>
+              Lo que pasó por <strong>esta herramienta</strong>: solo los lotes que se ejecutaron y
+              movieron stock. <strong>No incluye</strong> los movimientos que se hicieron por Tango,
+              por Alta de Muestras ni por el WMS, así que estos números no son el total de cada depósito.
+            </small>
+          </p>
+        </div>
+        <div class="col-sm-5">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="/../Transferencias/Depositos">Transferencias</a></li>
+            <li class="breadcrumb-item active">Historial</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+
+      {% if error %}
+      <div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> {{ error }}</div>
+      {% endif %}
+
+      <!-- Filtros -->
+      <div class="card card-default">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fas fa-filter mr-1"></i> Filtros</h3>
+          <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+              <i class="fas fa-minus"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form method="get" id="filter-form">
+            <div class="row">
+              <div class="col-md-2">
+                <div class="form-group">
+                  <label>Desde</label>
+                  <input type="date" name="desde" class="form-control" value="{{ filtros.desde|default:'' }}">
+                </div>
+              </div>
+              <div class="col-md-2">
+                <div class="form-group">
+                  <label>Hasta</label>
+                  <input type="date" name="hasta" class="form-control" value="{{ filtros.hasta|default:'' }}">
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label>Depósito</label>
+                  <select name="deposito" class="form-control">
+                    <option value="">Todos</option>
+                    {% for codigo, nombre in depositos %}
+                    <option value="{{ codigo }}" {% if filtros.deposito == codigo %}selected{% endif %}>
+                      {{ codigo }} {{ nombre }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label>Artículo</label>
+                  <input type="text" name="articulo" class="form-control" placeholder="Código o parte"
+                         value="{{ filtros.articulo|default:'' }}">
+                </div>
+              </div>
+              <div class="col-md-2">
+                <div class="form-group">
+                  <label>Usuario</label>
+                  <input type="text" name="usuario" class="form-control" placeholder="Usuario"
+                         value="{{ filtros.usuario|default:'' }}">
+                </div>
+              </div>
+            </div>
+            <div class="text-right">
+              <a href="/../Transferencias/Depositos/historial" class="btn btn-secondary mr-2">
+                <i class="fas fa-undo"></i> Limpiar
+              </a>
+              <button type="button" id="btn-exportar" class="btn btn-success mr-2">
+                <i class="fas fa-file-excel"></i> Exportar a Excel
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i> Buscar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Totales por depósito: es el número que se pidió -->
+      <div class="row">
+        <div class="col-lg-7">
+          <div class="card card-primary card-outline">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-warehouse"></i> Cuánto pasó por cada depósito</h3>
+            </div>
+            <div class="card-body p-0">
+              <table class="table table-sm table-striped mb-0">
+                <thead>
+                  <tr>
+                    <th>Depósito</th>
+                    <th class="text-right">Salió</th>
+                    <th class="text-right">Entró</th>
+                    <th class="text-right">Neto</th>
+                    <th class="text-right">Movimientos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for d in totales_deposito %}
+                  <tr>
+                    <td><strong>{{ d.deposito }}</strong> <small class="text-muted">{{ d.nombre }}</small></td>
+                    <td class="text-right text-danger">{{ d.salidas }}</td>
+                    <td class="text-right text-success">{{ d.entradas }}</td>
+                    <td class="text-right">
+                      {% if d.neto > 0 %}<span class="badge badge-success">+{{ d.neto }}</span>
+                      {% elif d.neto < 0 %}<span class="badge badge-danger">{{ d.neto }}</span>
+                      {% else %}<span class="badge badge-secondary">0</span>{% endif %}
+                    </td>
+                    <td class="text-right">{{ d.movimientos }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr><td colspan="5" class="text-center text-muted">Sin movimientos para estos filtros.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Totales por artículo -->
+        <div class="col-lg-5">
+          <div class="card card-primary card-outline">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-boxes"></i> Por artículo</h3>
+              <div class="card-tools"><span class="badge badge-secondary">{{ totales_articulo|length }}</span></div>
+            </div>
+            <div class="card-body p-0" style="max-height: 320px; overflow-y: auto;">
+              <table class="table table-sm table-striped mb-0">
+                <thead>
+                  <tr>
+                    <th>Artículo</th>
+                    <th class="text-right">Bajas</th>
+                    <th class="text-right">Altas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for a in totales_articulo %}
+                  <tr>
+                    <td><code>{{ a.articulo }}</code></td>
+                    <td class="text-right text-danger">{{ a.bajas }}</td>
+                    <td class="text-right text-success">{{ a.altas }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr><td colspan="3" class="text-center text-muted">Sin datos.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detalle -->
+      <div class="card card-secondary card-outline">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fas fa-list"></i> Detalle de movimientos</h3>
+          <div class="card-tools"><span class="badge badge-secondary">{{ total }} movimiento(s)</span></div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm table-striped mb-0">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Usuario</th>
+                  <th>Tipo</th>
+                  <th colspan="4" class="text-center">Origen (baja)</th>
+                  <th colspan="4" class="text-center">Destino (alta)</th>
+                  <th>Comprobante</th>
+                  <th>Tarea</th>
+                </tr>
+                <tr>
+                  <th colspan="3"></th>
+                  <th>Dep.</th><th>Ubicación</th><th>Artículo</th><th class="text-right">Cant.</th>
+                  <th>Dep.</th><th>Ubicación</th><th>Artículo</th><th class="text-right">Cant.</th>
+                  <th colspan="2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in movimientos %}
+                <tr>
+                  <td><small>{{ m.fecha|date:"d/m/Y H:i" }}</small></td>
+                  <td><small>{{ m.usuario }}</small></td>
+                  <td>
+                    {% if m.es_recodificacion %}
+                      <span class="badge badge-primary" title="El código cambia">
+                        <i class="fas fa-exchange-alt"></i> Recodif.
+                      </span>
+                    {% else %}
+                      <span class="badge badge-light">Transfer.</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ m.dep_origen }}</td>
+                  <td><small>{{ m.ubic_origen }}</small></td>
+                  <td><code>{{ m.art_origen }}</code></td>
+                  <td class="text-right">{{ m.cant_baja }}</td>
+                  <td>{{ m.dep_destino }}</td>
+                  <td><small>{{ m.ubic_destino }}</small></td>
+                  <td>
+                    <code {% if m.es_recodificacion %}class="text-primary font-weight-bold"{% endif %}>{{ m.art_destino }}</code>
+                  </td>
+                  <td class="text-right">{{ m.cant_alta }}</td>
+                  <td><small class="text-muted">{{ m.comprobante }}</small></td>
+                  <td><small class="text-muted">{{ m.tarea|default:"" }}</small></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="13" class="text-center text-muted py-3">
+                  No se encontraron movimientos con estos filtros.
+                </td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {% if total %}
+        <div class="card-footer clearfix">
+          <div class="float-left">
+            <small class="text-muted">
+              Mostrando {{ desde_registro }} a {{ hasta_registro }} de {{ total }}
+            </small>
+          </div>
+          {% if ultima_pagina > 1 %}
+          <ul class="pagination pagination-sm m-0 float-right">
+            {% if pagina > 1 %}
+            <li class="page-item">
+              <a class="page-link" href="?page=1{% if query_filtros %}&amp;{{ query_filtros }}{% endif %}">&laquo;</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ pagina|add:'-1' }}{% if query_filtros %}&amp;{{ query_filtros }}{% endif %}">Anterior</a>
+            </li>
+            {% endif %}
+            <li class="page-item active">
+              <span class="page-link">Página {{ pagina }} de {{ ultima_pagina }}</span>
+            </li>
+            {% if pagina < ultima_pagina %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ pagina|add:'1' }}{% if query_filtros %}&amp;{{ query_filtros }}{% endif %}">Siguiente</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ ultima_pagina }}{% if query_filtros %}&amp;{{ query_filtros }}{% endif %}">&raquo;</a>
+            </li>
+            {% endif %}
+          </ul>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </section>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+  <script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+  <script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/assets/js/adminlte.min.js"></script>
+  <script>
+    // La exportación reusa los mismos filtros de la pantalla, serializando el
+    // form: así lo que se baja es exactamente lo que se está viendo.
+    $('#btn-exportar').click(function () {
+      var params = $('#filter-form').serialize();
+      window.location.href = "{% url 'transferencias:transferencias_depositos_historial_exportar' %}?" + params;
+    });
+  </script>
+{% endblock javascripts %}

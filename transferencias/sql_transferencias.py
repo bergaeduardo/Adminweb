@@ -11,9 +11,13 @@ El SP `EB_TransferDeposito_Procesar` devuelve SIEMPRE tres resultsets:
   3) sugerencias de dónde sí está el artículo
 Una excepción de Python significa falla técnica, nunca dato malo del usuario.
 
-`buscar_articulo` y `ubicaciones_habilitadas` son las dos únicas funciones que
-NO pasan por el SP: son lecturas sueltas para el modo escaneo, y consultan
-directo cada base (sin linked server ni SQL dinámico).
+`buscar_articulo` y `ubicaciones_habilitadas` son lecturas sueltas para el modo
+escaneo, y las `historial_*` para la pantalla de historial: no pasan por el SP y
+consultan directo cada base (sin linked server ni SQL dinámico).
+
+OJO con las tablas EB_TransferDeposito*: los lotes con Estado = 2 (aplicados)
+son EL HISTORIAL de la herramienta, no staging descartable. Ver el comentario de
+013_EB_TransferDeposito_LimpiarLotes.sql.
 """
 
 import logging
@@ -255,3 +259,228 @@ def borrar_lote(lote_id):
     except Exception:
         # No es crítico: el lote queda huérfano y lo limpia la purga por antigüedad.
         logger.exception('No se pudo borrar el lote de transferencias %s', lote_id)
+
+
+# ============================================================================
+# HISTORIAL
+#
+# Lee los lotes APLICADOS (Estado = 2), que son el registro de lo que
+# efectivamente movió stock. Los validados-sin-ejecutar y los rechazados quedan
+# afuera a propósito: nunca movieron nada, así que no sirven para contar
+# cantidades.
+#
+# Los totales se calculan EN SQL sobre todo el conjunto filtrado, no sobre la
+# página. (En el proyecto hay un total hecho en JS recorriendo el DOM
+# —Mov_WMS.html— que justamente por eso suma solo la página visible.)
+# ============================================================================
+
+_ESTADO_APLICADO = 2
+
+# El artículo de destino NORMALIZADO, con fallback al crudo.
+#
+# Por qué el COALESCE: los lotes de la v1 (cuando el código no podía cambiar)
+# tienen ArtDestinoN en NULL. El ALTER de la v2 rellenó las columnas de ENTRADA
+# (ArtDestino, CantAlta) pero no la normalizada, que solo la setea el SP de
+# validación — y esos lotes nunca se revalidaron.
+# Sin el COALESCE esas filas pierden su ALTA en los totales por artículo, se
+# escapan del filtro por artículo, y todo eso EN SILENCIO. Son 5 de las 15
+# filas aplicadas hoy.
+_ART_DESTINO = "COALESCE(d.ArtDestinoN, UPPER(LTRIM(RTRIM(d.ArtDestino))))"
+
+
+def _where_historial(filtros):
+    """Arma el WHERE común a las tres consultas. Devuelve (sql, parametros).
+
+    Todo parametrizado: los filtros vienen del usuario y no se interpolan.
+
+    Los filtros de depósito y artículo matchean CUALQUIERA de las dos puntas:
+    un movimiento toca dos depósitos, y con recodificación dos artículos, así
+    que filtrar por "06" trae lo que salió del 06 y lo que entró al 06.
+    """
+    # EsPrueba = 0 deja afuera los lotes ejecutados durante el desarrollo de la
+    # herramienta. Fueron transferencias reales contra producción, pero todas
+    # devueltas con un movimiento inverso (efecto neto CERO), así que ensucian
+    # el historial y sus totales sin aportar nada. Ver 004_marcar_pruebas.sql.
+    condiciones = ['l.Estado = %s', 'l.EsPrueba = 0']
+    params = [_ESTADO_APLICADO]
+
+    filtros = filtros or {}
+
+    if filtros.get('desde'):
+        condiciones.append('l.FechaProceso >= %s')
+        params.append(filtros['desde'])
+    if filtros.get('hasta'):
+        # < día siguiente, en vez de CAST(FechaProceso AS DATE) <= hasta, para
+        # que el índice por FechaProceso siga siendo usable.
+        condiciones.append('l.FechaProceso < DATEADD(DAY, 1, %s)')
+        params.append(filtros['hasta'])
+    if filtros.get('deposito'):
+        condiciones.append('(d.DepOrigenN = %s OR d.DepDestinoN = %s)')
+        params.extend([filtros['deposito'], filtros['deposito']])
+    if filtros.get('articulo'):
+        condiciones.append('(d.ArticuloN LIKE %s OR ' + _ART_DESTINO + ' LIKE %s)')
+        patron = '%' + filtros['articulo'].strip().upper() + '%'
+        params.extend([patron, patron])
+    if filtros.get('usuario'):
+        condiciones.append('l.Usuario LIKE %s')
+        params.append('%' + filtros['usuario'].strip() + '%')
+
+    return ' AND '.join(condiciones), params
+
+
+def historial_totales_por_deposito(filtros=None):
+    """Salidas, entradas, neto y movimientos por depósito.
+
+    Es el número que se pidió: cuánto pasó por la herramienta. Cada movimiento
+    SACA del depósito de origen y PONE en el de destino, así que aporta a dos.
+    """
+    where, params = _where_historial(filtros)
+    consulta = (
+        'SELECT x.Deposito,'
+        '       SUM(CASE WHEN x.Signo = -1 THEN x.Cant ELSE 0 END) AS Salidas,'
+        '       SUM(CASE WHEN x.Signo =  1 THEN x.Cant ELSE 0 END) AS Entradas,'
+        '       COUNT(*) AS Movimientos '
+        'FROM ('
+        '  SELECT d.DepOrigenN AS Deposito, -1 AS Signo, d.Cantidad AS Cant'
+        '  FROM EB_TransferDepositoDet d'
+        '  JOIN EB_TransferDepositoLote l ON l.IdLote = d.IdLote'
+        '  WHERE ' + where + ' AND d.DepOrigenN IS NOT NULL'
+        '  UNION ALL'
+        '  SELECT d.DepDestinoN, 1, d.CantAlta'
+        '  FROM EB_TransferDepositoDet d'
+        '  JOIN EB_TransferDepositoLote l ON l.IdLote = d.IdLote'
+        '  WHERE ' + where + ' AND d.DepDestinoN IS NOT NULL'
+        ') x GROUP BY x.Deposito ORDER BY x.Deposito'
+    )
+
+    _usar_base_laker_sa()
+    with connections['mi_db_2'].cursor() as cursor:
+        cursor.execute(consulta, params + params)
+        return [
+            {
+                'deposito': (r[0] or '').strip(),
+                'nombre': DEPOSITOS_HABILITADOS.get((r[0] or '').strip(), ''),
+                'salidas': int(r[1] or 0),
+                'entradas': int(r[2] or 0),
+                'neto': int(r[2] or 0) - int(r[1] or 0),
+                'movimientos': int(r[3] or 0),
+            }
+            for r in cursor.fetchall()
+        ]
+
+
+def historial_totales_por_articulo(filtros=None, limite=100):
+    """Bajas y altas por artículo, ordenado por volumen.
+
+    Con recodificación el código de cada punta es distinto, así que un artículo
+    puede aparecer con solo bajas (el código viejo) y otro con solo altas.
+    """
+    where, params = _where_historial(filtros)
+    consulta = (
+        'SELECT TOP (' + str(int(limite)) + ') x.Articulo,'
+        '       SUM(CASE WHEN x.Signo = -1 THEN x.Cant ELSE 0 END) AS Bajas,'
+        '       SUM(CASE WHEN x.Signo =  1 THEN x.Cant ELSE 0 END) AS Altas '
+        'FROM ('
+        '  SELECT d.ArticuloN AS Articulo, -1 AS Signo, d.Cantidad AS Cant'
+        '  FROM EB_TransferDepositoDet d'
+        '  JOIN EB_TransferDepositoLote l ON l.IdLote = d.IdLote'
+        '  WHERE ' + where + ' AND d.ArticuloN IS NOT NULL'
+        '  UNION ALL'
+        '  SELECT ' + _ART_DESTINO + ', 1, d.CantAlta'
+        '  FROM EB_TransferDepositoDet d'
+        '  JOIN EB_TransferDepositoLote l ON l.IdLote = d.IdLote'
+        '  WHERE ' + where + ' AND ' + _ART_DESTINO + ' IS NOT NULL'
+        ') x GROUP BY x.Articulo ORDER BY SUM(x.Cant) DESC, x.Articulo'
+    )
+
+    _usar_base_laker_sa()
+    with connections['mi_db_2'].cursor() as cursor:
+        cursor.execute(consulta, params + params)
+        return [
+            {
+                'articulo': (r[0] or '').strip(),
+                'bajas': int(r[1] or 0),
+                'altas': int(r[2] or 0),
+            }
+            for r in cursor.fetchall()
+        ]
+
+
+_SELECT_MOVIMIENTOS = (
+    'SELECT l.FechaProceso, l.Usuario, l.NroComprobante, l.IdTarea,'
+    '       d.DepOrigenN, d.UbicOrigen, d.Articulo, d.Cantidad,'
+    '       d.DepDestinoN, d.UbicDestino, d.ArtDestino, d.CantAlta,'
+    '       CASE WHEN d.ArticuloN <> ' + _ART_DESTINO + ' THEN 1 ELSE 0 END AS EsRecodificacion '
+    'FROM EB_TransferDepositoDet d '
+    'JOIN EB_TransferDepositoLote l ON l.IdLote = d.IdLote '
+    'WHERE '
+)
+
+
+def _fila_movimiento(r):
+    return {
+        'fecha': r[0],
+        'usuario': (r[1] or '').strip(),
+        # SIN strip: Tango guarda n_comp con un espacio inicial (' 02005...'),
+        # así que recortarlo rompe la correspondencia exacta con sta14. En HTML
+        # el espacio inicial no se ve, así que no molesta al mostrarlo.
+        'comprobante': r[2] or '',
+        'tarea': r[3],
+        'dep_origen': (r[4] or '').strip(),
+        'ubic_origen': (r[5] or '').strip(),
+        'art_origen': (r[6] or '').strip(),
+        'cant_baja': int(r[7] or 0),
+        'dep_destino': (r[8] or '').strip(),
+        'ubic_destino': (r[9] or '').strip(),
+        'art_destino': (r[10] or '').strip(),
+        'cant_alta': int(r[11] or 0),
+        'es_recodificacion': bool(r[12]),
+    }
+
+
+def historial_movimientos(filtros=None, pagina=1, tamano=50):
+    """El detalle, paginado en SQL. Devuelve (filas, total).
+
+    Se pagina con OFFSET/FETCH y se cuenta aparte, para no traer todo a Python
+    cuando la tabla crezca.
+    """
+    where, params = _where_historial(filtros)
+    pagina = max(1, int(pagina))
+    tamano = max(1, int(tamano))
+    offset = (pagina - 1) * tamano
+
+    _usar_base_laker_sa()
+    with connections['mi_db_2'].cursor() as cursor:
+        cursor.execute(
+            'SELECT COUNT(*) FROM EB_TransferDepositoDet d '
+            'JOIN EB_TransferDepositoLote l ON l.IdLote = d.IdLote WHERE ' + where,
+            params,
+        )
+        total = cursor.fetchone()[0]
+
+        cursor.execute(
+            _SELECT_MOVIMIENTOS + where
+            + ' ORDER BY l.FechaProceso DESC, d.Fila'
+              ' OFFSET %s ROWS FETCH NEXT %s ROWS ONLY',
+            params + [offset, tamano],
+        )
+        filas = [_fila_movimiento(r) for r in cursor.fetchall()]
+
+    return filas, total
+
+
+def historial_movimientos_todos(filtros=None, tope=20000):
+    """Igual que historial_movimientos pero sin paginar, para la exportación.
+
+    El tope evita que un rango de fechas enorme genere una descarga
+    inmanejable; la vista avisa si se truncó.
+    """
+    where, params = _where_historial(filtros)
+    _usar_base_laker_sa()
+    with connections['mi_db_2'].cursor() as cursor:
+        cursor.execute(
+            _SELECT_MOVIMIENTOS.replace('SELECT ', 'SELECT TOP (' + str(int(tope)) + ') ', 1)
+            + where + ' ORDER BY l.FechaProceso DESC, d.Fila',
+            params,
+        )
+        return [_fila_movimiento(r) for r in cursor.fetchall()]

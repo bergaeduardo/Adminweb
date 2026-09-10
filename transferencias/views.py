@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models.functions import Lower
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from herramientas.sql_muestras_articulos import parsear_xlsx_ajuste
@@ -24,6 +24,10 @@ from . import sql_transferencias
 logger = logging.getLogger(__name__)
 
 HOST_TANGO = 'TRANSFER-DEP'
+
+# Historial
+TAMANO_PAGINA_HISTORIAL = 50
+TOPE_EXPORTACION = 20000
 
 
 def usuario_puede_transferir(user):
@@ -327,3 +331,166 @@ def transferencias_depositos_validar(request):
 @user_passes_test(usuario_puede_transferir, login_url="/login/")
 def transferencias_depositos_ejecutar(request):
     return _procesar(request, solo_validar=False)
+
+
+# ============================================================================
+# HISTORIAL
+# ============================================================================
+
+def _filtros_historial(request):
+    """Lee los filtros de la query string.
+
+    Por defecto arranca en el primer día del mes en curso, para que la pantalla
+    abra con algo útil en vez de barrer todo el historial.
+    """
+    hoy = datetime.date.today()
+    desde = (request.GET.get('desde') or '').strip()
+    hasta = (request.GET.get('hasta') or '').strip()
+
+    # Solo se aplica el default si no vino NINGÚN filtro de fecha: si el
+    # usuario puso solo "hasta", no le imponemos un "desde" que no pidió.
+    if not desde and not hasta:
+        desde = hoy.replace(day=1).isoformat()
+
+    return {
+        'desde': desde or None,
+        'hasta': hasta or None,
+        'deposito': (request.GET.get('deposito') or '').strip() or None,
+        'articulo': (request.GET.get('articulo') or '').strip() or None,
+        'usuario': (request.GET.get('usuario') or '').strip() or None,
+    }
+
+
+@user_passes_test(usuario_puede_transferir, login_url="/login/")
+def transferencias_depositos_historial(request):
+    """Historial de lo que pasó por la herramienta, con totales.
+
+    Solo lee. Muestra únicamente los lotes aplicados: lo que efectivamente
+    movió stock.
+    """
+    filtros = _filtros_historial(request)
+
+    try:
+        pagina = int(request.GET.get('page') or 1)
+    except ValueError:
+        pagina = 1
+
+    try:
+        totales_deposito = sql_transferencias.historial_totales_por_deposito(filtros)
+        totales_articulo = sql_transferencias.historial_totales_por_articulo(filtros, limite=100)
+        movimientos, total = sql_transferencias.historial_movimientos(
+            filtros, pagina=pagina, tamano=TAMANO_PAGINA_HISTORIAL
+        )
+        error = None
+    except Exception as e:
+        logger.exception('Error al consultar el historial de transferencias')
+        totales_deposito, totales_articulo, movimientos, total = [], [], [], 0
+        error = f'No se pudo consultar el historial: {str(e)}'
+
+    ultima = max(1, -(-total // TAMANO_PAGINA_HISTORIAL))  # techo de la división
+    pagina = min(max(1, pagina), ultima)
+
+    # La query string sin `page`, para que los links de paginado mantengan los
+    # filtros. Se arma acá y no en el template, que es donde el proyecto suele
+    # rearmarla a mano condición por condición.
+    parametros = request.GET.copy()
+    parametros.pop('page', None)
+    query_filtros = parametros.urlencode()
+
+    return render(request, 'transferencias/historial.html', {
+        'filtros': filtros,
+        'depositos': sorted(DEPOSITOS_HABILITADOS.items()),
+        'totales_deposito': totales_deposito,
+        'totales_articulo': totales_articulo,
+        'movimientos': movimientos,
+        'total': total,
+        'pagina': pagina,
+        'ultima_pagina': ultima,
+        'tamano_pagina': TAMANO_PAGINA_HISTORIAL,
+        'desde_registro': (pagina - 1) * TAMANO_PAGINA_HISTORIAL + 1 if total else 0,
+        'hasta_registro': min(pagina * TAMANO_PAGINA_HISTORIAL, total),
+        'query_filtros': query_filtros,
+        'error': error,
+    })
+
+
+@user_passes_test(usuario_puede_transferir, login_url="/login/")
+def transferencias_depositos_historial_exportar(request):
+    """Baja el historial filtrado a .xlsx, con tres hojas.
+
+    Lee los MISMOS filtros GET que la pantalla, así lo que se descarga es
+    exactamente lo que se está viendo.
+    """
+    import openpyxl
+    from openpyxl.styles import Alignment, Font, PatternFill
+    from openpyxl.utils import get_column_letter
+
+    filtros = _filtros_historial(request)
+
+    try:
+        movimientos = sql_transferencias.historial_movimientos_todos(filtros, tope=TOPE_EXPORTACION)
+        totales_deposito = sql_transferencias.historial_totales_por_deposito(filtros)
+        totales_articulo = sql_transferencias.historial_totales_por_articulo(filtros, limite=5000)
+    except Exception as e:
+        logger.exception('Error al exportar el historial de transferencias')
+        return HttpResponse(f'No se pudo exportar el historial: {str(e)}', status=500)
+
+    fuente_encabezado = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+    relleno_encabezado = PatternFill(start_color='1F4E78', end_color='1F4E78', fill_type='solid')
+    centrado = Alignment(horizontal='center', vertical='center', wrap_text=True)
+
+    libro = openpyxl.Workbook()
+
+    def escribir(hoja, encabezados, filas):
+        for columna, titulo in enumerate(encabezados, start=1):
+            celda = hoja.cell(row=1, column=columna, value=titulo)
+            celda.font = fuente_encabezado
+            celda.fill = relleno_encabezado
+            celda.alignment = centrado
+        for indice, fila in enumerate(filas, start=2):
+            for columna, valor in enumerate(fila, start=1):
+                hoja.cell(row=indice, column=columna, value=valor)
+        for columna in range(1, len(encabezados) + 1):
+            ancho = len(str(encabezados[columna - 1]))
+            for fila in filas:
+                ancho = max(ancho, len(str(fila[columna - 1] if fila[columna - 1] is not None else '')))
+            hoja.column_dimensions[get_column_letter(columna)].width = min(ancho + 3, 40)
+        hoja.freeze_panes = 'A2'
+
+    hoja = libro.active
+    hoja.title = 'Movimientos'
+    escribir(
+        hoja,
+        ['Fecha', 'Usuario', 'Tipo', 'Dep. origen', 'Ubic. origen', 'Art. origen', 'Cant. baja',
+         'Dep. destino', 'Ubic. destino', 'Art. destino', 'Cant. alta', 'Comprobante', 'Tarea'],
+        [
+            [m['fecha'].strftime('%d/%m/%Y %H:%M') if m['fecha'] else '',
+             m['usuario'],
+             'Recodificación' if m['es_recodificacion'] else 'Transferencia',
+             m['dep_origen'], m['ubic_origen'], m['art_origen'], m['cant_baja'],
+             m['dep_destino'], m['ubic_destino'], m['art_destino'], m['cant_alta'],
+             m['comprobante'], m['tarea']]
+            for m in movimientos
+        ],
+    )
+
+    escribir(
+        libro.create_sheet('Por deposito'),
+        ['Depósito', 'Nombre', 'Salidas', 'Entradas', 'Neto', 'Movimientos'],
+        [[d['deposito'], d['nombre'], d['salidas'], d['entradas'], d['neto'], d['movimientos']]
+         for d in totales_deposito],
+    )
+
+    escribir(
+        libro.create_sheet('Por articulo'),
+        ['Artículo', 'Bajas', 'Altas'],
+        [[a['articulo'], a['bajas'], a['altas']] for a in totales_articulo],
+    )
+
+    respuesta = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    nombre = f"HistorialTransferencias_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    respuesta['Content-Disposition'] = f'attachment; filename="{nombre}"'
+    libro.save(respuesta)
+    return respuesta
