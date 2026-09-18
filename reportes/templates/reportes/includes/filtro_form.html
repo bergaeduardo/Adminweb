@@ -1,0 +1,22 @@
+{% comment %}
+Barra de filtros compartida para los reportes basados en django_filters
+(MovimientosWms, StockWmsDestino, ...). Uso:
+    {% include "reportes/includes/filtro_form.html" with filtro=myFilter %}
+{% endcomment %}
+<form method="get" class="filtro-toolbar">
+  <div class="filtro-titulo"><i class="fas fa-filter"></i> Filtros</div>
+  <div class="filtro-campos">
+    {% for field in filtro.form %}
+      <div class="filtro-campo">
+        {{ field.label_tag }}
+        {{ field }}
+      </div>
+    {% endfor %}
+    <div class="filtro-acciones">
+      <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Buscar</button>
+      {% if mostrar_total %}
+        <button type="button" class="btn btn-dark btn-sm disabled" role="button">Total: <b><span id="Total" class="badge badge-light"></span></b></button>
+      {% endif %}
+    </div>
+  </div>
+</form>

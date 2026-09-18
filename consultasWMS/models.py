@@ -27,6 +27,23 @@ class RoMovimientosWms(models.Model):
         managed = False  # Created from a view. Don't remove.
         db_table = 'RO_MOVIMIENTOS_WMS'
 
+
+class RoStockWmsDestino(models.Model):
+    deposito = models.CharField(db_column='DEPOSITO', max_length=10, blank=True, null=True)
+    ubicacion = models.CharField(db_column='UBICACION', max_length=50, blank=True, null=True)
+    cod_articulo = models.CharField(db_column='COD_ARTICULO', max_length=50, primary_key=True, unique=False)
+    descripcion = models.CharField(db_column='DESCRIPCION', max_length=250, blank=True, null=True)
+    stock_ubic = models.IntegerField(db_column='STOCK_UBIC', blank=True, null=True)
+    tipo_ubicacion = models.CharField(db_column='TIPO_UBICACION', max_length=50, blank=True, null=True)
+    destino = models.CharField(db_column='DESTINO', max_length=100, blank=True, null=True)
+    rubro = models.CharField(db_column='RUBRO', max_length=100, blank=True, null=True)
+    temporada = models.CharField(db_column='TEMPORADA', max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False  # Created from a view. Don't remove.
+        db_table = 'RO_STOCK_WMS_DESTINO'
+
+
 class Ubicacion(models.Model):
     id_ubicacion = models.AutoField(db_column='id_Ubicacion', primary_key=True)  # Field name made lowercase.
     cod_ubicacion = models.CharField(db_column='Cod_Ubicacion', max_length=10)  # Field name made lowercase.

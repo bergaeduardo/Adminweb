@@ -12,7 +12,7 @@ from apps.settingsUrls import *
 from django.conf import settings
 from consultasWMS.filters import *
 from consultasTango.filters import *
-from consultasWMS.models import RoMovimientosWms
+from consultasWMS.models import RoMovimientosWms, RoStockWmsDestino
 from consultasLakersBis.models import SofStockLakers
 from consultasTango.models import StockCentral,SjStockDisponibleEcommerce
 from consultasTango.filters import *
@@ -65,6 +65,23 @@ def MovimientosWms(request):
         datos = RoMovimientosWms.objects.filter(ubic_destino='01')
 
     return render(request,'appConsultasWMS/Mov_WMS.html',{'myFilter':myFilter,'registros':datos,'Nombre':Nombre})
+
+@login_required(login_url="/login/")
+def StockWmsDestino(request):
+    Nombre='Stock WMS por Destino'
+
+    stock = RoStockWmsDestino.objects.all()
+    acceso_restringido = not request.user.groups.filter(name__in=['Logistica', 'admin']).exists()
+    if acceso_restringido:
+        stock = stock.filter(tipo_ubicacion='PICKING')
+
+    myFilter = OrderFilterStockWmsDestino(request.GET, queryset=stock)
+    if request.GET:
+        datos = myFilter
+    else:
+        datos = stock
+
+    return render(request,'appConsultasWMS/Stock_WMS_Destino.html',{'myFilter':myFilter,'registros':datos,'Nombre':Nombre,'acceso_restringido':acceso_restringido})
 
 @login_required(login_url="/login/")
 def GestionTransferencias(request):

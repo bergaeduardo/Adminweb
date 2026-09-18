@@ -65,6 +65,13 @@
           </a>
         </li>
         <li class="nav-item">
+          {# Stock Wms por Destino - visible para todos los logueados, la vista restringe los datos por grupo #}
+          <a href="/Reportes/Logistica/StockWmsDestino" class="nav-link {% if 'StockWmsDestino' in request.path %} active {% endif %}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>Stock Wms por Destino</p>
+          </a>
+        </li>
+        <li class="nav-item">
           {# Updated href for Cat. de Productos (assuming Abastecimiento section) #}
           <a href="/Reportes/Abastecimiento/CategoriasDeProductos" class="nav-link {% if 'CategoriasDeProductos' in request.path %} active {% endif %}">
             <i class="far fa-circle nav-icon"></i>

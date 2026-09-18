@@ -1,10 +1,10 @@
 {% extends "layouts/base.html" %}
 {% load bootstrap %}
 
-{% block title %} {{Nombre}} {% endblock %} 
+{% block title %} {{Nombre}} {% endblock %}
 
 <!-- Element injected in the BODY element -->
-{% block body_class %} sidebar-mini sidebar-collapse {% endblock body_class %} 
+{% block body_class %} sidebar-mini sidebar-collapse {% endblock body_class %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -24,7 +24,7 @@
 
 {% endblock stylesheets %}
 
-{% block content %} 
+{% block content %}
 
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
@@ -48,67 +48,58 @@
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
+        {% if acceso_restringido %}
+        <div class="row">
+          <div class="col-md-12">
+            <div class="alert alert-warning alert-dismissible">
+              <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+              <h5><i class="icon fas fa-exclamation-triangle"></i> Acceso restringido</h5>
+              Por tu perfil de usuario, solo podés ver las ubicaciones de tipo <b>PICKING</b>.
+              Si necesitás información de otras ubicaciones, comunicate con el área de <b>Logística</b> para solicitarla.
+            </div>
+          </div>
+        </div>
+        {% endif %}
         <div class="row">
           <div class="col-md-12">
             <div class="card card-body">
-              {% include "reportes/includes/filtro_form.html" with filtro=myFilter mostrar_total=True %}
+              {% include "reportes/includes/filtro_form.html" with filtro=myFilter %}
             </div>
           </div>
         </div>
         <div class="row">
           <div class="col-12">
             <div class="card">
-              <div class="card-header">
-                <!-- <form method="get">
-                  {{articulos.form}}
-                  <button type="submit" class="btn btn-primary">Buscar</button>
-                </form>
-              </div> -->
-              <!-- /.card-header -->
               <div class="card-body">
                 <table id="example1" class="table table-bordered table-striped">
                   <thead>
                     <tr>
-                      <th>TAREA</th>
-                      <th>FECHA</th>
-                      <th>TIPO DE MOVIMIENTO</th>
-                      <th>CODIGO DE ARTICULO</th>
+                      <th>DEPOSITO</th>
+                      <th>UBICACION</th>
+                      <th>COD. ARTICULO</th>
                       <th>DESCRIPCION</th>
-                      <th>CANTIDAD</th>
-                      <th>UBI_ORIGEN</th>
-                      <th>UBI_DESTINO</th>
-                      <th>DEP_ORIGEN</th>
-                      <th>DEP_DESTINO</th>
-                      <th>MOVIMIENTO</th>
-                      <th>HORA</th>
-                      <th>USUARIO</th>
+                      <th>STOCK UBIC</th>
+                      <th>TIPO UBICACION</th>
+                      <th>DESTINO</th>
+                      <th>RUBRO</th>
+                      <th>TEMPORADA</th>
                     </tr>
                   </thead>
                   <tbody>
                     {% for campo in registros.qs %}
                       <tr>
-                        <td><b>{{ campo.nro_tarea }}</b></td>
-                        <td>{{ campo.fecha }}</td>
-                        <td>{{ campo.tipo_movimiento }}</td>
-                        <td>{{ campo.cod_articulo }}</td>
+                        <td>{{ campo.deposito }}</td>
+                        <td>{{ campo.ubicacion }}</td>
+                        <td><b>{{ campo.cod_articulo }}</b></td>
                         <td>{{ campo.descripcion }}</td>
-                        <td class="text-primary" id="cant"><b>{{ campo.cantidad }}</b></td>
-                        <td>{{ campo.ubic_origen }}</td>
-                        <td>{{ campo.ubic_destino }}</td>
-                        <td>{{ campo.depo_origen }}</td>
-                        <td>{{ campo.depo_destino }}</td>
-                        <td>{{ campo.nro_movim }}</td>
-                        <td>{{ campo.hora }}</td>
-                        <td>{{ campo.usuario }}</td>
-                        
-                        <!-- <td>{{ articulo.comp|floatformat }}</td>
-                        <td class="text-primary"><b>{{ articulo.total|floatformat }}</b></td> -->
-                        
+                        <td class="text-primary"><b>{{ campo.stock_ubic }}</b></td>
+                        <td>{{ campo.tipo_ubicacion }}</td>
+                        <td>{{ campo.destino }}</td>
+                        <td>{{ campo.rubro }}</td>
+                        <td>{{ campo.temporada }}</td>
                       </tr>
                     {% endfor %}
                   </tbody>
-                  
-                  
                 </table>
               </div>
               <!-- /.card-body -->
@@ -152,15 +143,6 @@
   <script src="/static/assets/js/demo.js"></script>
   <!-- page script -->
   <script>
-    var suma = 0;
-    $(document).ready(function(){
-      $("#example1 tbody tr").each(function(){
-        var cant = $(this).find("td:eq(5)").text();
-        // var cant = $(this).find("id:eq('cant')").text();
-        suma += parseFloat(cant);
-      });
-      $("#Total").text(suma);
-    });
     $(function () {
       $("#example1").DataTable({
         "responsive": true, "lengthChange": true, "autoWidth": false,

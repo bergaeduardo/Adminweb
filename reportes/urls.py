@@ -17,6 +17,7 @@ urlpatterns = [
     path('Logistica/stockcUY', views.stockcUY, name='reportes_logistica_stock_cuy'),
     path('Logistica/pendiente_despacho', views.Pedidos_pendiente_despacho, name='reportes_logistica_pedidos_pendiente_despacho'),
     path('Logistica/MovimientosWms', views.MovimientosWms, name='reportes_logistica_movimientos_wms'),
+    path('Logistica/StockWmsDestino', views.StockWmsDestino, name='reportes_logistica_stock_wms_destino'),
     path('Logistica/GestionTransferencias', views.GestionTransferencias, name='reportes_logistica_gestion_transferencias'),
 
     # Abastecimiento
