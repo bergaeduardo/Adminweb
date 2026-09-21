@@ -1,4 +1,5 @@
 import pprint
+from datetime import date, timedelta
 from django import template
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
@@ -62,7 +63,10 @@ def MovimientosWms(request):
     if request.GET:
         datos = myFilter
     else:
-        datos = RoMovimientosWms.objects.filter(ubic_destino='01')
+        # Sin filtros: limitar a los ultimos 7 dias para evitar traer
+        # todo el historico de la vista RO_MOVIMIENTOS_WMS.
+        fecha_desde = date.today() - timedelta(days=7)
+        datos = RoMovimientosWms.objects.filter(ubic_destino='01', fecha__gte=fecha_desde)
 
     return render(request,'appConsultasWMS/Mov_WMS.html',{'myFilter':myFilter,'registros':datos,'Nombre':Nombre})
 
