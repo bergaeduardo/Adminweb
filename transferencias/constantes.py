@@ -6,6 +6,7 @@ propósito: son los depósitos de proceso entre los que se mueve mercadería.
 """
 
 DEPOSITOS_HABILITADOS = {
+    '03': 'RESERVA',
     '04': 'OUTLET',
     '06': 'FALLAS',
     '10': 'RECODIFICACIONES',

@@ -27,7 +27,7 @@ BEGIN
        la default de LAKER_SA (Modern_Spanish_CI_AI) y chocaría contra las
        columnas del staging, que son Latin1_General_BIN. */
     DECLARE @DepHabilitados TABLE (Cod CHAR(2) COLLATE Latin1_General_BIN PRIMARY KEY);
-    INSERT @DepHabilitados (Cod) VALUES ('04'), ('06'), ('10'), ('20');
+    INSERT @DepHabilitados (Cod) VALUES ('03'), ('04'), ('06'), ('10'), ('20');
 
     /* ---------------------------------------------------------------- 0
        Reset y normalización. Se limpia el veredicto anterior para que el SP
@@ -159,8 +159,8 @@ BEGIN
        interesan, y está bien: se joinea localmente contra los pares exactos.
        Sobre-traer es mucho más barato que correlacionar remotamente.
 
-       La lista de ubicaciones son TODAS las de los 4 depósitos habilitados
-       (hoy 52), no solo las del lote. Cuesta prácticamente lo mismo — el costo
+       La lista de ubicaciones son TODAS las de los 5 depósitos habilitados
+       (hoy 56), no solo las del lote. Cuesta prácticamente lo mismo — el costo
        lo dominan los seeks por artículo — y con eso este único viaje remoto
        alimenta las dos cosas: la validación de stock de la sección 7 y las
        sugerencias de la 8. Antes eran dos OPENQUERY, y el segundo era un
@@ -204,12 +204,12 @@ BEGIN
     /* ---------------------------------------------------------------- 5
        Stock de depósito (sta19) y partidas (sta10).
 
-       A diferencia de la v1, se traen para LOS 4 DEPÓSITOS HABILITADOS y para
+       A diferencia de la v1, se traen para LOS 5 DEPÓSITOS HABILITADOS y para
        los artículos de AMBAS puntas, no solo para el par (DepOrigen, ArtOrigen):
          - el destino hace falta para validar sus partidas;
          - los otros depósitos hacen falta para armar la sugerencia de "el
            artículo no está acá pero sí está allá".
-       Sigue siendo un seek por IX_0 (COD_DEPOSI, COD_ARTICU): son 4 depósitos
+       Sigue siendo un seek por IX_0 (COD_DEPOSI, COD_ARTICU): son 5 depósitos
        por la cantidad de artículos del lote.
 
        El predicado compara las columnas sin envolverlas en RTRIM para que el
@@ -359,13 +359,13 @@ BEGIN
         OR ArticuloN IS NULL OR ArtDestinoN IS NULL);
 
     INSERT #Err (Fila, Prioridad, Mensaje)
-    SELECT Fila, 11, 'el depósito de origen "' + ISNULL(DepOrigen, '') + '" no está habilitado (04/06/10/20)'
+    SELECT Fila, 11, 'el depósito de origen "' + ISNULL(DepOrigen, '') + '" no está habilitado (03/04/06/10/20)'
     FROM dbo.EB_TransferDepositoDet
     WHERE IdLote = @IdLote
       AND (DepOrigenN IS NULL OR DepOrigenN NOT IN (SELECT Cod FROM @DepHabilitados));
 
     INSERT #Err (Fila, Prioridad, Mensaje)
-    SELECT Fila, 11, 'el depósito de destino "' + ISNULL(DepDestino, '') + '" no está habilitado (04/06/10/20)'
+    SELECT Fila, 11, 'el depósito de destino "' + ISNULL(DepDestino, '') + '" no está habilitado (03/04/06/10/20)'
     FROM dbo.EB_TransferDepositoDet
     WHERE IdLote = @IdLote
       AND (DepDestinoN IS NULL OR DepDestinoN NOT IN (SELECT Cod FROM @DepHabilitados));
@@ -526,7 +526,7 @@ BEGIN
         RETURN 0;
 
     /* No hace falta ningún viaje remoto extra: #SaldoUbic ya trae el saldo de
-       los artículos del lote en TODAS las ubicaciones de los 4 depósitos.
+       los artículos del lote en TODAS las ubicaciones de los 5 depósitos.
 
        Una sugerencia por (fila, ubicación con saldo). Se excluye el lugar que
        el usuario ya puso, que es justamente el que no tiene stock. */

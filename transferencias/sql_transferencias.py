@@ -51,7 +51,7 @@ def ubicaciones_habilitadas():
     """Todas las ubicaciones de los depósitos habilitados, para poblar los
     desplegables del modo escaneo sin un round trip por cada elección.
 
-    Son 52 en total (~2 KB), así que se embeben enteras en la página. Eso
+    Son 56 en total (~2 KB), así que se embeben enteras en la página. Eso
     además elimina el tipeo de ubicaciones, que es la causa de rechazo más
     común del modo manual.
     """
