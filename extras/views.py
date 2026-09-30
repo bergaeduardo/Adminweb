@@ -36,11 +36,14 @@ from django.shortcuts import render, redirect
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from consultasLakersBis.forms import sucursalesform, SucursalesLakersCompletaForm
+import logging
 import os
 import subprocess
 import uuid
-from django.db import connections
+from django.db import connections, transaction
 from django.templatetags.static import static
+
+logger = logging.getLogger(__name__)
 
 
 def usuario_es_admin_o_sistemas(user):
@@ -58,42 +61,60 @@ def _sync_punto_de_venta(nro_sucursal, nombre, activo):
     if not nro_sucursal:
         return
     SISTEMA_PLACEHOLDER = '00000000-0000-0000-0000-000000000000'
-    with connections['mi_db_5'].cursor() as cursor:
-        cursor.execute(
-            "SELECT nombre, activo FROM PuntosDeVenta WHERE idTango = %s",
-            [nro_sucursal]
-        )
-        row = cursor.fetchone()
-        nuevo_activo = 1 if activo else 0
-        if row is None:
-            # Columnas que en la tabla nunca aparecen en NULL (numero, nombre, direccion,
-            # localidad, idProvincia, telefono, fax, email, web, idTipoPuntoVenta, idZona,
-            # esShopping, fechas/usuarios, activo, Grupo_Benchmark) se completan con un default
-            # neutro; idTango/local_referente/SupervisorAsignado sí admiten NULL.
-            cursor.execute(
-                """
-                INSERT INTO PuntosDeVenta
-                    (id, numero, idTango, nombre, direccion, localidad, idProvincia, telefono,
-                     fax, email, web, idTipoPuntoVenta, idZona, esShopping,
-                     fechaCreacion, usuarioCreacion, fechaUltMod, usuarioUltMod,
-                     activo, local_referente, Grupo_Benchmark, SupervisorAsignado)
-                VALUES (%s, 0, %s, %s, '', '', 1, '', '', '', '', 1, 1, 0,
-                        GETDATE(), %s, GETDATE(), %s, %s, NULL, 0, NULL)
-                """,
-                [str(uuid.uuid4()).upper(), nro_sucursal, nombre,
-                 SISTEMA_PLACEHOLDER, SISTEMA_PLACEHOLDER, nuevo_activo]
-            )
-        else:
-            db_nombre, db_activo = row
-            if db_nombre != nombre or db_activo != nuevo_activo:
+    nombre = (nombre or '').strip()
+    nuevo_activo = 1 if activo else 0
+
+    try:
+        with transaction.atomic(using='mi_db_5'):
+            with connections['mi_db_5'].cursor() as cursor:
+                # WITH (UPDLOCK, HOLDLOCK) retiene el lock hasta el commit de la
+                # transaccion, cerrando la ventana de carrera entre el SELECT y
+                # el INSERT/UPDATE para el mismo idTango (2 requests concurrentes
+                # ya no pueden ver ambos row is None e insertar duplicado).
                 cursor.execute(
                     """
-                    UPDATE PuntosDeVenta
-                    SET nombre = %s, activo = %s, fechaUltMod = GETDATE(), usuarioUltMod = %s
+                    SELECT nombre, activo
+                    FROM PuntosDeVenta WITH (UPDLOCK, HOLDLOCK)
                     WHERE idTango = %s
                     """,
-                    [nombre, nuevo_activo, SISTEMA_PLACEHOLDER, nro_sucursal]
+                    [nro_sucursal]
                 )
+                row = cursor.fetchone()
+                if row is None:
+                    # Columnas que en la tabla nunca aparecen en NULL (numero, nombre, direccion,
+                    # localidad, idProvincia, telefono, fax, email, web, idTipoPuntoVenta, idZona,
+                    # esShopping, fechas/usuarios, activo, Grupo_Benchmark) se completan con un default
+                    # neutro; idTango/local_referente/SupervisorAsignado sí admiten NULL.
+                    cursor.execute(
+                        """
+                        INSERT INTO PuntosDeVenta
+                            (id, numero, idTango, nombre, direccion, localidad, idProvincia, telefono,
+                             fax, email, web, idTipoPuntoVenta, idZona, esShopping,
+                             fechaCreacion, usuarioCreacion, fechaUltMod, usuarioUltMod,
+                             activo, local_referente, Grupo_Benchmark, SupervisorAsignado)
+                        VALUES (%s, 0, %s, %s, '', '', 1, '', '', '', '', 1, 1, 0,
+                                GETDATE(), %s, GETDATE(), %s, %s, NULL, 0, NULL)
+                        """,
+                        [str(uuid.uuid4()).upper(), nro_sucursal, nombre,
+                         SISTEMA_PLACEHOLDER, SISTEMA_PLACEHOLDER, nuevo_activo]
+                    )
+                else:
+                    db_nombre, db_activo = row
+                    db_nombre = (db_nombre or '').strip()
+                    if db_nombre != nombre or bool(db_activo) != bool(nuevo_activo):
+                        cursor.execute(
+                            """
+                            UPDATE PuntosDeVenta
+                            SET nombre = %s, activo = %s, fechaUltMod = GETDATE(), usuarioUltMod = %s
+                            WHERE idTango = %s
+                            """,
+                            [nombre, nuevo_activo, SISTEMA_PLACEHOLDER, nro_sucursal]
+                        )
+    except Exception:
+        logger.exception(
+            "Fallo sincronizando PuntosDeVenta para nro_sucursal=%s", nro_sucursal
+        )
+        raise
 
 @login_required(login_url="/login/")
 def runscript(request):
@@ -155,6 +176,10 @@ def eliminarSucursal(request, id):
         nombre = f"{sucursal.nro_sucursal} - {sucursal.desc_sucursal}"
         sucursal.habilitado = False
         sucursal.save()
+        try:
+            _sync_punto_de_venta(sucursal.nro_sucursal, sucursal.desc_sucursal, sucursal.habilitado)
+        except Exception:
+            logger.exception('Sync PuntosDeVenta falló al deshabilitar sucursal %s', sucursal.nro_sucursal)
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'ok': True, 'mensaje': f'Sucursal {nombre} deshabilitada.'})
         messages.success(request, f'Sucursal {nombre} deshabilitada exitosamente.')
