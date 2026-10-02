@@ -491,6 +491,40 @@ document.addEventListener('DOMContentLoaded', function() {
                         ${props.observaciones ? `<tr><th>Observaciones:</th><td>${props.observaciones}</td></tr>` : ''}
                     </table>
                 `;
+                
+                if (props.items_desglose && props.items_desglose.length > 0) {
+                    var itemsRows = props.items_desglose.map(function(item) {
+                        return `
+                            <tr>
+                                <td><strong>${item.cod_articulo}</strong></td>
+                                <td class="text-muted"><small>${item.descripcion}</small></td>
+                                <td class="text-center font-weight-bold text-primary">${item.cantidad}</td>
+                                <td><span class="badge badge-light border">${item.orden_compra || '-'}</span></td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    detalleHTML += `
+                        <div class="mt-3">
+                            <h6 class="font-weight-bold text-secondary mb-2"><i class="fas fa-boxes mr-1"></i> Desglose de Mercadería (${props.items_desglose.length} artículos)</h6>
+                            <div class="table-responsive" style="max-height: 220px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px;">
+                                <table class="table table-sm table-bordered table-striped mb-0">
+                                    <thead class="bg-light sticky-top" style="position: sticky; top: 0; z-index: 1;">
+                                        <tr>
+                                            <th>Cód. Artículo</th>
+                                            <th>Descripción</th>
+                                            <th class="text-center" style="width: 100px;">Cant. (U.)</th>
+                                            <th>Orden Compra</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${itemsRows}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                }
             }
 
             $('#modalDetalleReservaBody').html(detalleHTML);

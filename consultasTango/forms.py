@@ -271,8 +271,8 @@ class TurnoReservaForm(forms.ModelForm):
         
         # Si estamos editando, aplicar restricciones según estado y fecha
         if self.instance and self.instance.pk:
-            # Si el estado NO es RESERVADO, deshabilitar todos los campos editables (excepto observaciones)
-            if self.instance.estado and self.instance.estado.nombre != 'RESERVADO':
+            # Si el estado NO permite editar, deshabilitar todos los campos editables (excepto observaciones)
+            if self.instance.estado and not self.instance.estado.permite_editar:
                 # Deshabilitar campos de datos principales
                 self.fields['codigo_proveedor'].widget.attrs['readonly'] = True
                 self.fields['nombre_proveedor'].widget.attrs['readonly'] = True
@@ -284,7 +284,7 @@ class TurnoReservaForm(forms.ModelForm):
                 self.fields['cantidad_bultos'].widget.attrs['readonly'] = True
                 # Observaciones sigue siendo editable
                 
-                # Hacer campos opcionales para estados distintos de RESERVADO
+                # Hacer campos opcionales para estados en solo lectura
                 self.fields['codigo_proveedor'].required = False
                 self.fields['fecha'].required = False
                 self.fields['hora_inicio'].required = False
@@ -293,7 +293,7 @@ class TurnoReservaForm(forms.ModelForm):
                 self.fields['remitos'].required = False
                 self.fields['cantidad_unidades'].required = False
             else:
-                # Si estamos en RESERVADO pero la fecha ya pasó estrictamente, deshabilitar fecha y hora
+                # Si la fecha ya pasó estrictamente, deshabilitar fecha y hora
                 hoy = date.today()
                 # Omitir esta restricción si es un bloqueo manual existente para permitir moverlo
                 if self.instance.fecha < hoy and not (self.instance.codigo_proveedor in ['HOT', 'INV', 'CYBER', 'ALTA']):

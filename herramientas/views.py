@@ -383,7 +383,8 @@ def obtener_turnos_calendario(request):
                     'estado_color': color,
                     'permite_editar': turno.estado.permite_editar if turno.estado else True,
                     'usuario_creador': turno.usuario_creador,
-                    'isManualBlock': es_bloqueo_manual
+                    'isManualBlock': es_bloqueo_manual,
+                    'items_desglose': turno.get_items_desglose()
                 }
             })
         
@@ -904,7 +905,7 @@ Este es un mensaje automático generado por el Calendario de Reservas.
 def editar_reserva_turno(request, turno_id):
     """
     Vista para editar una reserva de turno existente
-    Registra cambios de estado y modificaciones en historial
+    Registra cambios de estado, desglose de mercadería y modificaciones en historial
     Valida que no se puedan editar turnos de hoy o fechas pasadas
     Muestra en modo solo lectura si el estado no permite editar
     """
@@ -933,10 +934,81 @@ def editar_reserva_turno(request, turno_id):
         cantidad_unidades_anterior = turno.cantidad_unidades
         cantidad_bultos_anterior = turno.cantidad_bultos
         observaciones_anterior = turno.observaciones
+        detalle_items_anterior = turno.detalle_items
         
-        form = TurnoReservaForm(request.POST, instance=turno, user=request.user)
+        # Procesar detalle de ítems (desglose de mercadería) si se envió
+        detalle_items_json = request.POST.get('detalle_items_json')
+        items_modificados = False
+        nuevo_detalle_items_str = turno.detalle_items
+        total_unidades_calculado = None
+        cambios_items = []
+        items_anteriores = turno.get_items_desglose()
+        items_validos = []
+        
+        if detalle_items_json is not None:
+            try:
+                items_data = json.loads(detalle_items_json) if isinstance(detalle_items_json, str) else detalle_items_json
+                if isinstance(items_data, list):
+                    dict_ant = {(it['cod_articulo'], it.get('orden_compra', '').strip()): it['cantidad'] for it in items_anteriores}
+                    
+                    dict_nue = {}
+                    for it in items_data:
+                        sku = str(it.get('cod_articulo', '')).strip()
+                        desc = str(it.get('descripcion', '')).strip().replace(':', '-').replace('|', '-')
+                        oc = str(it.get('nro_oc', it.get('orden_compra', ''))).strip()
+                        if not oc:
+                            oc = formatear_orden_compra(turno.orden_compra).split(',')[0].strip() if turno.orden_compra else ''
+                        try:
+                            cant_val = float(it.get('cantidad_a_entregar', it.get('cantidad', 0)))
+                            cant = int(cant_val) if cant_val.is_integer() else cant_val
+                        except (ValueError, TypeError):
+                            cant = 0
+                        
+                        if sku and cant > 0:
+                            items_validos.append({
+                                'cod_articulo': sku,
+                                'descripcion': desc,
+                                'cantidad': cant,
+                                'orden_compra': oc
+                            })
+                            dict_nue[(sku, oc)] = cant
+                    
+                    nuevo_detalle_items_str = "|".join([f"{it['cod_articulo']}:{it['descripcion']}:{it['cantidad']}:{it['orden_compra']}" for it in items_validos])
+                    total_unidades_calculado = sum(it['cantidad'] for it in items_validos)
+                    
+                    # Detectar diferencias
+                    todas_claves = set(dict_ant.keys()).union(set(dict_nue.keys()))
+                    for (sku_k, oc_k) in sorted(todas_claves):
+                        cant_a = dict_ant.get((sku_k, oc_k), 0)
+                        cant_n = dict_nue.get((sku_k, oc_k), 0)
+                        if cant_a != cant_n:
+                            oc_info = f" [OC: {oc_k}]" if oc_k else ""
+                            if cant_a == 0:
+                                cambios_items.append(f"Agregado {sku_k}{oc_info}: +{cant_n} u.")
+                            elif cant_n == 0:
+                                cambios_items.append(f"Eliminado {sku_k}{oc_info}: era {cant_a} u.")
+                            else:
+                                cambios_items.append(f"Modificado {sku_k}{oc_info}: {cant_a} → {cant_n} u.")
+                    
+                    if cambios_items or (detalle_items_anterior or '') != (nuevo_detalle_items_str or ''):
+                        items_modificados = True
+            except Exception as e_json:
+                print(f"Error parseando detalle_items_json: {str(e_json)}")
+        
+        # Preparar datos POST para el formulario: si se calcularon unidades por desglose, sincronizar en POST
+        post_data = request.POST.copy()
+        if total_unidades_calculado is not None and total_unidades_calculado > 0:
+            post_data['cantidad_unidades'] = str(int(total_unidades_calculado))
+            
+        form = TurnoReservaForm(post_data, instance=turno, user=request.user)
         if form.is_valid():
             turno_actualizado = form.save(commit=False)
+            
+            # Aplicar actualización de desglose de mercadería si cambió
+            if items_modificados:
+                turno_actualizado.detalle_items = nuevo_detalle_items_str
+                if total_unidades_calculado is not None:
+                    turno_actualizado.cantidad_unidades = int(total_unidades_calculado)
             
             hubo_cambio_estado = estado_anterior != turno_actualizado.estado
             
@@ -1002,6 +1074,16 @@ def editar_reserva_turno(request, turno_id):
                     'nuevo': str(turno_actualizado.cantidad_unidades or 0)
                 })
 
+            if cambios_items:
+                resumen_cambios_str = "; ".join(cambios_items[:6])
+                if len(cambios_items) > 6:
+                    resumen_cambios_str += f" ... (+{len(cambios_items)-6} más)"
+                lista_cambios.append({
+                    'campo': 'Desglose Mercadería',
+                    'anterior': f"{len(items_anteriores)} ítems ({cantidad_unidades_anterior} u.)",
+                    'nuevo': f"{len(items_validos)} ítems ({turno_actualizado.cantidad_unidades} u.) [{resumen_cambios_str}]"
+                })
+
             if (observaciones_anterior or '').strip() != (turno_actualizado.observaciones or '').strip():
                 lista_cambios.append({
                     'campo': 'Observaciones',
@@ -1050,6 +1132,9 @@ def editar_reserva_turno(request, turno_id):
     # Obtener códigos de error activos para el modal
     codigos_error = CodigosError.objects.filter(Activo=True).order_by('Categoria', 'CodigoError')
     
+    # Obtener desglose de items actual
+    items_desglose = turno.get_items_desglose()
+    
     return render(request, 'appConsultasTango/editar_reserva_turno.html', {
         'form': form,
         'turno': turno,
@@ -1058,6 +1143,9 @@ def editar_reserva_turno(request, turno_id):
         'incidencias': incidencias,
         'codigos_error': codigos_error,
         'solo_lectura': solo_lectura,
+        'items_desglose': items_desglose,
+        'items_desglose_json': json.dumps(items_desglose),
+        'orden_compra_formateada': formatear_orden_compra(turno.orden_compra),
         'Nombre': f"{'Ver' if solo_lectura else 'Editar'} Turno #{turno.id_turno_reserva}"
     })
 
@@ -1457,6 +1545,103 @@ def get_ordenes_compra_importadas(request):
             return JsonResponse({'ordenes': ordenes})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required(login_url="/login/")
+def get_items_orden_compra(request):
+    """
+    API AJAX que retorna los ítems de las Órdenes de Compra consultando CPA36 (Tango),
+    descontando las cantidades ya reservadas o entregadas en otros turnos activos.
+    Si se pasa turno_id, se excluyen las reservas de ese turno para permitir su edición.
+    """
+    ocs_raw = request.GET.get('ocs', '').strip()
+    turno_id = request.GET.get('turno_id')
+    
+    if not ocs_raw:
+        return JsonResponse({'items': []})
+    
+    oc_clean_str = ocs_raw.replace('[', '').replace(']', '').replace("'", '').replace('"', '')
+    oc_list = [oc.strip() for oc in oc_clean_str.split(',') if oc.strip()]
+    
+    if not oc_list:
+        return JsonResponse({'items': []})
+    
+    try:
+        with connections['mi_db_2'].cursor() as cursor:
+            # 1. Obtener ítems de Tango (CPA36)
+            placeholders = ', '.join(['%s'] * len(oc_list))
+            sql_tango = f"""
+                SELECT LTRIM(RTRIM(COD_ARTICU)), LTRIM(RTRIM(DESCRIPCION_ARTICULO)), CAN_PEDIDA, CAN_RECIBI, LTRIM(RTRIM(N_ORDEN_CO))
+                FROM CPA36
+                WHERE LTRIM(RTRIM(N_ORDEN_CO)) IN ({placeholders})
+                ORDER BY COD_ARTICU
+            """
+            cursor.execute(sql_tango, oc_list)
+            rows_tango = cursor.fetchall()
+            
+            # 2. Obtener turnos con estados activos / en proceso
+            sql_turnos = """
+                SELECT detalle_items, id_estado, id_turno_reserva 
+                FROM TurnoReserva 
+                WHERE id_estado IN (1, 2, 3, 4, 5, 6, 7, 8) 
+                AND detalle_items IS NOT NULL
+            """
+            params_turnos = []
+            if turno_id:
+                try:
+                    t_id_int = int(turno_id)
+                    sql_turnos += " AND id_turno_reserva != %s"
+                    params_turnos.append(t_id_int)
+                except (ValueError, TypeError):
+                    pass
+            
+            cursor.execute(sql_turnos, params_turnos)
+            active_appointments = cursor.fetchall()
+            
+            cant_en_turnos = {}
+            for app_row in active_appointments:
+                items_str = app_row[0]
+                if not items_str:
+                    continue
+                for item_part in str(items_str).split('|'):
+                    parts = item_part.split(':')
+                    if len(parts) >= 3:
+                        sku = parts[0].strip()
+                        try:
+                            cant = float(parts[2]) if parts[2] else 0.0
+                        except ValueError:
+                            cant = 0.0
+                        oc = parts[3].strip() if len(parts) >= 4 else ''
+                        key = (sku, oc)
+                        cant_en_turnos[key] = cant_en_turnos.get(key, 0.0) + cant
+                        if not oc:
+                            cant_en_turnos[(sku, '')] = cant_en_turnos.get((sku, ''), 0.0) + cant
+            
+            # 3. Consolidar datos
+            data = []
+            for row in rows_tango:
+                sku = str(row[0]).strip()
+                desc = str(row[1]).strip()
+                cant_pedida = float(row[2]) if row[2] is not None else 0.0
+                cant_recibida_tango = float(row[3]) if row[3] is not None else 0.0
+                oc = str(row[4]).strip()
+                
+                total_otros_turnos = cant_en_turnos.get((sku, oc), cant_en_turnos.get((sku, ''), 0.0))
+                ya_entregado = max(cant_recibida_tango, total_otros_turnos)
+                cant_disponible = max(0.0, cant_pedida - ya_entregado)
+                
+                data.append({
+                    'cod_articulo': sku,
+                    'descripcion': desc,
+                    'cantidad_planificada': int(cant_pedida) if cant_pedida.is_integer() else cant_pedida,
+                    'cantidad_recibida_tango': int(ya_entregado) if isinstance(ya_entregado, float) and ya_entregado.is_integer() else ya_entregado,
+                    'cantidad_disponible': int(cant_disponible) if cant_disponible.is_integer() else cant_disponible,
+                    'nro_oc': oc
+                })
+            
+            return JsonResponse({'items': data})
+    except Exception as e:
+        return JsonResponse({'items': [], 'error': f'Error al consultar ítems de OC: {str(e)}'}, status=500)
 
 
 # ============================================================================

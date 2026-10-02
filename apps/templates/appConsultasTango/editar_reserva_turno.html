@@ -245,6 +245,126 @@
                                     </div>
                                 </div>
 
+                                <!-- Desglose de Mercadería -->
+                                <input type="hidden" name="detalle_items_json" id="id_detalle_items_json" value="{{ items_desglose_json }}">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="card card-outline card-primary mb-4" style="box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);">
+                                            <div class="card-header py-2 d-flex align-items-center justify-content-between bg-light">
+                                                <h3 class="card-title text-primary font-weight-bold mb-0" style="font-size: 1rem;">
+                                                    <i class="fas fa-boxes mr-1"></i> Desglose de Mercadería del Turno
+                                                </h3>
+                                                <div class="card-tools d-flex align-items-center">
+                                                    <span class="badge badge-info mr-2" id="badgeTotalItemsCount">0 artículos</span>
+                                                    <span class="badge badge-success font-weight-bold" id="badgeTotalUnidadesDesglose">0 u. totales</span>
+                                                </div>
+                                            </div>
+                                            <div class="card-body p-3">
+                                                {% if solo_lectura %}
+                                                    {% if items_desglose %}
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-bordered table-hover mb-0">
+                                                            <thead class="bg-light">
+                                                                <tr>
+                                                                    <th>Cód. Artículo</th>
+                                                                    <th>Descripción</th>
+                                                                    <th class="text-center" style="width: 120px;">Cantidad (U.)</th>
+                                                                    <th>Orden de Compra</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for it in items_desglose %}
+                                                                <tr>
+                                                                    <td><strong>{{ it.cod_articulo }}</strong></td>
+                                                                    <td>{{ it.descripcion }}</td>
+                                                                    <td class="text-center font-weight-bold text-primary">{{ it.cantidad }}</td>
+                                                                    <td><span class="badge badge-light border">{{ it.orden_compra }}</span></td>
+                                                                </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    {% else %}
+                                                    <p class="text-muted mb-0 font-italic">No hay desglose de mercadería registrado para este turno.</p>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <div class="row mb-2">
+                                                        <div class="col-md-6 col-sm-12 mb-2 mb-md-0">
+                                                            <div class="input-group input-group-sm">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                                                </div>
+                                                                <input type="text" id="filtroDesglose" class="form-control" placeholder="Buscar por código o descripción en el turno...">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6 col-sm-12 text-md-right">
+                                                            <button type="button" class="btn btn-outline-primary btn-sm" id="btnMostrarDisponiblesOC" data-toggle="collapse" data-target="#collapseDisponiblesOC" aria-expanded="false">
+                                                                <i class="fas fa-plus-circle mr-1"></i> Agregar Artículos de la OC <span class="badge badge-secondary ml-1" id="badgeDisponiblesCount">0</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Tabla de Artículos en el Turno -->
+                                                    <div class="table-responsive" style="max-height: 380px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px;">
+                                                        <table class="table table-sm table-bordered table-hover mb-0" id="tablaItemsTurno">
+                                                            <thead class="bg-light" style="position: sticky; top: 0; z-index: 2;">
+                                                                <tr>
+                                                                    <th>Cód. Artículo</th>
+                                                                    <th>Descripción</th>
+                                                                    <th class="text-center" style="width: 100px;">Planif. OC</th>
+                                                                    <th class="text-center" style="width: 110px;">Otros / Tango</th>
+                                                                    <th class="text-center" style="width: 100px;">Disp. Máx</th>
+                                                                    <th class="text-center" style="width: 130px;">A Entregar</th>
+                                                                    <th class="text-center" style="width: 100px;">Pendiente</th>
+                                                                    <th class="text-center" style="width: 70px;">Acción</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="tbodyItemsTurno">
+                                                                <tr>
+                                                                    <td colspan="8" class="text-center py-3 text-muted">
+                                                                        <i class="fas fa-spinner fa-spin mr-1"></i> Cargando mercadería del turno...
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+
+                                                    <!-- Acordeón / Colapsable para agregar otros artículos de la OC -->
+                                                    <div class="collapse mt-3" id="collapseDisponiblesOC">
+                                                        <div class="card card-body bg-light p-3 border mb-0">
+                                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                <h6 class="mb-0 font-weight-bold text-secondary">
+                                                                    <i class="fas fa-list-alt mr-1"></i> Artículos de la OC con saldo disponible para agregar
+                                                                </h6>
+                                                                <input type="text" id="filtroDisponibles" class="form-control form-control-sm" placeholder="Buscar en disponibles..." style="max-width: 220px;">
+                                                            </div>
+                                                            <div class="table-responsive" style="max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px;">
+                                                                <table class="table table-sm table-bordered bg-white mb-0" id="tablaDisponiblesOC">
+                                                                    <thead class="bg-light" style="position: sticky; top: 0; z-index: 2;">
+                                                                        <tr>
+                                                                            <th>Cód. Artículo</th>
+                                                                            <th>Descripción</th>
+                                                                            <th class="text-center">OC</th>
+                                                                            <th class="text-center">Planificada</th>
+                                                                            <th class="text-center">Disponible</th>
+                                                                            <th class="text-center" style="width: 100px;">Acción</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody id="tbodyDisponiblesOC">
+                                                                        <tr>
+                                                                            <td colspan="6" class="text-center text-muted py-2">Cargando artículos de la OC...</td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
@@ -669,6 +789,9 @@ var puedeEditar = {% if turno.estado and turno.estado.nombre == 'RESERVADO' %}tr
 $(document).ready(function() {
     // Cargar adjuntos al iniciar
     cargarAdjuntos();
+    
+    // Inicializar desglose de mercadería
+    inicializarDesgloseMercaderia();
     
     // Mostrar mensajes Django con SweetAlert2
     {% if messages %}
@@ -1137,6 +1260,275 @@ function eliminarAdjunto(adjuntoId) {
             });
         }
     });
+}
+
+// =========================================================================
+// GESTIÓN DEL DESGLOSE DE MERCADERÍA
+// =========================================================================
+var ocsTurno = '{{ turno.orden_compra|escapejs }}';
+var itemsTurno = {{ items_desglose_json|safe }} || [];
+var articulosOCMaster = [];
+var soloLectura = {% if solo_lectura %}true{% else %}false{% endif %};
+
+function inicializarDesgloseMercaderia() {
+    if (soloLectura) {
+        return;
+    }
+
+    $('#filtroDesglose').on('input', function() {
+        renderizarTablaTurno();
+    });
+
+    $('#filtroDisponibles').on('input', function() {
+        renderizarTablaDisponibles();
+    });
+
+    $('form').on('submit', function() {
+        actualizarTotales();
+    });
+
+    // Cargar artículos disponibles de las OCs desde el endpoint
+    $.ajax({
+        url: '{% url "herramientas:herramientas_get_items_orden_compra" %}',
+        data: {
+            ocs: ocsTurno,
+            turno_id: turnoId
+        },
+        method: 'GET',
+        success: function(response) {
+            if (response && response.items) {
+                articulosOCMaster = response.items;
+            } else {
+                articulosOCMaster = [];
+            }
+            sincronizarYRenderizar();
+        },
+        error: function(xhr) {
+            console.error('Error al cargar items de OC:', xhr);
+            sincronizarYRenderizar();
+        }
+    });
+}
+
+function sincronizarYRenderizar() {
+    // Si itemsTurno está vacío pero articulosOCMaster tiene datos, inicializamos con 0
+    if ((!itemsTurno || itemsTurno.length === 0) && articulosOCMaster.length > 0) {
+        itemsTurno = articulosOCMaster.map(function(art) {
+            return {
+                cod_articulo: art.cod_articulo,
+                descripcion: art.descripcion,
+                cantidad: 0,
+                orden_compra: art.nro_oc
+            };
+        });
+    }
+
+    renderizarTablaTurno();
+    renderizarTablaDisponibles();
+    actualizarTotales();
+}
+
+function renderizarTablaTurno() {
+    var $tbody = $('#tbodyItemsTurno');
+    $tbody.empty();
+
+    var filtro = ($('#filtroDesglose').val() || '').toLowerCase().trim();
+
+    if (itemsTurno.length === 0) {
+        $tbody.html('<tr><td colspan="8" class="text-center py-3 text-muted">No hay artículos cargados en este turno. Use el botón "Agregar Artículos de la OC" para incorporar productos.</td></tr>');
+        return;
+    }
+
+    var filasVisibles = 0;
+    itemsTurno.forEach(function(it, index) {
+        var artMaster = articulosOCMaster.find(function(m) {
+            return m.cod_articulo === it.cod_articulo && (!it.orden_compra || !m.nro_oc || m.nro_oc === it.orden_compra);
+        }) || {};
+
+        var planif = artMaster.cantidad_planificada !== undefined ? artMaster.cantidad_planificada : it.cantidad;
+        var yaEntregado = artMaster.cantidad_recibida_tango !== undefined ? artMaster.cantidad_recibida_tango : 0;
+        var cantMaxDisp = artMaster.cantidad_disponible !== undefined ? (artMaster.cantidad_disponible + (parseFloat(it.cantidad) || 0)) : (parseFloat(it.cantidad) || 999999);
+        var cantActual = parseFloat(it.cantidad) || 0;
+        var pendiente = Math.max(0, cantMaxDisp - cantActual);
+
+        var cod = (it.cod_articulo || '').toLowerCase();
+        var desc = (it.descripcion || '').toLowerCase();
+        var isHidden = filtro && !(cod.includes(filtro) || desc.includes(filtro));
+        if (!isHidden) filasVisibles++;
+        var rowStyle = isHidden ? 'display: none;' : '';
+
+        var trHtml = `
+            <tr id="row-item-${index}" style="${rowStyle}">
+                <td class="align-middle">
+                    <strong>${it.cod_articulo}</strong>
+                    <div><span class="badge badge-light border"><small>OC: ${it.orden_compra || artMaster.nro_oc || '-'}</small></span></div>
+                </td>
+                <td class="align-middle"><small class="text-muted">${it.descripcion || '-'}</small></td>
+                <td class="text-center align-middle text-secondary font-weight-bold">${planif}</td>
+                <td class="text-center align-middle text-warning font-weight-bold">${yaEntregado}</td>
+                <td class="text-center align-middle text-info font-weight-bold">${cantMaxDisp}</td>
+                <td class="text-center align-middle" style="width: 130px;">
+                    <input type="number" class="form-control form-control-sm text-right font-weight-bold input-cant-item" 
+                           data-index="${index}" 
+                           data-max="${cantMaxDisp}" 
+                           min="0" 
+                           max="${cantMaxDisp}" 
+                           value="${cantActual}"
+                           oninput="modificarCantidadItem(${index}, this.value, ${cantMaxDisp})">
+                </td>
+                <td class="text-center align-middle font-weight-bold ${pendiente === 0 ? 'text-success' : 'text-primary'}" id="pending-val-${index}">
+                    ${pendiente}
+                </td>
+                <td class="text-center align-middle">
+                    <button type="button" class="btn btn-outline-danger btn-xs" title="Quitar artículo del turno" onclick="eliminarItemTurno(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        $tbody.append(trHtml);
+    });
+
+    if (filasVisibles === 0 && itemsTurno.length > 0) {
+        $tbody.append('<tr><td colspan="8" class="text-center py-2 text-muted">No se encontraron artículos que coincidan con la búsqueda.</td></tr>');
+    }
+}
+
+function renderizarTablaDisponibles() {
+    var $tbody = $('#tbodyDisponiblesOC');
+    $tbody.empty();
+
+    var filtro = ($('#filtroDisponibles').val() || '').toLowerCase().trim();
+
+    var itemsDisponibles = articulosOCMaster.filter(function(art) {
+        var estaEnTurno = itemsTurno.some(function(it) {
+            return it.cod_articulo === art.cod_articulo && (!it.orden_compra || it.orden_compra === art.nro_oc);
+        });
+        var cumpleFiltro = !filtro || (art.cod_articulo || '').toLowerCase().includes(filtro) || (art.descripcion || '').toLowerCase().includes(filtro);
+        return !estaEnTurno && art.cantidad_disponible > 0 && cumpleFiltro;
+    });
+
+    $('#badgeDisponiblesCount').text(itemsDisponibles.length);
+
+    if (itemsDisponibles.length === 0) {
+        $tbody.html('<tr><td colspan="6" class="text-center text-muted py-2">No hay otros artículos pendientes en la OC.</td></tr>');
+        return;
+    }
+
+    itemsDisponibles.forEach(function(art) {
+        var trHtml = `
+            <tr>
+                <td class="align-middle"><strong>${art.cod_articulo}</strong></td>
+                <td class="align-middle"><small>${art.descripcion}</small></td>
+                <td class="text-center align-middle"><span class="badge badge-light border">${art.nro_oc}</span></td>
+                <td class="text-center align-middle">${art.cantidad_planificada}</td>
+                <td class="text-center align-middle font-weight-bold text-success">${art.cantidad_disponible}</td>
+                <td class="text-center align-middle">
+                    <button type="button" class="btn btn-success btn-xs" onclick="agregarItemAlTurno('${art.cod_articulo}', '${art.nro_oc}', ${art.cantidad_disponible})">
+                        <i class="fas fa-plus"></i> Agregar
+                    </button>
+                </td>
+            </tr>
+        `;
+        $tbody.append(trHtml);
+    });
+}
+
+function modificarCantidadItem(index, valor, maxVal) {
+    var num = parseFloat(valor) || 0;
+    if (num < 0) num = 0;
+    
+    var $input = $(`input.input-cant-item[data-index="${index}"]`);
+    if (num > maxVal) {
+        $input.addClass('is-invalid');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Cantidad Excedida',
+            text: `La cantidad ingresada (${num}) supera el máximo disponible en la OC (${maxVal}).`,
+            confirmButtonColor: '#ffc107',
+            confirmButtonText: 'Corregir'
+        });
+        num = maxVal;
+        $input.val(num);
+        $input.removeClass('is-invalid');
+    } else {
+        $input.removeClass('is-invalid');
+    }
+
+    itemsTurno[index].cantidad = num;
+    
+    var pendiente = Math.max(0, maxVal - num);
+    var $pendingCell = $(`#pending-val-${index}`);
+    $pendingCell.text(pendiente);
+    if (pendiente === 0) {
+        $pendingCell.removeClass('text-primary').addClass('text-success');
+    } else {
+        $pendingCell.removeClass('text-success').addClass('text-primary');
+    }
+
+    actualizarTotales();
+}
+
+function agregarItemAlTurno(codArticulo, nroOc, cantDisponible) {
+    var artMaster = articulosOCMaster.find(function(m) {
+        return m.cod_articulo === codArticulo && (!nroOc || m.nro_oc === nroOc);
+    });
+
+    if (!artMaster) return;
+
+    itemsTurno.push({
+        cod_articulo: artMaster.cod_articulo,
+        descripcion: artMaster.descripcion,
+        cantidad: cantDisponible,
+        orden_compra: artMaster.nro_oc
+    });
+
+    renderizarTablaTurno();
+    renderizarTablaDisponibles();
+    actualizarTotales();
+}
+
+function eliminarItemTurno(index) {
+    itemsTurno.splice(index, 1);
+    renderizarTablaTurno();
+    renderizarTablaDisponibles();
+    actualizarTotales();
+}
+
+function actualizarTotales() {
+    var totalUnidades = 0;
+    var totalItemsConCantidad = 0;
+
+    itemsTurno.forEach(function(it) {
+        var cant = parseFloat(it.cantidad) || 0;
+        if (cant > 0) {
+            totalUnidades += cant;
+            totalItemsConCantidad++;
+        }
+    });
+
+    $('#badgeTotalItemsCount').text(`${totalItemsConCantidad} artículo${totalItemsConCantidad !== 1 ? 's' : ''}`);
+    $('#badgeTotalUnidadesDesglose').text(`${totalUnidades} u. totales`);
+
+    // Sincronizar input de cantidad_unidades del formulario si está presente
+    var $cantInput = $('input[name="cantidad_unidades"]');
+    if ($cantInput.length) {
+        $cantInput.val(totalUnidades);
+    }
+
+    // Sincronizar campo oculto JSON para el POST
+    var itemsParaEnviar = itemsTurno.filter(function(it) {
+        return (parseFloat(it.cantidad) || 0) > 0;
+    }).map(function(it) {
+        return {
+            cod_articulo: it.cod_articulo,
+            descripcion: it.descripcion,
+            cantidad_a_entregar: parseFloat(it.cantidad) || 0,
+            nro_oc: it.orden_compra || ''
+        };
+    });
+
+    $('#id_detalle_items_json').val(JSON.stringify(itemsParaEnviar));
 }
 </script>
 {% endblock javascripts %}

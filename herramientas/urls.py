@@ -39,6 +39,7 @@ urlpatterns = [
     path('historial_reservas', views.historial_general_reservas, name='herramientas_historial_general_reservas'),
     path('descargar_reporte_reservas', views.descargar_reporte_reservas, name='herramientas_descargar_reporte_reservas'),
     path('get_ordenes_compra_importadas', views.get_ordenes_compra_importadas, name='herramientas_get_ordenes_compra_importadas'),
+    path('get_items_orden_compra', views.get_items_orden_compra, name='herramientas_get_items_orden_compra'),
     
     # URLs para Gestión de Estados de Turnos (Admin y Logistica_Sup)
     path('estados_turno/listado', views.listado_estados_turno, name='herramientas_listado_estados_turno'),
